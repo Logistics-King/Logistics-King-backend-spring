@@ -1,0 +1,2 @@
+-- DML seed/reference data scripts live here.
+-- Keep runtime business data changes in application code, not seed scripts.
