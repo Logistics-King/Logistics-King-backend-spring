@@ -11,3 +11,13 @@ CREATE TABLE IF NOT EXISTS users (
     UNIQUE KEY uk_users_login_id (login_id),
     UNIQUE KEY uk_users_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS end_points (
+    url VARCHAR(255) NOT NULL,
+    role VARCHAR(30) NOT NULL,
+    description VARCHAR(255) NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (url, role),
+    UNIQUE KEY uk_end_points_url_role (url, role)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
