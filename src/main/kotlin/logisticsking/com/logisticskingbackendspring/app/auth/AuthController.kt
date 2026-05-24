@@ -13,12 +13,16 @@ import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
 import logisticsking.com.logisticskingbackendspring.domain.auth.AuthErrorCode
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.infra.security.TokenCookieManager
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "Auth", description = "인증 API")
 @RestController
 @RequestMapping("/api/v1/auth")
 class AuthController(
@@ -28,6 +32,7 @@ class AuthController(
     private val tokenCookieManager: TokenCookieManager,
 ) {
 
+    @Operation(summary = "로그인", description = "로그인 후 access token과 refresh token을 HttpOnly cookie로 내려줍니다.")
     @PostMapping("/login")
     fun login(
         @RequestBody request: AuthRequest.Login,
@@ -45,6 +50,11 @@ class AuthController(
         )
     }
 
+    @Operation(
+        summary = "토큰 재발급",
+        description = "refresh token cookie를 검증하고 access token과 refresh token을 재발급합니다.",
+        security = [SecurityRequirement(name = "refreshTokenCookie")],
+    )
     @PostMapping("/refresh")
     fun refresh(
         request: HttpServletRequest,
@@ -64,6 +74,11 @@ class AuthController(
         )
     }
 
+    @Operation(
+        summary = "로그아웃",
+        description = "Redis refresh token을 삭제하고 access/refresh cookie를 만료합니다.",
+        security = [SecurityRequirement(name = "refreshTokenCookie")],
+    )
     @PostMapping("/logout")
     fun logout(
         request: HttpServletRequest,

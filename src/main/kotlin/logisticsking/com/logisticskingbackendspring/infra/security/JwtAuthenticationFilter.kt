@@ -20,7 +20,7 @@ class JwtAuthenticationFilter(
 ) : OncePerRequestFilter() {
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
-        return request.servletPath.startsWith(AUTH_PATH)
+        return PUBLIC_PATHS.any { publicPath -> request.servletPath.startsWith(publicPath) }
     }
 
     override fun doFilterInternal(
@@ -53,6 +53,11 @@ class JwtAuthenticationFilter(
     }
 
     private companion object {
-        private const val AUTH_PATH = "/api/v1/auth/"
+        private val PUBLIC_PATHS = listOf(
+            "/api/v1/auth/",
+            "/swagger-ui.html",
+            "/swagger-ui/",
+            "/v3/api-docs",
+        )
     }
 }

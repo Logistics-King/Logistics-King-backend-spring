@@ -20,7 +20,7 @@ class EndPointAuthorizationFilter(
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         return !request.servletPath.startsWith(API_PATH) ||
-            request.servletPath.startsWith(AUTH_PATH)
+            PUBLIC_PATHS.any { publicPath -> request.servletPath.startsWith(publicPath) }
     }
 
     override fun doFilterInternal(
@@ -48,6 +48,8 @@ class EndPointAuthorizationFilter(
 
     private companion object {
         private const val API_PATH = "/api/v1/"
-        private const val AUTH_PATH = "/api/v1/auth/"
+        private val PUBLIC_PATHS = listOf(
+            "/api/v1/auth/",
+        )
     }
 }
