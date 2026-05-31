@@ -14,6 +14,16 @@ class EndPointRepositoryImpl(
         return endPointJpaRepository.findByRole(role).map { it.toDomain() }
     }
 
+    override fun existsByUrlAndRole(
+        url: String,
+        role: UserRole,
+    ): Boolean {
+        return endPointJpaRepository.existsByUrlAndRole(
+            url = url,
+            role = role,
+        )
+    }
+
     override fun save(endPoint: EndPoint): EndPoint {
         return endPointJpaRepository.save(EndPointJpaEntity.from(endPoint)).toDomain()
     }
