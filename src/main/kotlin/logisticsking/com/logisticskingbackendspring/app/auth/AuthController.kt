@@ -9,6 +9,7 @@ import logisticsking.com.logisticskingbackendspring.app.auth.dto.AuthResponse
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.LoginUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.LogoutUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.RefreshTokenUseCase
+import logisticsking.com.logisticskingbackendspring.app.auth.usecase.SignUpUseCase
 import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
 import logisticsking.com.logisticskingbackendspring.domain.auth.AuthErrorCode
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
@@ -26,14 +27,60 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/auth")
 class AuthController(
+    private val signUpUseCase: SignUpUseCase,
     private val loginUseCase: LoginUseCase,
     private val refreshTokenUseCase: RefreshTokenUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val tokenCookieManager: TokenCookieManager,
 ) {
 
+    @Operation(summary = "화주 회원가입", description = "화주 계정을 생성합니다.")
+    @PostMapping("/sign-up/vendor")
+    fun signUpVendor(
+        @RequestBody request: AuthRequest.SignUpVendor,
+    ): ApiResponse<AuthResponse.SignUp> {
+        val result = signUpUseCase.signUp(request.toCommand())
+
+        return ApiResponse.success(
+            response = AuthResponse.SignUp(
+                userId = result.userId.toString(),
+                role = result.role.name,
+            )
+        )
+    }
+
+    @Operation(summary = "대리점 회원가입", description = "택배 대리점 계정을 생성합니다.")
+    @PostMapping("/sign-up/agency")
+    fun signUpAgency(
+        @RequestBody request: AuthRequest.SignUpAgency,
+    ): ApiResponse<AuthResponse.SignUp> {
+        val result = signUpUseCase.signUp(request.toCommand())
+
+        return ApiResponse.success(
+            response = AuthResponse.SignUp(
+                userId = result.userId.toString(),
+                role = result.role.name,
+            )
+        )
+    }
+
+    @Operation(summary = "배송기사 회원가입", description = "배송기사 계정을 생성합니다.")
+    @PostMapping("/sign-up/driver")
+    fun signUpDriver(
+        @RequestBody request: AuthRequest.SignUpDriver,
+    ): ApiResponse<AuthResponse.SignUp> {
+        val result = signUpUseCase.signUp(request.toCommand())
+
+        return ApiResponse.success(
+            response = AuthResponse.SignUp(
+                userId = result.userId.toString(),
+                role = result.role.name,
+            )
+        )
+    }
+
     @Operation(summary = "로그인", description = "로그인 후 access token과 refresh token을 HttpOnly cookie로 내려줍니다.")
-    @PostMapping("/login")
+    @PostMapping(value = ["/sign-in", "/login"])
     fun login(
         @RequestBody request: AuthRequest.Login,
         response: HttpServletResponse,

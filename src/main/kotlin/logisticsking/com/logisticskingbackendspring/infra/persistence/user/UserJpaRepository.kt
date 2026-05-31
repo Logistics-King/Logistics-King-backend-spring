@@ -5,4 +5,6 @@ import java.util.UUID
 
 interface UserJpaRepository : JpaRepository<UserJpaEntity, UUID> {
     fun findByLoginId(loginId: String): UserJpaEntity?
+    fun existsByLoginId(loginId: String): Boolean
+    fun existsByEmail(email: String): Boolean
 }

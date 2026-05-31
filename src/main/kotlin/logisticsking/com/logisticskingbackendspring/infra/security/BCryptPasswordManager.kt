@@ -9,6 +9,10 @@ class BCryptPasswordManager(
     private val passwordEncoder: PasswordEncoder,
 ) : PasswordManager {
 
+    override fun encode(rawPassword: String): String {
+        return checkNotNull(passwordEncoder.encode(rawPassword))
+    }
+
     override fun matches(
         rawPassword: String,
         encodedPassword: String,

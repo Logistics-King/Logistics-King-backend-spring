@@ -18,6 +18,14 @@ class UserRepositoryImpl(
         return userJpaRepository.findByLoginId(loginId)?.toDomain()
     }
 
+    override fun existsByLoginId(loginId: String): Boolean {
+        return userJpaRepository.existsByLoginId(loginId)
+    }
+
+    override fun existsByEmail(email: String): Boolean {
+        return userJpaRepository.existsByEmail(email)
+    }
+
     override fun save(user: User): User {
         return userJpaRepository.save(UserJpaEntity.from(user)).toDomain()
     }
