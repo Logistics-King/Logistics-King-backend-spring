@@ -1,6 +1,5 @@
 package logisticsking.com.logisticskingbackendspring.infra.security
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPoint
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
@@ -12,6 +11,7 @@ import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
+import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
 class EndPointAuthorizationFilterTest {
