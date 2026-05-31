@@ -24,20 +24,60 @@ dependencies {
 }
 ```
 
-`application.properties`:
+`application.yml`:
 
-```properties
-spring.datasource.url=jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:logisticsking}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-spring.datasource.username=${DB_USERNAME:root}
-spring.datasource.password=${DB_PASSWORD:}
+```yaml
+spring:
+  application:
+    name: Logistics-King
 
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:logistics_king}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  sql:
+    init:
+      mode: never
+      encoding: UTF-8
 ```
 
-로컬 기본값은 `localhost:3306/logisticsking`, 사용자명 `root`, 비밀번호 없음이다. 환경마다 `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`로 override한다.
+로컬 기본값은 `localhost:3306/logistics_king`, 사용자명 `root`, 비밀번호 없음이다. 환경마다 `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`로 override한다.
+
+프로젝트 이름 `Logistics-King`은 MySQL에서 다루기 쉽도록 snake_case로 정규화해 기본 database 이름을 `logistics_king`으로 사용한다.
+
+## SQL 파일 관리
+
+모든 DDL/DML 스크립트는 `src/main/resources/sql` 아래에서 관리한다.
+
+```text
+src/main/resources/sql
+  ddl
+    000_create_database.sql
+    001_schema.sql
+  dml
+    001_seed.sql
+```
+
+규칙:
+
+- database 생성 스크립트는 `sql/ddl/000_create_database.sql`에 둔다.
+- schema DDL은 `sql/ddl/001_schema.sql`에 둔다.
+- seed/reference DML은 `sql/dml/001_seed.sql`에 둔다.
+- 로컬 개발 환경에서는 Hibernate `ddl-auto=create`를 유지한다.
+- SQL init은 자동 실행하지 않는다. `spring.sql.init.mode=never`를 유지한다.
+- DDL/DML 파일은 스키마와 데이터 변경 이력을 사람이 확인하고 필요할 때 수동 실행하기 위한 관리 파일이다.
+- 새 테이블이나 컬럼은 JPA Entity만 수정하지 말고 DDL 파일도 함께 수정한다.
+- 로컬 DB가 없으면 먼저 `000_create_database.sql`을 MySQL에 수동 실행한다.
 
 ## Entity와 Domain 분리
 
@@ -90,9 +130,44 @@ Spring Data repository는 JPA Entity만 다룬다.
 interface ContractRequestJpaRepository : JpaRepository<ContractRequestJpaEntity, Long>
 ```
 
+## ID 규칙
+
+`User` PK는 시간 순서 정렬이 가능한 UUID를 사용한다.
+
+규칙:
+
+- UUID 생성은 `domain.common.IdGenerator`를 통해 추상화한다.
+- 실제 구현체는 `infra.id.TimeOrderedUuidGenerator`를 사용한다.
+- 생성되는 UUID는 UUIDv7 형식이다.
+- 같은 millisecond 안에서 생성된 ID도 sequence로 생성 순서를 유지한다.
+- JPA Entity의 `User` ID 타입은 `UUID`를 사용한다.
+
+예시:
+
+```kotlin
+@Id
+@Column(columnDefinition = "BINARY(16)")
+val id: UUID
+```
+
+`users` 테이블 기본 컬럼:
+
+```text
+id BINARY(16) PRIMARY KEY
+login_id VARCHAR(50) UNIQUE NOT NULL
+email VARCHAR(255) UNIQUE NOT NULL
+encoded_password VARCHAR(255) NOT NULL
+name VARCHAR(50) NOT NULL
+role VARCHAR(30) NOT NULL
+created_at DATETIME(6) NOT NULL
+updated_at DATETIME(6) NOT NULL
+```
+
+다른 aggregate의 ID 타입은 요구사항에 따라 정하되, 새 aggregate에서 외부 노출이 큰 식별자는 UUID 사용을 우선 검토한다.
+
 ## Entity 작성 규칙
 
-ID 타입은 `Long`을 기본으로 한다.
+아래 예시는 일반 JPA Entity 작성 형태를 보여준다. `User` Entity는 위 ID 규칙에 따라 UUID를 사용한다.
 
 ```kotlin
 @Entity
@@ -170,17 +245,40 @@ val selectedProposalId: Long?
 
 ## Audit 필드
 
-JPA Entity에는 필요 시 audit 필드를 둔다.
+`created_at`, `updated_at`은 각 Entity에 반복해서 선언하지 않는다. 모든 JPA Entity는 `infra.persistence.common.BaseJpaEntity`를 상속해 audit 필드를 관리한다.
 
 ```kotlin
-@Column(nullable = false, updatable = false)
-val createdAt: LocalDateTime = LocalDateTime.now()
+@MappedSuperclass
+abstract class BaseJpaEntity {
 
-@Column(nullable = false)
-var updatedAt: LocalDateTime = LocalDateTime.now()
+    @Column(name = "created_at", nullable = false, updatable = false)
+    var createdAt: LocalDateTime? = null
+        protected set
+
+    @Column(name = "updated_at", nullable = false)
+    var updatedAt: LocalDateTime? = null
+        protected set
+
+    @PrePersist
+    protected fun prePersist() {
+        val now = LocalDateTime.now()
+        createdAt = now
+        updatedAt = now
+    }
+
+    @PreUpdate
+    protected fun preUpdate() {
+        updatedAt = LocalDateTime.now()
+    }
+}
 ```
 
-초기 프로토타입에서는 직접 값 설정을 허용한다. audit 정책이 복잡해지면 Spring Data JPA auditing 도입을 검토한다.
+규칙:
+
+- JPA Entity는 `BaseJpaEntity`를 상속한다.
+- `created_at`, `updated_at` 컬럼은 DDL 파일에도 함께 작성한다.
+- domain 객체에는 audit 필드를 무조건 넣지 않는다. 도메인 규칙에 필요한 경우에만 별도 필드로 둔다.
+- audit 정책이 복잡해지면 Spring Data JPA auditing 도입을 검토한다.
 
 ## Querydsl 위치
 
@@ -199,7 +297,8 @@ Querydsl 작성 규칙은 `.codex/querydsl.md`를 따른다.
 초기 프로토타입:
 
 - MySQL
-- `ddl-auto=update`
+- 로컬 개발 환경은 `ddl-auto=create`
+- SQL init 자동 실행 없음
 - schema migration 도구 없음
 
 운영 DB 도입 시:
