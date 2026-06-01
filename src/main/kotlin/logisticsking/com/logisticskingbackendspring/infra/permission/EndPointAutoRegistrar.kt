@@ -47,15 +47,23 @@ class EndPointAutoRegistrar(
             EndPoint.create(
                 url = url,
                 role = DEFAULT_ROLE,
-                description = AUTO_REGISTERED_DESCRIPTION,
+                description = describe(url),
             )
         )
+    }
+
+    private fun describe(url: String): String {
+        return when {
+            url.startsWith("/api/v1/vendors/me/products") -> "화주 배송 품목 관리 API"
+            url.startsWith("/api/v1/vendors/me") -> "화주 프로필 관리 API"
+            url.startsWith("/api/v1/vendors") -> "화주 API"
+            else -> "보호 API 권한 관리 URL"
+        }
     }
 
     private companion object {
         private const val API_PREFIX = "/api/v1/"
         private const val PUBLIC_AUTH_PREFIX = "/api/v1/auth/"
         private val DEFAULT_ROLE = UserRole.ADMIN
-        private const val AUTO_REGISTERED_DESCRIPTION = "자동 등록된 API"
     }
 }
