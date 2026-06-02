@@ -19,7 +19,7 @@ class EndPointAutoRegistrar(
     override fun run(args: ApplicationArguments) {
         findApiPatterns()
             .filter { url -> shouldRegister(url) }
-            .forEach { url -> registerIfAbsent(url) }
+            .forEach { url -> syncEndPoint(url) }
     }
 
     @Suppress("DEPRECATION")
@@ -38,22 +38,44 @@ class EndPointAutoRegistrar(
             !url.startsWith(PUBLIC_AUTH_PREFIX)
     }
 
-    private fun registerIfAbsent(url: String) {
-        if (endPointRepository.existsByUrl(url)) {
-            return
-        }
+    private fun syncEndPoint(url: String) {
+        val roles = rolesFor(url)
+        val description = describe(url)
+        val current = endPointRepository.findByUrl(url)
 
         endPointRepository.save(
-            EndPoint.create(
-                url = url,
-                roles = setOf(DEFAULT_ROLE),
-                description = describe(url),
-            )
+            current
+                ?.let {
+                    EndPoint.restore(
+                        id = it.id,
+                        url = it.url,
+                        roles = roles,
+                        description = description,
+                    )
+                }
+                ?: EndPoint.create(
+                    url = url,
+                    roles = roles,
+                    description = description,
+                )
         )
+    }
+
+    private fun rolesFor(url: String): Set<UserRole> {
+        val domainRoles = when {
+            url.startsWith("/api/v1/vendors") -> setOf(UserRole.VENDOR)
+            url.startsWith("/api/v1/agencies") -> setOf(UserRole.AGENCY)
+            url.startsWith("/api/v1/delivers") -> setOf(UserRole.DRIVER)
+            else -> emptySet()
+        }
+
+        return domainRoles + DEFAULT_ROLE
     }
 
     private fun describe(url: String): String {
         return when {
+            url.startsWith("/api/v1/delivers/me") -> "배송기사 프로필 관리 API"
+            url.startsWith("/api/v1/delivers") -> "배송기사 API"
             url.startsWith("/api/v1/agencies/me") -> "대리점 프로필 관리 API"
             url.startsWith("/api/v1/agencies") -> "대리점 API"
             url.startsWith("/api/v1/vendors/me/products") -> "화주 배송 품목 관리 API"

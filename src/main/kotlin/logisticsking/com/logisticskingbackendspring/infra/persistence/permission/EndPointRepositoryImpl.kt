@@ -13,6 +13,10 @@ class EndPointRepositoryImpl(
         return endPointJpaRepository.findAll().map { it.toDomain() }
     }
 
+    override fun findByUrl(url: String): EndPoint? {
+        return endPointJpaRepository.findByUrl(url)?.toDomain()
+    }
+
     override fun existsByUrl(url: String): Boolean {
         return endPointJpaRepository.existsByUrl(url)
     }

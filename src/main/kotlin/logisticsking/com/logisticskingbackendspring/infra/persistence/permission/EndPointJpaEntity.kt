@@ -1,16 +1,11 @@
 package logisticsking.com.logisticskingbackendspring.infra.persistence.permission
 
 import jakarta.persistence.Column
-import jakarta.persistence.CollectionTable
-import jakarta.persistence.ElementCollection
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
 import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPoint
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
@@ -27,13 +22,8 @@ class EndPointJpaEntity(
     @Column(name = "url", nullable = false, length = 255)
     val url: String,
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-        name = "end_point_roles",
-        joinColumns = [JoinColumn(name = "end_point_id")],
-    )
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 30)
+    @Convert(converter = UserRoleSetConverter::class)
+    @Column(name = "roles", nullable = false, columnDefinition = "JSON")
     val roles: Set<UserRole>,
 
     @Column(name = "description", length = 255)

@@ -119,6 +119,10 @@ class EndPointAuthorizationFilterTest {
             return endPoints
         }
 
+        override fun findByUrl(url: String): EndPoint? {
+            return endPoints.firstOrNull { it.url == url }
+        }
+
         override fun existsByUrl(url: String): Boolean {
             return endPoints.any { it.url == url }
         }
