@@ -15,22 +15,12 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS end_points (
     id BIGINT NOT NULL AUTO_INCREMENT,
     url VARCHAR(255) NOT NULL,
+    roles JSON NOT NULL,
     description VARCHAR(255) NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_end_points_url (url)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS end_point_roles (
-    end_point_id BIGINT NOT NULL,
-    role VARCHAR(30) NOT NULL,
-    PRIMARY KEY (end_point_id, role),
-    KEY idx_end_point_roles_role (role),
-    CONSTRAINT fk_end_point_roles_end_point_id
-        FOREIGN KEY (end_point_id)
-        REFERENCES end_points (id)
-        ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS vendors (
@@ -93,4 +83,21 @@ CREATE TABLE IF NOT EXISTS agencies (
     updated_at DATETIME(6) NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_agencies_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS delivers (
+    id BINARY(16) NOT NULL,
+    user_id BINARY(16) NOT NULL,
+    agency_id BINARY(16) NOT NULL,
+    driver_name VARCHAR(50) NOT NULL,
+    phone_number VARCHAR(30) NOT NULL,
+    vehicle_number VARCHAR(30) NULL,
+    service_regions VARCHAR(500) NOT NULL,
+    active BOOLEAN NOT NULL,
+    memo VARCHAR(255) NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_delivers_user_id (user_id),
+    KEY idx_delivers_agency_id (agency_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
