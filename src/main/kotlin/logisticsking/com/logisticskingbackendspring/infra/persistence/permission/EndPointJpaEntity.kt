@@ -22,6 +22,9 @@ class EndPointJpaEntity(
     @Column(name = "url", nullable = false, length = 255)
     val url: String,
 
+    @Column(name = "method", nullable = false, length = 10)
+    val method: String,
+
     @Convert(converter = UserRoleSetConverter::class)
     @Column(name = "roles", nullable = false, columnDefinition = "JSON")
     val roles: Set<UserRole>,
@@ -34,6 +37,7 @@ class EndPointJpaEntity(
         return EndPoint.restore(
             id = id,
             url = url,
+            method = method,
             roles = roles,
             description = description,
         )
@@ -44,6 +48,7 @@ class EndPointJpaEntity(
             return EndPointJpaEntity(
                 id = endPoint.id,
                 url = endPoint.url,
+                method = endPoint.method,
                 roles = endPoint.roles,
                 description = endPoint.description,
             )

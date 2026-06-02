@@ -12,6 +12,8 @@ import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetMyVend
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetVendorProductsUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorProductUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorUseCase
+import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
+import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -25,6 +27,7 @@ import java.util.UUID
 
 @Tag(name = "Vendor", description = "화주 API")
 @SecurityRequirement(name = "accessTokenCookie")
+@EndpointAccess(roles = [UserRole.ADMIN, UserRole.VENDOR])
 @RestController
 @RequestMapping("/api/v1/vendors")
 class VendorController(

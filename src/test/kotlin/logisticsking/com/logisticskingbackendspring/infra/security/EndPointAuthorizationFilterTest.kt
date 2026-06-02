@@ -37,6 +37,7 @@ class EndPointAuthorizationFilterTest {
             listOf(
                 EndPoint.create(
                     url = "/api/v1/admin/**",
+                    method = "GET",
                     roles = setOf(UserRole.ADMIN),
                     description = "admin only",
                 )
@@ -56,6 +57,7 @@ class EndPointAuthorizationFilterTest {
             listOf(
                 EndPoint.create(
                     url = "/api/v1/vendors/**",
+                    method = "GET",
                     roles = setOf(UserRole.VENDOR),
                     description = "vendor endpoints",
                 )
@@ -75,6 +77,7 @@ class EndPointAuthorizationFilterTest {
             listOf(
                 EndPoint.create(
                     url = "/api/v1/shared/**",
+                    method = "GET",
                     roles = setOf(UserRole.VENDOR, UserRole.AGENCY),
                     description = "shared endpoints",
                 )
@@ -119,12 +122,8 @@ class EndPointAuthorizationFilterTest {
             return endPoints
         }
 
-        override fun findByUrl(url: String): EndPoint? {
-            return endPoints.firstOrNull { it.url == url }
-        }
-
-        override fun existsByUrl(url: String): Boolean {
-            return endPoints.any { it.url == url }
+        override fun findByUrlAndMethod(url: String, method: String): EndPoint? {
+            return endPoints.firstOrNull { it.url == url && it.method == method }
         }
 
         override fun save(endPoint: EndPoint): EndPoint {

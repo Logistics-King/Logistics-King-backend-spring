@@ -13,12 +13,8 @@ class EndPointRepositoryImpl(
         return endPointJpaRepository.findAll().map { it.toDomain() }
     }
 
-    override fun findByUrl(url: String): EndPoint? {
-        return endPointJpaRepository.findByUrl(url)?.toDomain()
-    }
-
-    override fun existsByUrl(url: String): Boolean {
-        return endPointJpaRepository.existsByUrl(url)
+    override fun findByUrlAndMethod(url: String, method: String): EndPoint? {
+        return endPointJpaRepository.findByUrlAndMethod(url, method)?.toDomain()
     }
 
     override fun save(endPoint: EndPoint): EndPoint {

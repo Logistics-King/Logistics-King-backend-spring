@@ -3,6 +3,5 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.permissio
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface EndPointJpaRepository : JpaRepository<EndPointJpaEntity, Long> {
-    fun findByUrl(url: String): EndPointJpaEntity?
-    fun existsByUrl(url: String): Boolean
+    fun findByUrlAndMethod(url: String, method: String): EndPointJpaEntity?
 }

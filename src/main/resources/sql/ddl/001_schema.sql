@@ -15,12 +15,13 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS end_points (
     id BIGINT NOT NULL AUTO_INCREMENT,
     url VARCHAR(255) NOT NULL,
+    method VARCHAR(10) NOT NULL,
     roles JSON NOT NULL,
     description VARCHAR(255) NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_end_points_url (url)
+    UNIQUE KEY uk_end_points_url_method (url, method)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS vendors (

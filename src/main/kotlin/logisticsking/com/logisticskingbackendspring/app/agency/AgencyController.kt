@@ -9,6 +9,8 @@ import logisticsking.com.logisticskingbackendspring.app.agency.usecase.CreateAge
 import logisticsking.com.logisticskingbackendspring.app.agency.usecase.GetMyAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.app.agency.usecase.UpdateAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
+import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
+import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "Agency", description = "대리점 API")
 @SecurityRequirement(name = "accessTokenCookie")
+@EndpointAccess(roles = [UserRole.ADMIN, UserRole.AGENCY])
 @RestController
 @RequestMapping("/api/v1/agencies")
 class AgencyController(

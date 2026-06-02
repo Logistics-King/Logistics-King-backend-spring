@@ -5,6 +5,7 @@ import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 class EndPoint private constructor(
     val id: Long,
     val url: String,
+    val method: String,
     val roles: Set<UserRole>,
     val description: String?,
 ) {
@@ -15,12 +16,14 @@ class EndPoint private constructor(
     companion object {
         fun create(
             url: String,
+            method: String,
             roles: Set<UserRole>,
             description: String?,
         ): EndPoint {
             return EndPoint(
                 id = 0,
                 url = url,
+                method = method,
                 roles = roles,
                 description = description,
             )
@@ -29,12 +32,14 @@ class EndPoint private constructor(
         fun restore(
             id: Long,
             url: String,
+            method: String,
             roles: Set<UserRole>,
             description: String?,
         ): EndPoint {
             return EndPoint(
                 id = id,
                 url = url,
+                method = method,
                 roles = roles,
                 description = description,
             )

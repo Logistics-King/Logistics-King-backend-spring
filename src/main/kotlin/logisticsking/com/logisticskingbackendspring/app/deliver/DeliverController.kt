@@ -9,6 +9,8 @@ import logisticsking.com.logisticskingbackendspring.app.deliver.dto.DeliverRespo
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.CreateDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetMyDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.UpdateDeliverUseCase
+import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
+import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "Deliver", description = "배송기사 API")
 @SecurityRequirement(name = "accessTokenCookie")
+@EndpointAccess(roles = [UserRole.ADMIN, UserRole.DRIVER])
 @RestController
 @RequestMapping("/api/v1/delivers")
 class DeliverController(
