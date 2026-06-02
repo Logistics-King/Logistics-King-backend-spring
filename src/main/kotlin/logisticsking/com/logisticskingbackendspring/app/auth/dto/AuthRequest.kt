@@ -14,7 +14,7 @@ sealed interface AuthRequest {
         val email: String,
         @field:Schema(description = "비밀번호", example = "password1234")
         val password: String,
-        @field:Schema(description = "이름", example = "안산 옷가게")
+        @field:Schema(description = "이름", example = "서울 옷가게")
         val name: String,
     ) : AuthRequest {
         fun toCommand(): SignUpCommand {
@@ -35,7 +35,7 @@ sealed interface AuthRequest {
         val email: String,
         @field:Schema(description = "비밀번호", example = "password1234")
         val password: String,
-        @field:Schema(description = "이름", example = "CJ 일동대리점")
+        @field:Schema(description = "이름", example = "CJ 서울 대리점")
         val name: String,
     ) : AuthRequest {
         fun toCommand(): SignUpCommand {
