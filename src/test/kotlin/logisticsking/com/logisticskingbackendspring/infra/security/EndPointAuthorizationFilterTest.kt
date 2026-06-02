@@ -100,6 +100,13 @@ class EndPointAuthorizationFilterTest {
             return endPoints.filter { it.role == role }
         }
 
+        override fun existsByUrlAndRole(
+            url: String,
+            role: UserRole,
+        ): Boolean {
+            return endPoints.any { it.url == url && it.role == role }
+        }
+
         override fun save(endPoint: EndPoint): EndPoint {
             return endPoint
         }

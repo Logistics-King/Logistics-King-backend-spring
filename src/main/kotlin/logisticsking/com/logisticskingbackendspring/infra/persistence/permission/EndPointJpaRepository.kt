@@ -5,4 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface EndPointJpaRepository : JpaRepository<EndPointJpaEntity, EndPointJpaEntityId> {
     fun findByRole(role: UserRole): List<EndPointJpaEntity>
+    fun existsByUrlAndRole(
+        url: String,
+        role: UserRole,
+    ): Boolean
 }
