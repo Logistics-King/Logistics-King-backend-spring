@@ -13,13 +13,24 @@ CREATE TABLE IF NOT EXISTS users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS end_points (
+    id BIGINT NOT NULL AUTO_INCREMENT,
     url VARCHAR(255) NOT NULL,
-    role VARCHAR(30) NOT NULL,
     description VARCHAR(255) NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
-    PRIMARY KEY (url, role),
-    UNIQUE KEY uk_end_points_url_role (url, role)
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_end_points_url (url)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS end_point_roles (
+    end_point_id BIGINT NOT NULL,
+    role VARCHAR(30) NOT NULL,
+    PRIMARY KEY (end_point_id, role),
+    KEY idx_end_point_roles_role (role),
+    CONSTRAINT fk_end_point_roles_end_point_id
+        FOREIGN KEY (end_point_id)
+        REFERENCES end_points (id)
+        ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS vendors (

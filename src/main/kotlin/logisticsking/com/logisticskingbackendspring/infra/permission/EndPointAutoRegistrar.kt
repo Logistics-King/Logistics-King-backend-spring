@@ -39,14 +39,14 @@ class EndPointAutoRegistrar(
     }
 
     private fun registerIfAbsent(url: String) {
-        if (endPointRepository.existsByUrlAndRole(url, DEFAULT_ROLE)) {
+        if (endPointRepository.existsByUrl(url)) {
             return
         }
 
         endPointRepository.save(
             EndPoint.create(
                 url = url,
-                role = DEFAULT_ROLE,
+                roles = setOf(DEFAULT_ROLE),
                 description = describe(url),
             )
         )
@@ -54,6 +54,8 @@ class EndPointAutoRegistrar(
 
     private fun describe(url: String): String {
         return when {
+            url.startsWith("/api/v1/agencies/me") -> "대리점 프로필 관리 API"
+            url.startsWith("/api/v1/agencies") -> "대리점 API"
             url.startsWith("/api/v1/vendors/me/products") -> "화주 배송 품목 관리 API"
             url.startsWith("/api/v1/vendors/me") -> "화주 프로필 관리 API"
             url.startsWith("/api/v1/vendors") -> "화주 API"

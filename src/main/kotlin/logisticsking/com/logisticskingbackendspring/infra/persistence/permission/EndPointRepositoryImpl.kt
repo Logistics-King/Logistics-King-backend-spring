@@ -2,7 +2,6 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.permissio
 
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPoint
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointRepository
-import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -10,18 +9,12 @@ class EndPointRepositoryImpl(
     private val endPointJpaRepository: EndPointJpaRepository,
 ) : EndPointRepository {
 
-    override fun findByRole(role: UserRole): List<EndPoint> {
-        return endPointJpaRepository.findByRole(role).map { it.toDomain() }
+    override fun findAll(): List<EndPoint> {
+        return endPointJpaRepository.findAll().map { it.toDomain() }
     }
 
-    override fun existsByUrlAndRole(
-        url: String,
-        role: UserRole,
-    ): Boolean {
-        return endPointJpaRepository.existsByUrlAndRole(
-            url = url,
-            role = role,
-        )
+    override fun existsByUrl(url: String): Boolean {
+        return endPointJpaRepository.existsByUrl(url)
     }
 
     override fun save(endPoint: EndPoint): EndPoint {
