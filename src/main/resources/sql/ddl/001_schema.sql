@@ -60,6 +60,32 @@ CREATE TABLE IF NOT EXISTS vendor_products (
     KEY idx_vendor_products_vendor_id (vendor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS contract_requests (
+    id BINARY(16) NOT NULL,
+    vendor_id BINARY(16) NOT NULL,
+    product_id BINARY(16) NULL,
+    pickup_region VARCHAR(100) NOT NULL,
+    pickup_address VARCHAR(255) NULL,
+    monthly_volume INT NOT NULL,
+    product_category VARCHAR(30) NOT NULL,
+    product_name VARCHAR(100) NOT NULL,
+    box_size VARCHAR(30) NOT NULL,
+    pickup_start_time VARCHAR(10) NOT NULL,
+    pickup_end_time VARCHAR(10) NOT NULL,
+    saturday_delivery_required BOOLEAN NOT NULL,
+    return_required BOOLEAN NOT NULL,
+    cold_chain_required BOOLEAN NOT NULL,
+    target_unit_price DECIMAL(15, 2) NULL,
+    memo VARCHAR(255) NULL,
+    status VARCHAR(30) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_contract_requests_vendor_id (vendor_id),
+    KEY idx_contract_requests_product_id (product_id),
+    KEY idx_contract_requests_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS agencies (
     id BINARY(16) NOT NULL,
     user_id BINARY(16) NOT NULL,
