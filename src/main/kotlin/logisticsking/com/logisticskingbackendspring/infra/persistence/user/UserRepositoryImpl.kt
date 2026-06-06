@@ -11,11 +11,11 @@ class UserRepositoryImpl(
 ) : UserRepository {
 
     override fun findById(id: UUID): User? {
-        return userJpaRepository.findById(id).orElse(null)?.toDomain()
+        return userJpaRepository.findByIdAndDeletedAtIsNull(id)?.toDomain()
     }
 
     override fun findByLoginId(loginId: String): User? {
-        return userJpaRepository.findByLoginId(loginId)?.toDomain()
+        return userJpaRepository.findByLoginIdAndDeletedAtIsNull(loginId)?.toDomain()
     }
 
     override fun existsByLoginId(loginId: String): Boolean {

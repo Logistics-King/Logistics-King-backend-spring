@@ -18,10 +18,10 @@ class VendorProductRepositoryImpl(
         id: UUID,
         vendorId: UUID,
     ): VendorProduct? {
-        return jpaRepository.findByIdAndVendorId(id, vendorId)?.toDomain()
+        return jpaRepository.findByIdAndVendorIdAndDeletedAtIsNull(id, vendorId)?.toDomain()
     }
 
     override fun findAllByVendorId(vendorId: UUID): List<VendorProduct> {
-        return jpaRepository.findAllByVendorId(vendorId).map(VendorProductJpaEntity::toDomain)
+        return jpaRepository.findAllByVendorIdAndDeletedAtIsNull(vendorId).map(VendorProductJpaEntity::toDomain)
     }
 }

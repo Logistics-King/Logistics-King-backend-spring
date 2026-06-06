@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(30) NOT NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
+    deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_users_login_id (login_id),
     UNIQUE KEY uk_users_email (email)
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     main_region VARCHAR(100) NOT NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
+    deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_vendors_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -56,6 +58,7 @@ CREATE TABLE IF NOT EXISTS vendor_products (
     requires_cold_chain BOOLEAN NOT NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
+    deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
     KEY idx_vendor_products_vendor_id (vendor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -108,6 +111,7 @@ CREATE TABLE IF NOT EXISTS agencies (
     max_monthly_volume INT NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
+    deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_agencies_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -124,6 +128,7 @@ CREATE TABLE IF NOT EXISTS delivers (
     memo VARCHAR(255) NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
+    deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_delivers_user_id (user_id),
     KEY idx_delivers_agency_id (agency_id)

@@ -8,7 +8,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.Carrier
-import logisticsking.com.logisticskingbackendspring.infra.persistence.common.BaseJpaEntity
+import logisticsking.com.logisticskingbackendspring.infra.persistence.common.SoftDeletableJpaEntity
 import java.util.UUID
 
 @Entity
@@ -72,7 +72,7 @@ class AgencyJpaEntity(
 
     @Column(name = "max_monthly_volume")
     val maxMonthlyVolume: Int?,
-) : BaseJpaEntity() {
+) : SoftDeletableJpaEntity() {
 
     fun toDomain(): Agency {
         return Agency.restore(
