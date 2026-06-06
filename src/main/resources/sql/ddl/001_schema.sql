@@ -13,13 +13,15 @@ CREATE TABLE IF NOT EXISTS users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS end_points (
+    id BIGINT NOT NULL AUTO_INCREMENT,
     url VARCHAR(255) NOT NULL,
-    role VARCHAR(30) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    roles JSON NOT NULL,
     description VARCHAR(255) NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
-    PRIMARY KEY (url, role),
-    UNIQUE KEY uk_end_points_url_role (url, role)
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_end_points_url_method (url, method)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS vendors (
@@ -56,4 +58,47 @@ CREATE TABLE IF NOT EXISTS vendor_products (
     updated_at DATETIME(6) NOT NULL,
     PRIMARY KEY (id),
     KEY idx_vendor_products_vendor_id (vendor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS agencies (
+    id BINARY(16) NOT NULL,
+    user_id BINARY(16) NOT NULL,
+    carrier VARCHAR(30) NOT NULL,
+    agency_name VARCHAR(100) NOT NULL,
+    business_registration_number VARCHAR(30) NULL,
+    representative_name VARCHAR(50) NOT NULL,
+    phone_number VARCHAR(30) NOT NULL,
+    postal_code VARCHAR(20) NULL,
+    address VARCHAR(255) NOT NULL,
+    address_detail VARCHAR(255) NULL,
+    main_region VARCHAR(100) NOT NULL,
+    service_regions VARCHAR(500) NOT NULL,
+    weekday_pickup_start_time VARCHAR(10) NULL,
+    weekday_pickup_end_time VARCHAR(10) NULL,
+    saturday_pickup_available BOOLEAN NOT NULL,
+    saturday_delivery_available BOOLEAN NOT NULL,
+    return_available BOOLEAN NOT NULL,
+    cold_chain_available BOOLEAN NOT NULL,
+    max_monthly_volume INT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_agencies_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS delivers (
+    id BINARY(16) NOT NULL,
+    user_id BINARY(16) NOT NULL,
+    agency_id BINARY(16) NOT NULL,
+    driver_name VARCHAR(50) NOT NULL,
+    phone_number VARCHAR(30) NOT NULL,
+    vehicle_number VARCHAR(30) NULL,
+    service_regions VARCHAR(500) NOT NULL,
+    active BOOLEAN NOT NULL,
+    memo VARCHAR(255) NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_delivers_user_id (user_id),
+    KEY idx_delivers_agency_id (agency_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

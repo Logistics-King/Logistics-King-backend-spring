@@ -11,6 +11,7 @@ import java.util.UUID
 
 @Schema(description = "화주 요청")
 sealed interface VendorRequest {
+    @Schema(name = "VendorCreateRequest")
     data class Create(
         @field:Schema(description = "상호명", example = "안산 옷가게")
         val businessName: String,
@@ -44,6 +45,7 @@ sealed interface VendorRequest {
         }
     }
 
+    @Schema(name = "VendorUpdateRequest")
     data class Update(
         @field:Schema(description = "상호명", example = "안산 의류 스토어")
         val businessName: String,
@@ -77,6 +79,7 @@ sealed interface VendorRequest {
         }
     }
 
+    @Schema(name = "VendorProductCreateRequest")
     data class CreateProduct(
         @field:Schema(description = "품목 카테고리", example = "CLOTHING")
         val category: ProductCategory,
@@ -116,6 +119,7 @@ sealed interface VendorRequest {
         }
     }
 
+    @Schema(name = "VendorProductUpdateRequest")
     data class UpdateProduct(
         @field:Schema(description = "품목 카테고리", example = "CLOTHING")
         val category: ProductCategory,

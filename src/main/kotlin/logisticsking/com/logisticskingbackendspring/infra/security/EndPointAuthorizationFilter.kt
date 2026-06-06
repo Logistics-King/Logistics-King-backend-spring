@@ -35,8 +35,13 @@ class EndPointAuthorizationFilter(
         }
 
         val requestUri = request.servletPath
-        val allowed = endPointRepository.findByRole(principal.role)
-            .any { endPoint -> pathMatcher.match(endPoint.url, requestUri) }
+        val requestMethod = request.method
+        val allowed = endPointRepository.findAll()
+            .any { endPoint ->
+                pathMatcher.match(endPoint.url, requestUri) &&
+                    endPoint.method == requestMethod &&
+                    endPoint.allows(principal.role)
+            }
 
         if (!allowed) {
             securityResponseWriter.writeError(response, AuthErrorCode.FORBIDDEN)

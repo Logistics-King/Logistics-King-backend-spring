@@ -7,6 +7,7 @@ import java.math.BigDecimal
 
 @Schema(description = "화주 응답")
 sealed interface VendorResponse {
+    @Schema(name = "VendorDetailResponse")
     data class Detail(
         @field:Schema(description = "화주 ID", example = "019b1f44-a741-7000-8000-000000000001")
         val vendorId: String,
@@ -47,6 +48,7 @@ sealed interface VendorResponse {
         }
     }
 
+    @Schema(name = "VendorProductDetailResponse")
     data class ProductDetail(
         @field:Schema(description = "배송 품목 ID", example = "019b1f44-a741-7000-8000-000000000003")
         val productId: String,
@@ -93,6 +95,7 @@ sealed interface VendorResponse {
         }
     }
 
+    @Schema(name = "VendorProductListResponse")
     data class ProductList(
         @field:Schema(description = "배송 품목 목록")
         val products: List<ProductDetail>,

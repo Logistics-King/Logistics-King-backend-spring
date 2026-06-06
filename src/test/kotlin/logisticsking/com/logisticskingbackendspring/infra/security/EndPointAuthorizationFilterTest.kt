@@ -37,7 +37,8 @@ class EndPointAuthorizationFilterTest {
             listOf(
                 EndPoint.create(
                     url = "/api/v1/admin/**",
-                    role = UserRole.ADMIN,
+                    method = "GET",
+                    roles = setOf(UserRole.ADMIN),
                     description = "admin only",
                 )
             )
@@ -56,7 +57,8 @@ class EndPointAuthorizationFilterTest {
             listOf(
                 EndPoint.create(
                     url = "/api/v1/vendors/**",
-                    role = UserRole.VENDOR,
+                    method = "GET",
+                    roles = setOf(UserRole.VENDOR),
                     description = "vendor endpoints",
                 )
             )
@@ -65,6 +67,26 @@ class EndPointAuthorizationFilterTest {
         authenticate(UserRole.VENDOR)
 
         filter.doFilter(request("/api/v1/vendors/me"), response, MockFilterChain())
+
+        assertEquals(200, response.status)
+    }
+
+    @Test
+    fun `roles에 포함된 endpoint면 통과한다`() {
+        val filter = filterWith(
+            listOf(
+                EndPoint.create(
+                    url = "/api/v1/shared/**",
+                    method = "GET",
+                    roles = setOf(UserRole.VENDOR, UserRole.AGENCY),
+                    description = "shared endpoints",
+                )
+            )
+        )
+        val response = MockHttpServletResponse()
+        authenticate(UserRole.AGENCY)
+
+        filter.doFilter(request("/api/v1/shared/me"), response, MockFilterChain())
 
         assertEquals(200, response.status)
     }
@@ -96,15 +118,12 @@ class EndPointAuthorizationFilterTest {
     private class FakeEndPointRepository(
         private val endPoints: List<EndPoint>,
     ) : EndPointRepository {
-        override fun findByRole(role: UserRole): List<EndPoint> {
-            return endPoints.filter { it.role == role }
+        override fun findAll(): List<EndPoint> {
+            return endPoints
         }
 
-        override fun existsByUrlAndRole(
-            url: String,
-            role: UserRole,
-        ): Boolean {
-            return endPoints.any { it.url == url && it.role == role }
+        override fun findByUrlAndMethod(url: String, method: String): EndPoint? {
+            return endPoints.firstOrNull { it.url == url && it.method == method }
         }
 
         override fun save(endPoint: EndPoint): EndPoint {
