@@ -2,6 +2,7 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.contract
 
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequest
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestRepository
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 import java.util.UUID
@@ -31,6 +32,11 @@ class ContractRequestRepositoryImpl(
 
     override fun findAllByVendorId(vendorId: UUID): List<ContractRequest> {
         return contractRequestJpaRepository.findAllByVendorIdOrderByCreatedAtDesc(vendorId)
+            .map(ContractRequestJpaEntity::toDomain)
+    }
+
+    override fun findAllByStatus(status: ContractRequestStatus): List<ContractRequest> {
+        return contractRequestJpaRepository.findAllByStatusOrderByCreatedAtDesc(status)
             .map(ContractRequestJpaEntity::toDomain)
     }
 }

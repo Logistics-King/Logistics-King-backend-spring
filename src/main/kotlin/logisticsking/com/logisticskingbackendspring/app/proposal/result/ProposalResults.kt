@@ -1,0 +1,40 @@
+package logisticsking.com.logisticskingbackendspring.app.proposal.result
+
+import logisticsking.com.logisticskingbackendspring.domain.contract.Proposal
+import logisticsking.com.logisticskingbackendspring.domain.contract.ProposalStatus
+import java.math.BigDecimal
+import java.util.UUID
+
+data class ProposalResult(
+    val proposalId: UUID,
+    val contractRequestId: UUID,
+    val vendorId: UUID,
+    val agencyId: UUID,
+    val unitPrice: BigDecimal,
+    val pickupStartTime: String,
+    val pickupEndTime: String,
+    val saturdayDeliveryAvailable: Boolean,
+    val returnAvailable: Boolean,
+    val coldChainAvailable: Boolean,
+    val memo: String?,
+    val status: ProposalStatus,
+) {
+    companion object {
+        fun from(proposal: Proposal): ProposalResult {
+            return ProposalResult(
+                proposalId = proposal.id,
+                contractRequestId = proposal.contractRequestId,
+                vendorId = proposal.vendorId,
+                agencyId = proposal.agencyId,
+                unitPrice = proposal.unitPrice,
+                pickupStartTime = proposal.pickupStartTime,
+                pickupEndTime = proposal.pickupEndTime,
+                saturdayDeliveryAvailable = proposal.saturdayDeliveryAvailable,
+                returnAvailable = proposal.returnAvailable,
+                coldChainAvailable = proposal.coldChainAvailable,
+                memo = proposal.memo,
+                status = proposal.status,
+            )
+        }
+    }
+}

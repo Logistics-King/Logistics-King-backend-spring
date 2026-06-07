@@ -89,6 +89,29 @@ CREATE TABLE IF NOT EXISTS contract_requests (
     KEY idx_contract_requests_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS proposals (
+    id BINARY(16) NOT NULL,
+    contract_request_id BINARY(16) NOT NULL,
+    vendor_id BINARY(16) NOT NULL,
+    agency_id BINARY(16) NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    pickup_start_time VARCHAR(10) NOT NULL,
+    pickup_end_time VARCHAR(10) NOT NULL,
+    saturday_delivery_available BOOLEAN NOT NULL,
+    return_available BOOLEAN NOT NULL,
+    cold_chain_available BOOLEAN NOT NULL,
+    memo VARCHAR(255) NULL,
+    status VARCHAR(30) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_proposals_contract_request_agency (contract_request_id, agency_id),
+    KEY idx_proposals_contract_request_id (contract_request_id),
+    KEY idx_proposals_vendor_id (vendor_id),
+    KEY idx_proposals_agency_id (agency_id),
+    KEY idx_proposals_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS agencies (
     id BINARY(16) NOT NULL,
     user_id BINARY(16) NOT NULL,

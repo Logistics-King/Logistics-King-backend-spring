@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.infra.persistence.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.UUID
 
@@ -10,4 +11,5 @@ interface ContractRequestJpaRepository : JpaRepository<ContractRequestJpaEntity,
     ): ContractRequestJpaEntity?
 
     fun findAllByVendorIdOrderByCreatedAtDesc(vendorId: UUID): List<ContractRequestJpaEntity>
+    fun findAllByStatusOrderByCreatedAtDesc(status: ContractRequestStatus): List<ContractRequestJpaEntity>
 }

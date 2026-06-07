@@ -10,4 +10,5 @@ interface ContractRequestRepository {
         vendorId: UUID,
     ): ContractRequest?
     fun findAllByVendorId(vendorId: UUID): List<ContractRequest>
+    fun findAllByStatus(status: ContractRequestStatus): List<ContractRequest>
 }

@@ -14,6 +14,12 @@ import logisticsking.com.logisticskingbackendspring.app.contract.usecase.GetCont
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.GetMyContractRequestsUseCase
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.UpdateContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
+import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetContractRequestProposalsCommand
+import logisticsking.com.logisticskingbackendspring.app.proposal.dto.ProposalRequest
+import logisticsking.com.logisticskingbackendspring.app.proposal.dto.ProposalResponse
+import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.GetContractRequestProposalsUseCase
+import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.GetOpenContractRequestsUseCase
+import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.SubmitProposalUseCase
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -37,6 +43,9 @@ class ContractRequestController(
     private val getContractRequestUseCase: GetContractRequestUseCase,
     private val updateContractRequestUseCase: UpdateContractRequestUseCase,
     private val cancelContractRequestUseCase: CancelContractRequestUseCase,
+    private val getOpenContractRequestsUseCase: GetOpenContractRequestsUseCase,
+    private val submitProposalUseCase: SubmitProposalUseCase,
+    private val getContractRequestProposalsUseCase: GetContractRequestProposalsUseCase,
 ) {
 
     @Operation(summary = "계약 요청 생성", description = "로그인한 화주가 대리점 제안을 받기 위한 계약 요청을 생성합니다.")
@@ -81,6 +90,56 @@ class ContractRequestController(
 
         return ApiResponse.success(
             response = ContractRequestResponse.Detail.from(result),
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.AGENCY])
+    @Operation(summary = "제안 가능 계약 요청 목록 조회", description = "대리점이 제안할 수 있는 OPEN 상태 계약 요청 목록을 조회합니다.")
+    @GetMapping("/open")
+    fun getOpenContractRequests(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+    ): ApiResponse<ContractRequestResponse.List> {
+        val results = getOpenContractRequestsUseCase.getOpenContractRequests(user.userId)
+
+        return ApiResponse.success(
+            response = ContractRequestResponse.List(
+                contractRequests = results.map(ContractRequestResponse.Detail::from),
+            )
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.AGENCY])
+    @Operation(summary = "계약 요청 제안 제출", description = "대리점이 계약 요청에 단가와 서비스 조건을 제안합니다.")
+    @PostMapping("/{contractRequestId}/proposals")
+    fun submitProposal(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable contractRequestId: UUID,
+        @RequestBody request: ProposalRequest.Submit,
+    ): ApiResponse<ProposalResponse.Detail> {
+        val result = submitProposalUseCase.submit(request.toCommand(user.userId, contractRequestId))
+
+        return ApiResponse.success(
+            response = ProposalResponse.Detail.from(result),
+        )
+    }
+
+    @Operation(summary = "계약 요청 제안 목록 조회", description = "화주가 자신의 계약 요청에 제출된 제안 목록을 조회합니다.")
+    @GetMapping("/{contractRequestId}/proposals")
+    fun getProposals(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable contractRequestId: UUID,
+    ): ApiResponse<ProposalResponse.List> {
+        val results = getContractRequestProposalsUseCase.getContractRequestProposals(
+            GetContractRequestProposalsCommand(
+                userId = user.userId,
+                contractRequestId = contractRequestId,
+            )
+        )
+
+        return ApiResponse.success(
+            response = ProposalResponse.List(
+                proposals = results.map(ProposalResponse.Detail::from),
+            )
         )
     }
 
