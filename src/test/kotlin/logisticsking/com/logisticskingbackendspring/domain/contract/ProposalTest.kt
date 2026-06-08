@@ -70,6 +70,26 @@ class ProposalTest {
     }
 
     @Test
+    fun `accept 성공 시 ACCEPTED 상태로 변경한다`() {
+        val proposal = proposal()
+
+        val accepted = proposal.accept()
+
+        assertEquals(proposal.id, accepted.id)
+        assertEquals(ProposalStatus.ACCEPTED, accepted.status)
+    }
+
+    @Test
+    fun `reject 성공 시 REJECTED 상태로 변경한다`() {
+        val proposal = proposal()
+
+        val rejected = proposal.reject()
+
+        assertEquals(proposal.id, rejected.id)
+        assertEquals(ProposalStatus.REJECTED, rejected.status)
+    }
+
+    @Test
     fun `create 시 단가가 1보다 작으면 예외가 발생한다`() {
         val exception = assertThrows(GlobalException::class.java) {
             proposal(unitPrice = BigDecimal.ZERO)
@@ -104,6 +124,28 @@ class ProposalTest {
         }
 
         assertEquals(ProposalErrorCode.WITHDRAWN_PROPOSAL_CANNOT_BE_UPDATED, exception.errorCode)
+    }
+
+    @Test
+    fun `철회된 제안은 수락할 수 없다`() {
+        val withdrawn = proposal().withdraw()
+
+        val exception = assertThrows(GlobalException::class.java) {
+            withdrawn.accept()
+        }
+
+        assertEquals(ProposalErrorCode.ONLY_SUBMITTED_PROPOSAL_CAN_BE_ACCEPTED, exception.errorCode)
+    }
+
+    @Test
+    fun `수락된 제안은 철회할 수 없다`() {
+        val accepted = proposal().accept()
+
+        val exception = assertThrows(GlobalException::class.java) {
+            accepted.withdraw()
+        }
+
+        assertEquals(ProposalErrorCode.ONLY_SUBMITTED_PROPOSAL_CAN_BE_WITHDRAWN, exception.errorCode)
     }
 
     private fun proposal(

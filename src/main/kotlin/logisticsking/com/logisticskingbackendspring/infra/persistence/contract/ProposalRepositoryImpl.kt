@@ -21,6 +21,13 @@ class ProposalRepositoryImpl(
         return proposalJpaRepository.findByIdAndAgencyId(id, agencyId)?.toDomain()
     }
 
+    override fun findByIdAndVendorId(
+        id: UUID,
+        vendorId: UUID,
+    ): Proposal? {
+        return proposalJpaRepository.findByIdAndVendorId(id, vendorId)?.toDomain()
+    }
+
     override fun findAllByContractRequestId(contractRequestId: UUID): List<Proposal> {
         return proposalJpaRepository.findAllByContractRequestIdOrderByCreatedAtDesc(contractRequestId)
             .map(ProposalJpaEntity::toDomain)
@@ -28,6 +35,11 @@ class ProposalRepositoryImpl(
 
     override fun findAllByAgencyId(agencyId: UUID): List<Proposal> {
         return proposalJpaRepository.findAllByAgencyIdOrderByCreatedAtDesc(agencyId)
+            .map(ProposalJpaEntity::toDomain)
+    }
+
+    override fun saveAll(proposals: List<Proposal>): List<Proposal> {
+        return proposalJpaRepository.saveAll(proposals.map(ProposalJpaEntity::from))
             .map(ProposalJpaEntity::toDomain)
     }
 

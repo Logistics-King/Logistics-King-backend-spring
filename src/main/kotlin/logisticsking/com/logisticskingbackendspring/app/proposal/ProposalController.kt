@@ -4,6 +4,9 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
+import logisticsking.com.logisticskingbackendspring.app.contract.command.AcceptProposalCommand
+import logisticsking.com.logisticskingbackendspring.app.contract.dto.ContractResponse
+import logisticsking.com.logisticskingbackendspring.app.contract.usecase.AcceptProposalUseCase
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.WithdrawProposalCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.dto.ProposalRequest
@@ -32,6 +35,7 @@ class ProposalController(
     private val getMyProposalsUseCase: GetMyProposalsUseCase,
     private val updateProposalUseCase: UpdateProposalUseCase,
     private val withdrawProposalUseCase: WithdrawProposalUseCase,
+    private val acceptProposalUseCase: AcceptProposalUseCase,
 ) {
 
     @Operation(summary = "내 제안 목록 조회", description = "로그인한 대리점의 제안 목록을 조회합니다.")
@@ -77,6 +81,25 @@ class ProposalController(
 
         return ApiResponse.success(
             response = ProposalResponse.Detail.from(result),
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.VENDOR])
+    @Operation(summary = "제안 수락 및 최종 계약 생성", description = "화주가 제안을 수락하고 최종 계약을 생성합니다.")
+    @PostMapping("/{proposalId}/accept")
+    fun accept(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable proposalId: UUID,
+    ): ApiResponse<ContractResponse.Detail> {
+        val result = acceptProposalUseCase.accept(
+            AcceptProposalCommand(
+                userId = user.userId,
+                proposalId = proposalId,
+            )
+        )
+
+        return ApiResponse.success(
+            response = ContractResponse.Detail.from(result),
         )
     }
 }

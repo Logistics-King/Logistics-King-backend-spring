@@ -50,6 +50,11 @@ class Proposal private constructor(
     }
 
     fun withdraw(): Proposal {
+        requireDomain(
+            status == ProposalStatus.SUBMITTED,
+            ProposalErrorCode.ONLY_SUBMITTED_PROPOSAL_CAN_BE_WITHDRAWN,
+        )
+
         return restore(
             id = id,
             contractRequestId = contractRequestId,
@@ -63,6 +68,41 @@ class Proposal private constructor(
             coldChainAvailable = coldChainAvailable,
             memo = memo,
             status = ProposalStatus.WITHDRAWN,
+        )
+    }
+
+    fun accept(): Proposal {
+        requireDomain(
+            status == ProposalStatus.SUBMITTED,
+            ProposalErrorCode.ONLY_SUBMITTED_PROPOSAL_CAN_BE_ACCEPTED,
+        )
+
+        return changeStatus(ProposalStatus.ACCEPTED)
+    }
+
+    fun reject(): Proposal {
+        requireDomain(
+            status == ProposalStatus.SUBMITTED,
+            ProposalErrorCode.ONLY_SUBMITTED_PROPOSAL_CAN_BE_REJECTED,
+        )
+
+        return changeStatus(ProposalStatus.REJECTED)
+    }
+
+    private fun changeStatus(status: ProposalStatus): Proposal {
+        return restore(
+            id = id,
+            contractRequestId = contractRequestId,
+            vendorId = vendorId,
+            agencyId = agencyId,
+            unitPrice = unitPrice,
+            pickupStartTime = pickupStartTime,
+            pickupEndTime = pickupEndTime,
+            saturdayDeliveryAvailable = saturdayDeliveryAvailable,
+            returnAvailable = returnAvailable,
+            coldChainAvailable = coldChainAvailable,
+            memo = memo,
+            status = status,
         )
     }
 

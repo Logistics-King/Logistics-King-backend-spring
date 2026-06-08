@@ -63,6 +63,10 @@ class ContractRequest private constructor(
             status != ContractRequestStatus.CANCELED,
             ContractRequestErrorCode.CANCELED_REQUEST_CANNOT_BE_UPDATED,
         )
+        requireDomain(
+            status != ContractRequestStatus.CONTRACTED,
+            ContractRequestErrorCode.CONTRACTED_REQUEST_CANNOT_BE_UPDATED,
+        )
 
         return create(
             id = id,
@@ -86,6 +90,11 @@ class ContractRequest private constructor(
     }
 
     fun cancel(): ContractRequest {
+        requireDomain(
+            status != ContractRequestStatus.CONTRACTED,
+            ContractRequestErrorCode.CONTRACTED_REQUEST_CANNOT_BE_CANCELED,
+        )
+
         return restore(
             id = id,
             vendorId = vendorId,
@@ -104,6 +113,33 @@ class ContractRequest private constructor(
             targetUnitPrice = targetUnitPrice,
             memo = memo,
             status = ContractRequestStatus.CANCELED,
+        )
+    }
+
+    fun contract(): ContractRequest {
+        requireDomain(
+            status == ContractRequestStatus.OPEN,
+            ContractRequestErrorCode.ONLY_OPEN_REQUEST_CAN_BE_CONTRACTED,
+        )
+
+        return restore(
+            id = id,
+            vendorId = vendorId,
+            productId = productId,
+            pickupRegion = pickupRegion,
+            pickupAddress = pickupAddress,
+            monthlyVolume = monthlyVolume,
+            productCategory = productCategory,
+            productName = productName,
+            boxSize = boxSize,
+            pickupStartTime = pickupStartTime,
+            pickupEndTime = pickupEndTime,
+            saturdayDeliveryRequired = saturdayDeliveryRequired,
+            returnRequired = returnRequired,
+            coldChainRequired = coldChainRequired,
+            targetUnitPrice = targetUnitPrice,
+            memo = memo,
+            status = ContractRequestStatus.CONTRACTED,
         )
     }
 

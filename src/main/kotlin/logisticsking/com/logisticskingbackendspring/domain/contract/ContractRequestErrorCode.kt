@@ -68,4 +68,19 @@ enum class ContractRequestErrorCode(
         message = "취소된 계약 요청은 수정할 수 없습니다.",
         status = HttpStatus.CONFLICT,
     ),
+    CONTRACTED_REQUEST_CANNOT_BE_UPDATED(
+        code = "CONTRACTED_CONTRACT_REQUEST_CANNOT_BE_UPDATED",
+        message = "계약이 확정된 계약 요청은 수정할 수 없습니다.",
+        status = HttpStatus.CONFLICT,
+    ),
+    CONTRACTED_REQUEST_CANNOT_BE_CANCELED(
+        code = "CONTRACTED_CONTRACT_REQUEST_CANNOT_BE_CANCELED",
+        message = "계약이 확정된 계약 요청은 취소할 수 없습니다.",
+        status = HttpStatus.CONFLICT,
+    ),
+    ONLY_OPEN_REQUEST_CAN_BE_CONTRACTED(
+        code = "ONLY_OPEN_CONTRACT_REQUEST_CAN_BE_CONTRACTED",
+        message = "OPEN 상태의 계약 요청만 계약 확정할 수 있습니다.",
+        status = HttpStatus.CONFLICT,
+    ),
 }

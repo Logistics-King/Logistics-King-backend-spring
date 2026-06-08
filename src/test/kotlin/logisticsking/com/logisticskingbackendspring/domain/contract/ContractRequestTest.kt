@@ -81,6 +81,16 @@ class ContractRequestTest {
     }
 
     @Test
+    fun `contract 성공 시 CONTRACTED 상태로 변경한다`() {
+        val contractRequest = contractRequest()
+
+        val contracted = contractRequest.contract()
+
+        assertEquals(contractRequest.id, contracted.id)
+        assertEquals(ContractRequestStatus.CONTRACTED, contracted.status)
+    }
+
+    @Test
     fun `create 시 월 예상 물량이 1보다 작으면 예외가 발생한다`() {
         val exception = assertThrows(GlobalException::class.java) {
             contractRequest(monthlyVolume = 0)
@@ -131,6 +141,43 @@ class ContractRequestTest {
         }
 
         assertEquals(ContractRequestErrorCode.CANCELED_REQUEST_CANNOT_BE_UPDATED, exception.errorCode)
+    }
+
+    @Test
+    fun `계약 완료된 계약 요청은 수정할 수 없다`() {
+        val contracted = contractRequest().contract()
+
+        val exception = assertThrows(GlobalException::class.java) {
+            contracted.update(
+                productId = null,
+                pickupRegion = "경기도 안산시 본오동",
+                pickupAddress = null,
+                monthlyVolume = 1000,
+                productCategory = ProductCategory.CLOTHING,
+                productName = "여성 의류",
+                boxSize = "80",
+                pickupStartTime = "10:00",
+                pickupEndTime = "17:00",
+                saturdayDeliveryRequired = false,
+                returnRequired = true,
+                coldChainRequired = false,
+                targetUnitPrice = BigDecimal("2100"),
+                memo = null,
+            )
+        }
+
+        assertEquals(ContractRequestErrorCode.CONTRACTED_REQUEST_CANNOT_BE_UPDATED, exception.errorCode)
+    }
+
+    @Test
+    fun `계약 완료된 계약 요청은 취소할 수 없다`() {
+        val contracted = contractRequest().contract()
+
+        val exception = assertThrows(GlobalException::class.java) {
+            contracted.cancel()
+        }
+
+        assertEquals(ContractRequestErrorCode.CONTRACTED_REQUEST_CANNOT_BE_CANCELED, exception.errorCode)
     }
 
     private fun contractRequest(

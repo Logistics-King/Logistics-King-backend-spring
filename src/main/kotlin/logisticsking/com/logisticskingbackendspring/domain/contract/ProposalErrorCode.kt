@@ -68,4 +68,19 @@ enum class ProposalErrorCode(
         message = "철회된 제안은 수정할 수 없습니다.",
         status = HttpStatus.CONFLICT,
     ),
+    ONLY_SUBMITTED_PROPOSAL_CAN_BE_WITHDRAWN(
+        code = "ONLY_SUBMITTED_PROPOSAL_CAN_BE_WITHDRAWN",
+        message = "제출 상태의 제안만 철회할 수 있습니다.",
+        status = HttpStatus.CONFLICT,
+    ),
+    ONLY_SUBMITTED_PROPOSAL_CAN_BE_ACCEPTED(
+        code = "ONLY_SUBMITTED_PROPOSAL_CAN_BE_ACCEPTED",
+        message = "제출 상태의 제안만 수락할 수 있습니다.",
+        status = HttpStatus.CONFLICT,
+    ),
+    ONLY_SUBMITTED_PROPOSAL_CAN_BE_REJECTED(
+        code = "ONLY_SUBMITTED_PROPOSAL_CAN_BE_REJECTED",
+        message = "제출 상태의 제안만 거절할 수 있습니다.",
+        status = HttpStatus.CONFLICT,
+    ),
 }
