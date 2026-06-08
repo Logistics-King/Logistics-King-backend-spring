@@ -112,6 +112,36 @@ CREATE TABLE IF NOT EXISTS proposals (
     KEY idx_proposals_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS contracts (
+    id BINARY(16) NOT NULL,
+    contract_request_id BINARY(16) NOT NULL,
+    proposal_id BINARY(16) NOT NULL,
+    vendor_id BINARY(16) NOT NULL,
+    agency_id BINARY(16) NOT NULL,
+    pickup_region VARCHAR(100) NOT NULL,
+    pickup_address VARCHAR(255) NULL,
+    monthly_volume INT NOT NULL,
+    product_category VARCHAR(30) NOT NULL,
+    product_name VARCHAR(100) NOT NULL,
+    box_size VARCHAR(30) NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    pickup_start_time VARCHAR(10) NOT NULL,
+    pickup_end_time VARCHAR(10) NOT NULL,
+    saturday_delivery_available BOOLEAN NOT NULL,
+    return_available BOOLEAN NOT NULL,
+    cold_chain_available BOOLEAN NOT NULL,
+    memo VARCHAR(255) NULL,
+    status VARCHAR(30) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_contracts_contract_request_id (contract_request_id),
+    UNIQUE KEY uk_contracts_proposal_id (proposal_id),
+    KEY idx_contracts_vendor_id (vendor_id),
+    KEY idx_contracts_agency_id (agency_id),
+    KEY idx_contracts_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS agencies (
     id BINARY(16) NOT NULL,
     user_id BINARY(16) NOT NULL,
@@ -155,4 +185,24 @@ CREATE TABLE IF NOT EXISTS delivers (
     PRIMARY KEY (id),
     UNIQUE KEY uk_delivers_user_id (user_id),
     KEY idx_delivers_agency_id (agency_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS deliver_contracts (
+    id BINARY(16) NOT NULL,
+    agency_id BINARY(16) NOT NULL,
+    deliver_id BINARY(16) NOT NULL,
+    service_region VARCHAR(100) NOT NULL,
+    expected_monthly_volume INT NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NULL,
+    memo VARCHAR(255) NULL,
+    status VARCHAR(30) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_deliver_contracts_agency_id (agency_id),
+    KEY idx_deliver_contracts_deliver_id (deliver_id),
+    KEY idx_deliver_contracts_agency_deliver_status (agency_id, deliver_id, status),
+    KEY idx_deliver_contracts_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
