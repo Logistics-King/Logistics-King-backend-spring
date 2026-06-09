@@ -17,6 +17,8 @@ import logisticsking.com.logisticskingbackendspring.app.delivercontract.usecase.
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -60,13 +62,12 @@ class DeliverContractController(
     @GetMapping("/agency/me")
     fun getMyAgencyDeliverContracts(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<DeliverContractResponse.List> {
-        val results = getMyAgencyDeliverContractsUseCase.getMyAgencyDeliverContracts(user.userId)
+        val results = getMyAgencyDeliverContractsUseCase.getMyAgencyDeliverContracts(user.userId, pageable)
 
         return ApiResponse.success(
-            response = DeliverContractResponse.List(
-                deliverContracts = results.map(DeliverContractResponse.Detail::from),
-            )
+            response = DeliverContractResponse.List.from(results),
         )
     }
 
@@ -75,13 +76,12 @@ class DeliverContractController(
     @GetMapping("/driver/me")
     fun getMyDriverDeliverContracts(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<DeliverContractResponse.List> {
-        val results = getMyDriverDeliverContractsUseCase.getMyDriverDeliverContracts(user.userId)
+        val results = getMyDriverDeliverContractsUseCase.getMyDriverDeliverContracts(user.userId, pageable)
 
         return ApiResponse.success(
-            response = DeliverContractResponse.List(
-                deliverContracts = results.map(DeliverContractResponse.Detail::from),
-            )
+            response = DeliverContractResponse.List.from(results),
         )
     }
 

@@ -10,6 +10,9 @@ import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -212,8 +215,10 @@ class VendorServiceTest {
             return products[id]?.takeIf { it.vendorId == vendorId }
         }
 
-        override fun findAllByVendorId(vendorId: UUID): List<VendorProduct> {
-            return products.values.filter { it.vendorId == vendorId }
+        override fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<VendorProduct> {
+            val filteredProducts = products.values.filter { it.vendorId == vendorId }
+
+            return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
         }
     }
 

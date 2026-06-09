@@ -1,5 +1,7 @@
 package logisticsking.com.logisticskingbackendspring.domain.delivercontract
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 interface DeliverContractRepository {
@@ -12,8 +14,8 @@ interface DeliverContractRepository {
         id: UUID,
         deliverId: UUID,
     ): DeliverContract?
-    fun findAllByAgencyId(agencyId: UUID): List<DeliverContract>
-    fun findAllByDeliverId(deliverId: UUID): List<DeliverContract>
+    fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<DeliverContract>
+    fun findAllByDeliverId(deliverId: UUID, pageable: Pageable): Page<DeliverContract>
     fun existsActiveByAgencyIdAndDeliverId(
         agencyId: UUID,
         deliverId: UUID,

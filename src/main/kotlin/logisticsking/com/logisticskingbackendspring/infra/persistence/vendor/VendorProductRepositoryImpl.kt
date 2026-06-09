@@ -2,6 +2,8 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.vendor
 
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.util.UUID
 
@@ -21,7 +23,8 @@ class VendorProductRepositoryImpl(
         return jpaRepository.findByIdAndVendorIdAndDeletedAtIsNull(id, vendorId)?.toDomain()
     }
 
-    override fun findAllByVendorId(vendorId: UUID): List<VendorProduct> {
-        return jpaRepository.findAllByVendorIdAndDeletedAtIsNull(vendorId).map(VendorProductJpaEntity::toDomain)
+    override fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<VendorProduct> {
+        return jpaRepository.findAllByVendorIdAndDeletedAtIsNullOrderByCreatedAtDesc(vendorId, pageable)
+            .map(VendorProductJpaEntity::toDomain)
     }
 }

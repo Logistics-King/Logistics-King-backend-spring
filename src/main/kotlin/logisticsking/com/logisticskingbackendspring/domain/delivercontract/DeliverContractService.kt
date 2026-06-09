@@ -20,6 +20,8 @@ import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -65,20 +67,20 @@ class DeliverContractService(
     }
 
     @Transactional(readOnly = true)
-    override fun getMyAgencyDeliverContracts(userId: UUID): List<DeliverContractResult> {
+    override fun getMyAgencyDeliverContracts(userId: UUID, pageable: Pageable): Page<DeliverContractResult> {
         findAgencyUser(userId)
         val agency = findAgencyByUserId(userId)
 
-        return deliverContractRepository.findAllByAgencyId(agency.id)
+        return deliverContractRepository.findAllByAgencyId(agency.id, pageable)
             .map(DeliverContractResult::from)
     }
 
     @Transactional(readOnly = true)
-    override fun getMyDriverDeliverContracts(userId: UUID): List<DeliverContractResult> {
+    override fun getMyDriverDeliverContracts(userId: UUID, pageable: Pageable): Page<DeliverContractResult> {
         findDriverUser(userId)
         val deliver = findDeliverByUserId(userId)
 
-        return deliverContractRepository.findAllByDeliverId(deliver.id)
+        return deliverContractRepository.findAllByDeliverId(deliver.id, pageable)
             .map(DeliverContractResult::from)
     }
 

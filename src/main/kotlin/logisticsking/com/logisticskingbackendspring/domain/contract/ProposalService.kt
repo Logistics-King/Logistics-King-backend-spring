@@ -21,6 +21,8 @@ import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -41,11 +43,11 @@ class ProposalService(
     WithdrawProposalUseCase {
 
     @Transactional(readOnly = true)
-    override fun getOpenContractRequests(userId: UUID): List<ContractRequestResult> {
+    override fun getOpenContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult> {
         findAgencyUser(userId)
         findAgencyByUserId(userId)
 
-        return contractRequestRepository.findAllByStatus(ContractRequestStatus.OPEN)
+        return contractRequestRepository.findAllByStatus(ContractRequestStatus.OPEN, pageable)
             .map(ContractRequestResult::from)
     }
 
@@ -77,7 +79,10 @@ class ProposalService(
     }
 
     @Transactional(readOnly = true)
-    override fun getContractRequestProposals(command: GetContractRequestProposalsCommand): List<ProposalResult> {
+    override fun getContractRequestProposals(
+        command: GetContractRequestProposalsCommand,
+        pageable: Pageable,
+    ): Page<ProposalResult> {
         findVendorUser(command.userId)
         val vendor = findVendorByUserId(command.userId)
         val contractRequest = contractRequestRepository.findByIdAndVendorId(
@@ -85,16 +90,16 @@ class ProposalService(
             vendorId = vendor.id,
         ) ?: throw GlobalException(ProposalErrorCode.CONTRACT_REQUEST_NOT_FOUND)
 
-        return proposalRepository.findAllByContractRequestId(contractRequest.id)
+        return proposalRepository.findAllByContractRequestId(contractRequest.id, pageable)
             .map(ProposalResult::from)
     }
 
     @Transactional(readOnly = true)
-    override fun getMyProposals(userId: UUID): List<ProposalResult> {
+    override fun getMyProposals(userId: UUID, pageable: Pageable): Page<ProposalResult> {
         findAgencyUser(userId)
         val agency = findAgencyByUserId(userId)
 
-        return proposalRepository.findAllByAgencyId(agency.id)
+        return proposalRepository.findAllByAgencyId(agency.id, pageable)
             .map(ProposalResult::from)
     }
 

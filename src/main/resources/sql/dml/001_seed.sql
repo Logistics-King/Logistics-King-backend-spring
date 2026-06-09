@@ -29,6 +29,7 @@ VALUES
     ('/api/v1/delivers/me', 'POST', '["ADMIN","DRIVER"]', '로그인한 배송기사 사용자의 프로필을 생성합니다.', NOW(6), NOW(6)),
     ('/api/v1/delivers/me', 'GET', '["ADMIN","DRIVER"]', '로그인한 배송기사 사용자의 프로필을 조회합니다.', NOW(6), NOW(6)),
     ('/api/v1/delivers/me', 'PUT', '["ADMIN","DRIVER"]', '로그인한 배송기사 사용자의 프로필을 수정합니다.', NOW(6), NOW(6)),
+    ('/api/v1/delivers/agency/me', 'GET', '["ADMIN","AGENCY"]', '로그인한 대리점에 소속된 배송기사 목록을 조회합니다.', NOW(6), NOW(6)),
     ('/api/v1/deliver-contracts', 'POST', '["ADMIN","AGENCY"]', '대리점이 소속 배송기사에게 담당 지역과 단가 조건을 제안합니다.', NOW(6), NOW(6)),
     ('/api/v1/deliver-contracts/agency/me', 'GET', '["ADMIN","AGENCY"]', '로그인한 대리점이 생성한 배송기사 계약 목록을 조회합니다.', NOW(6), NOW(6)),
     ('/api/v1/deliver-contracts/driver/me', 'GET', '["ADMIN","DRIVER"]', '로그인한 배송기사가 자신에게 요청된 계약 목록을 조회합니다.', NOW(6), NOW(6)),

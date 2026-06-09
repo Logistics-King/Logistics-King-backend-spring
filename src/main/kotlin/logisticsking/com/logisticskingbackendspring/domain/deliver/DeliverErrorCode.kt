@@ -18,6 +18,11 @@ enum class DeliverErrorCode(
         message = "배송기사 권한 사용자만 사용할 수 있습니다.",
         status = HttpStatus.FORBIDDEN,
     ),
+    USER_IS_NOT_AGENCY(
+        code = "USER_IS_NOT_AGENCY",
+        message = "대리점 권한 사용자만 사용할 수 있습니다.",
+        status = HttpStatus.FORBIDDEN,
+    ),
     AGENCY_NOT_FOUND(
         code = "DELIVER_AGENCY_NOT_FOUND",
         message = "소속 대리점을 찾을 수 없습니다.",

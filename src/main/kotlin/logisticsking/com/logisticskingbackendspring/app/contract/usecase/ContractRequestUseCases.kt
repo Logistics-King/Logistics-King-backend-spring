@@ -5,6 +5,8 @@ import logisticsking.com.logisticskingbackendspring.app.contract.command.CreateC
 import logisticsking.com.logisticskingbackendspring.app.contract.command.GetContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.UpdateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.result.ContractRequestResult
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 interface CreateContractRequestUseCase {
@@ -12,7 +14,7 @@ interface CreateContractRequestUseCase {
 }
 
 interface GetMyContractRequestsUseCase {
-    fun getMyContractRequests(userId: UUID): List<ContractRequestResult>
+    fun getMyContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult>
 }
 
 interface GetContractRequestUseCase {

@@ -3,6 +3,8 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.deliverco
 import logisticsking.com.logisticskingbackendspring.domain.delivercontract.DeliverContract
 import logisticsking.com.logisticskingbackendspring.domain.delivercontract.DeliverContractRepository
 import logisticsking.com.logisticskingbackendspring.domain.delivercontract.DeliverContractStatus
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.util.UUID
 
@@ -29,13 +31,13 @@ class DeliverContractRepositoryImpl(
         return jpaRepository.findByIdAndDeliverId(id, deliverId)?.toDomain()
     }
 
-    override fun findAllByAgencyId(agencyId: UUID): List<DeliverContract> {
-        return jpaRepository.findAllByAgencyIdOrderByCreatedAtDesc(agencyId)
+    override fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<DeliverContract> {
+        return jpaRepository.findAllByAgencyIdOrderByCreatedAtDesc(agencyId, pageable)
             .map(DeliverContractJpaEntity::toDomain)
     }
 
-    override fun findAllByDeliverId(deliverId: UUID): List<DeliverContract> {
-        return jpaRepository.findAllByDeliverIdOrderByCreatedAtDesc(deliverId)
+    override fun findAllByDeliverId(deliverId: UUID, pageable: Pageable): Page<DeliverContract> {
+        return jpaRepository.findAllByDeliverIdOrderByCreatedAtDesc(deliverId, pageable)
             .map(DeliverContractJpaEntity::toDomain)
     }
 
