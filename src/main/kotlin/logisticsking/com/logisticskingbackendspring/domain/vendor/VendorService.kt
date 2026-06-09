@@ -17,6 +17,8 @@ import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -105,11 +107,11 @@ class VendorService(
     }
 
     @Transactional(readOnly = true)
-    override fun getProducts(userId: UUID): List<VendorProductResult> {
+    override fun getProducts(userId: UUID, pageable: Pageable): Page<VendorProductResult> {
         findVendorUser(userId)
         val vendor = findVendorByUserId(userId)
 
-        return vendorProductRepository.findAllByVendorId(vendor.id)
+        return vendorProductRepository.findAllByVendorId(vendor.id, pageable)
             .map(VendorProductResult::from)
     }
 

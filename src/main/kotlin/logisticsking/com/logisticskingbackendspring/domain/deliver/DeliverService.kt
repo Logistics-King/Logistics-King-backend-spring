@@ -4,14 +4,18 @@ import logisticsking.com.logisticskingbackendspring.app.deliver.command.CreateDe
 import logisticsking.com.logisticskingbackendspring.app.deliver.command.UpdateDeliverCommand
 import logisticsking.com.logisticskingbackendspring.app.deliver.result.DeliverResult
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.CreateDeliverUseCase
+import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetAgencyDeliversUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetMyDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.UpdateDeliverUseCase
+import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -24,6 +28,7 @@ class DeliverService(
     private val idGenerator: IdGenerator,
 ) : CreateDeliverUseCase,
     GetMyDeliverUseCase,
+    GetAgencyDeliversUseCase,
     UpdateDeliverUseCase {
 
     @Transactional
@@ -56,6 +61,15 @@ class DeliverService(
         return DeliverResult.from(findDeliverByUserId(userId))
     }
 
+    @Transactional(readOnly = true)
+    override fun getAgencyDelivers(userId: UUID, pageable: Pageable): Page<DeliverResult> {
+        findAgencyUser(userId)
+        val agency = findAgencyByUserId(userId)
+
+        return deliverRepository.findAllByAgencyId(agency.id, pageable)
+            .map(DeliverResult::from)
+    }
+
     @Transactional
     override fun update(command: UpdateDeliverCommand): DeliverResult {
         findDriverUser(command.userId)
@@ -82,6 +96,21 @@ class DeliverService(
         }
 
         return user
+    }
+
+    private fun findAgencyUser(userId: UUID): User {
+        val user = userRepository.findById(userId)
+            ?: throw GlobalException(DeliverErrorCode.USER_NOT_FOUND)
+        if (user.role != UserRole.AGENCY) {
+            throw GlobalException(DeliverErrorCode.USER_IS_NOT_AGENCY)
+        }
+
+        return user
+    }
+
+    private fun findAgencyByUserId(userId: UUID): Agency {
+        return agencyRepository.findByUserId(userId)
+            ?: throw GlobalException(DeliverErrorCode.AGENCY_NOT_FOUND)
     }
 
     private fun ensureAgencyExists(agencyId: UUID) {

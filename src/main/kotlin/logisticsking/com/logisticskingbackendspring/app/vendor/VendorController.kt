@@ -15,6 +15,8 @@ import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVen
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -94,13 +96,12 @@ class VendorController(
     @GetMapping("/me/products")
     fun getProducts(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<VendorResponse.ProductList> {
-        val results = getVendorProductsUseCase.getProducts(user.userId)
+        val results = getVendorProductsUseCase.getProducts(user.userId, pageable)
 
         return ApiResponse.success(
-            response = VendorResponse.ProductList(
-                products = results.map(VendorResponse.ProductDetail::from),
-            )
+            response = VendorResponse.ProductList.from(results),
         )
     }
 

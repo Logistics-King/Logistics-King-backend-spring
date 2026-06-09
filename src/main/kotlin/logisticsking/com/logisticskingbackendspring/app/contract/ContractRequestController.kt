@@ -22,6 +22,8 @@ import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.GetOpen
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.SubmitProposalUseCase
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -65,13 +67,12 @@ class ContractRequestController(
     @GetMapping
     fun getMyContractRequests(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<ContractRequestResponse.List> {
-        val results = getMyContractRequestsUseCase.getMyContractRequests(user.userId)
+        val results = getMyContractRequestsUseCase.getMyContractRequests(user.userId, pageable)
 
         return ApiResponse.success(
-            response = ContractRequestResponse.List(
-                contractRequests = results.map(ContractRequestResponse.Detail::from),
-            )
+            response = ContractRequestResponse.List.from(results),
         )
     }
 
@@ -98,13 +99,12 @@ class ContractRequestController(
     @GetMapping("/open")
     fun getOpenContractRequests(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<ContractRequestResponse.List> {
-        val results = getOpenContractRequestsUseCase.getOpenContractRequests(user.userId)
+        val results = getOpenContractRequestsUseCase.getOpenContractRequests(user.userId, pageable)
 
         return ApiResponse.success(
-            response = ContractRequestResponse.List(
-                contractRequests = results.map(ContractRequestResponse.Detail::from),
-            )
+            response = ContractRequestResponse.List.from(results),
         )
     }
 
@@ -128,18 +128,18 @@ class ContractRequestController(
     fun getProposals(
         @AuthenticationPrincipal user: AuthenticatedUser,
         @PathVariable contractRequestId: UUID,
+        @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<ProposalResponse.List> {
         val results = getContractRequestProposalsUseCase.getContractRequestProposals(
             GetContractRequestProposalsCommand(
                 userId = user.userId,
                 contractRequestId = contractRequestId,
-            )
+            ),
+            pageable,
         )
 
         return ApiResponse.success(
-            response = ProposalResponse.List(
-                proposals = results.map(ProposalResponse.Detail::from),
-            )
+            response = ProposalResponse.List.from(results),
         )
     }
 

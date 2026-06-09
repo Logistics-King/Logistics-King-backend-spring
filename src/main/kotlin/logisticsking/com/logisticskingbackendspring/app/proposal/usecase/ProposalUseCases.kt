@@ -6,10 +6,12 @@ import logisticsking.com.logisticskingbackendspring.app.proposal.command.SubmitP
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.UpdateProposalCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.WithdrawProposalCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.result.ProposalResult
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 interface GetOpenContractRequestsUseCase {
-    fun getOpenContractRequests(userId: UUID): List<ContractRequestResult>
+    fun getOpenContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult>
 }
 
 interface SubmitProposalUseCase {
@@ -17,11 +19,14 @@ interface SubmitProposalUseCase {
 }
 
 interface GetContractRequestProposalsUseCase {
-    fun getContractRequestProposals(command: GetContractRequestProposalsCommand): List<ProposalResult>
+    fun getContractRequestProposals(
+        command: GetContractRequestProposalsCommand,
+        pageable: Pageable,
+    ): Page<ProposalResult>
 }
 
 interface GetMyProposalsUseCase {
-    fun getMyProposals(userId: UUID): List<ProposalResult>
+    fun getMyProposals(userId: UUID, pageable: Pageable): Page<ProposalResult>
 }
 
 interface UpdateProposalUseCase {

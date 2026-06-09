@@ -16,6 +16,8 @@ import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.UpdateP
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.WithdrawProposalUseCase
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -42,13 +44,12 @@ class ProposalController(
     @GetMapping("/me")
     fun getMyProposals(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<ProposalResponse.List> {
-        val results = getMyProposalsUseCase.getMyProposals(user.userId)
+        val results = getMyProposalsUseCase.getMyProposals(user.userId, pageable)
 
         return ApiResponse.success(
-            response = ProposalResponse.List(
-                proposals = results.map(ProposalResponse.Detail::from),
-            )
+            response = ProposalResponse.List.from(results),
         )
     }
 
