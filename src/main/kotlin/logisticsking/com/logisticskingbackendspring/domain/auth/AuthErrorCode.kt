@@ -13,6 +13,11 @@ enum class AuthErrorCode(
         message = "아이디 또는 비밀번호가 올바르지 않습니다.",
         status = HttpStatus.UNAUTHORIZED,
     ),
+    PASSWORD_CONFIRM_MISMATCH(
+        code = "PASSWORD_CONFIRM_MISMATCH",
+        message = "비밀번호가 일치하지 않습니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
     UNAUTHORIZED(
         code = "UNAUTHORIZED",
         message = "인증이 필요합니다.",
