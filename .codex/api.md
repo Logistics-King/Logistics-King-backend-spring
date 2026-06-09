@@ -13,7 +13,7 @@ Controller는 `app` 계층에 둔다. Controller는 HTTP DTO를 command로 변�
 ```text
 /api/v1/{resource}
 /api/v1/{resource}/{id}
-/api/v1/{resource}/{id}/{action}ㅌ
+/api/v1/{resource}/{id}/{action}
 ```
 
 예시:
@@ -23,9 +23,11 @@ POST /api/v1/users
 GET /api/v1/users/{userId}
 
 POST /api/v1/contract-requests
+GET /api/v1/contract-requests?page=0&size=20
 GET /api/v1/contract-requests/{contractRequestId}
 POST /api/v1/contract-requests/{contractRequestId}/proposals
-POST /api/v1/proposals/{proposalId}/select
+POST /api/v1/proposals/{proposalId}/accept
+GET /api/v1/delivers/agency/me?page=0&size=20
 ```
 
 규칙:
@@ -295,6 +297,8 @@ data class PageResponse<T>(
     val size: Int,
     val totalElements: Long,
     val totalPages: Int,
+    val hasNext: Boolean,
+    val hasPrevious: Boolean,
 )
 ```
 
@@ -310,10 +314,18 @@ data class PageResponse<T>(
       "page": 0,
       "size": 20,
       "totalElements": 0,
-      "totalPages": 0
+      "totalPages": 0,
+      "hasNext": false,
+      "hasPrevious": false
     }
   }
 }
+```
+
+목록 API 기본 쿼리:
+
+```text
+?page=0&size=20
 ```
 
 ## Date and time

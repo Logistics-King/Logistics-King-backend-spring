@@ -8,6 +8,7 @@ import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointRe
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.util.AntPathMatcher
+import org.springframework.web.cors.CorsUtils
 import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
@@ -19,7 +20,8 @@ class EndPointAuthorizationFilter(
     private val pathMatcher = AntPathMatcher()
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
-        return !request.servletPath.startsWith(API_PATH) ||
+        return CorsUtils.isPreFlightRequest(request) ||
+            !request.servletPath.startsWith(API_PATH) ||
             PUBLIC_PATHS.any { publicPath -> request.servletPath.startsWith(publicPath) }
     }
 

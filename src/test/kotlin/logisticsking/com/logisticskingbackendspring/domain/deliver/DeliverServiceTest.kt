@@ -13,6 +13,9 @@ import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 class DeliverServiceTest {
@@ -259,6 +262,12 @@ class DeliverServiceTest {
 
         override fun findByUserId(userId: UUID): Deliver? {
             return delivers.values.firstOrNull { it.userId == userId }
+        }
+
+        override fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Deliver> {
+            val filteredDelivers = delivers.values.filter { it.agencyId == agencyId }
+
+            return PageImpl(filteredDelivers, pageable, filteredDelivers.size.toLong())
         }
 
         override fun existsByUserId(userId: UUID): Boolean {

@@ -14,6 +14,8 @@ sealed interface AuthRequest {
         val email: String,
         @field:Schema(description = "비밀번호", example = "password1234")
         val password: String,
+        @field:Schema(description = "비밀번호 확인", example = "password1234")
+        val passwordConfirm: String,
         @field:Schema(description = "이름", example = "서울 옷가게")
         val name: String,
     ) : AuthRequest {
@@ -22,6 +24,7 @@ sealed interface AuthRequest {
                 loginId = loginId,
                 email = email,
                 password = password,
+                passwordConfirm = passwordConfirm,
                 name = name,
                 role = UserRole.VENDOR,
             )
@@ -35,6 +38,8 @@ sealed interface AuthRequest {
         val email: String,
         @field:Schema(description = "비밀번호", example = "password1234")
         val password: String,
+        @field:Schema(description = "비밀번호 확인", example = "password1234")
+        val passwordConfirm: String,
         @field:Schema(description = "이름", example = "CJ 서울 대리점")
         val name: String,
     ) : AuthRequest {
@@ -43,6 +48,7 @@ sealed interface AuthRequest {
                 loginId = loginId,
                 email = email,
                 password = password,
+                passwordConfirm = passwordConfirm,
                 name = name,
                 role = UserRole.AGENCY,
             )
@@ -56,6 +62,8 @@ sealed interface AuthRequest {
         val email: String,
         @field:Schema(description = "비밀번호", example = "password1234")
         val password: String,
+        @field:Schema(description = "비밀번호 확인", example = "password1234")
+        val passwordConfirm: String,
         @field:Schema(description = "이름", example = "김택배")
         val name: String,
     ) : AuthRequest {
@@ -64,6 +72,7 @@ sealed interface AuthRequest {
                 loginId = loginId,
                 email = email,
                 password = password,
+                passwordConfirm = passwordConfirm,
                 name = name,
                 role = UserRole.DRIVER,
             )

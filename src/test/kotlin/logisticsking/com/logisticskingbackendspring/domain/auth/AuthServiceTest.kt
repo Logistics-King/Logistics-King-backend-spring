@@ -33,6 +33,7 @@ class AuthServiceTest {
                 loginId = "agency01",
                 email = "agency01@example.com",
                 password = "password",
+                passwordConfirm = "password",
                 name = "CJ 일동대리점",
                 role = UserRole.AGENCY,
             )
@@ -55,6 +56,7 @@ class AuthServiceTest {
                     loginId = user.loginId,
                     email = "new@example.com",
                     password = "password",
+                    passwordConfirm = "password",
                     name = "new user",
                     role = UserRole.VENDOR,
                 )
@@ -73,11 +75,32 @@ class AuthServiceTest {
                     loginId = "new-login-id",
                     email = user.email,
                     password = "password",
+                    passwordConfirm = "password",
                     name = "new user",
                     role = UserRole.VENDOR,
                 )
             )
         }
+    }
+
+    @Test
+    fun `signUp 시 비밀번호 확인이 일치하지 않으면 예외가 발생한다`() {
+        val service = authService()
+
+        val exception = assertThrows(GlobalException::class.java) {
+            service.signUp(
+                SignUpCommand(
+                    loginId = "vendor01",
+                    email = "vendor01@example.com",
+                    password = "password",
+                    passwordConfirm = "different-password",
+                    name = "new user",
+                    role = UserRole.VENDOR,
+                )
+            )
+        }
+
+        assertEquals(AuthErrorCode.PASSWORD_CONFIRM_MISMATCH, exception.errorCode)
     }
 
     @Test

@@ -72,6 +72,24 @@ class EndPointAuthorizationFilterTest {
     }
 
     @Test
+    fun `cors preflight 요청은 권한 검사를 건너뛴다`() {
+        val filter = filterWith(emptyList())
+        val response = MockHttpServletResponse()
+
+        filter.doFilter(
+            MockHttpServletRequest("OPTIONS", "/api/v1/vendors/me").apply {
+                servletPath = "/api/v1/vendors/me"
+                addHeader("Origin", "http://localhost:3000")
+                addHeader("Access-Control-Request-Method", "GET")
+            },
+            response,
+            MockFilterChain(),
+        )
+
+        assertEquals(200, response.status)
+    }
+
+    @Test
     fun `roles에 포함된 endpoint면 통과한다`() {
         val filter = filterWith(
             listOf(

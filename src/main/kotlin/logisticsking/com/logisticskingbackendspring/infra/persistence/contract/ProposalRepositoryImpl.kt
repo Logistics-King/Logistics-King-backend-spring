@@ -2,6 +2,8 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.contract
 
 import logisticsking.com.logisticskingbackendspring.domain.contract.Proposal
 import logisticsking.com.logisticskingbackendspring.domain.contract.ProposalRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.util.UUID
 
@@ -33,8 +35,13 @@ class ProposalRepositoryImpl(
             .map(ProposalJpaEntity::toDomain)
     }
 
-    override fun findAllByAgencyId(agencyId: UUID): List<Proposal> {
-        return proposalJpaRepository.findAllByAgencyIdOrderByCreatedAtDesc(agencyId)
+    override fun findAllByContractRequestId(contractRequestId: UUID, pageable: Pageable): Page<Proposal> {
+        return proposalJpaRepository.findAllByContractRequestIdOrderByCreatedAtDesc(contractRequestId, pageable)
+            .map(ProposalJpaEntity::toDomain)
+    }
+
+    override fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Proposal> {
+        return proposalJpaRepository.findAllByAgencyIdOrderByCreatedAtDesc(agencyId, pageable)
             .map(ProposalJpaEntity::toDomain)
     }
 

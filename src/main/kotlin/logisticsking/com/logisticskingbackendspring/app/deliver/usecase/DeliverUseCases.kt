@@ -3,6 +3,8 @@ package logisticsking.com.logisticskingbackendspring.app.deliver.usecase
 import logisticsking.com.logisticskingbackendspring.app.deliver.command.CreateDeliverCommand
 import logisticsking.com.logisticskingbackendspring.app.deliver.command.UpdateDeliverCommand
 import logisticsking.com.logisticskingbackendspring.app.deliver.result.DeliverResult
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 interface CreateDeliverUseCase {
@@ -11,6 +13,10 @@ interface CreateDeliverUseCase {
 
 interface GetMyDeliverUseCase {
     fun getMyDeliver(userId: UUID): DeliverResult
+}
+
+interface GetAgencyDeliversUseCase {
+    fun getAgencyDelivers(userId: UUID, pageable: Pageable): Page<DeliverResult>
 }
 
 interface UpdateDeliverUseCase {

@@ -7,11 +7,14 @@ import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
 import logisticsking.com.logisticskingbackendspring.app.deliver.dto.DeliverRequest
 import logisticsking.com.logisticskingbackendspring.app.deliver.dto.DeliverResponse
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.CreateDeliverUseCase
+import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetAgencyDeliversUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetMyDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.UpdateDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController
 class DeliverController(
     private val createDeliverUseCase: CreateDeliverUseCase,
     private val getMyDeliverUseCase: GetMyDeliverUseCase,
+    private val getAgencyDeliversUseCase: GetAgencyDeliversUseCase,
     private val updateDeliverUseCase: UpdateDeliverUseCase,
 ) {
 
@@ -53,6 +57,20 @@ class DeliverController(
 
         return ApiResponse.success(
             response = DeliverResponse.Detail.from(result),
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.AGENCY])
+    @Operation(summary = "대리점 배송기사 목록 조회", description = "로그인한 대리점에 소속된 배송기사 목록을 조회합니다.")
+    @GetMapping("/agency/me")
+    fun getAgencyDelivers(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PageableDefault(size = 20) pageable: Pageable,
+    ): ApiResponse<DeliverResponse.List> {
+        val results = getAgencyDeliversUseCase.getAgencyDelivers(user.userId, pageable)
+
+        return ApiResponse.success(
+            response = DeliverResponse.List.from(results),
         )
     }
 

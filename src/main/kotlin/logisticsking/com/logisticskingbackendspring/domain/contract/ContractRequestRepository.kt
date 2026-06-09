@@ -1,5 +1,7 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 interface ContractRequestRepository {
@@ -9,6 +11,6 @@ interface ContractRequestRepository {
         id: UUID,
         vendorId: UUID,
     ): ContractRequest?
-    fun findAllByVendorId(vendorId: UUID): List<ContractRequest>
-    fun findAllByStatus(status: ContractRequestStatus): List<ContractRequest>
+    fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<ContractRequest>
+    fun findAllByStatus(status: ContractRequestStatus, pageable: Pageable): Page<ContractRequest>
 }

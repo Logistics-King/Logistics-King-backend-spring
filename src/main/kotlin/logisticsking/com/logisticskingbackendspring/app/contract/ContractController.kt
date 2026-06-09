@@ -10,6 +10,8 @@ import logisticsking.com.logisticskingbackendspring.app.contract.usecase.GetMyVe
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -29,13 +31,12 @@ class ContractController(
     @GetMapping("/vendor/me")
     fun getMyVendorContracts(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<ContractResponse.List> {
-        val results = getMyVendorContractsUseCase.getMyVendorContracts(user.userId)
+        val results = getMyVendorContractsUseCase.getMyVendorContracts(user.userId, pageable)
 
         return ApiResponse.success(
-            response = ContractResponse.List(
-                contracts = results.map(ContractResponse.Detail::from),
-            )
+            response = ContractResponse.List.from(results),
         )
     }
 
@@ -44,13 +45,12 @@ class ContractController(
     @GetMapping("/agency/me")
     fun getMyAgencyContracts(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<ContractResponse.List> {
-        val results = getMyAgencyContractsUseCase.getMyAgencyContracts(user.userId)
+        val results = getMyAgencyContractsUseCase.getMyAgencyContracts(user.userId, pageable)
 
         return ApiResponse.success(
-            response = ContractResponse.List(
-                contracts = results.map(ContractResponse.Detail::from),
-            )
+            response = ContractResponse.List.from(results),
         )
     }
 }

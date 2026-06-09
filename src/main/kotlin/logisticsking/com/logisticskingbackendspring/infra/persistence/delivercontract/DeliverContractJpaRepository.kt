@@ -1,6 +1,8 @@
 package logisticsking.com.logisticskingbackendspring.infra.persistence.delivercontract
 
 import logisticsking.com.logisticskingbackendspring.domain.delivercontract.DeliverContractStatus
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.UUID
 
@@ -15,8 +17,15 @@ interface DeliverContractJpaRepository : JpaRepository<DeliverContractJpaEntity,
         deliverId: UUID,
     ): DeliverContractJpaEntity?
 
-    fun findAllByAgencyIdOrderByCreatedAtDesc(agencyId: UUID): List<DeliverContractJpaEntity>
-    fun findAllByDeliverIdOrderByCreatedAtDesc(deliverId: UUID): List<DeliverContractJpaEntity>
+    fun findAllByAgencyIdOrderByCreatedAtDesc(
+        agencyId: UUID,
+        pageable: Pageable,
+    ): Page<DeliverContractJpaEntity>
+
+    fun findAllByDeliverIdOrderByCreatedAtDesc(
+        deliverId: UUID,
+        pageable: Pageable,
+    ): Page<DeliverContractJpaEntity>
     fun existsByAgencyIdAndDeliverIdAndStatusIn(
         agencyId: UUID,
         deliverId: UUID,

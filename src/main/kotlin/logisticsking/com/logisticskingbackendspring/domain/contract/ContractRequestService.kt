@@ -18,6 +18,8 @@ import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductRepository
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -64,11 +66,11 @@ class ContractRequestService(
     }
 
     @Transactional(readOnly = true)
-    override fun getMyContractRequests(userId: UUID): List<ContractRequestResult> {
+    override fun getMyContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult> {
         findVendorUser(userId)
         val vendor = findVendorByUserId(userId)
 
-        return contractRequestRepository.findAllByVendorId(vendor.id)
+        return contractRequestRepository.findAllByVendorId(vendor.id, pageable)
             .map(ContractRequestResult::from)
     }
 
