@@ -15,11 +15,11 @@ class DeliverRepositoryImpl(
     }
 
     override fun findById(id: UUID): Deliver? {
-        return jpaRepository.findById(id).orElse(null)?.toDomain()
+        return jpaRepository.findByIdAndDeletedAtIsNull(id)?.toDomain()
     }
 
     override fun findByUserId(userId: UUID): Deliver? {
-        return jpaRepository.findByUserId(userId)?.toDomain()
+        return jpaRepository.findByUserIdAndDeletedAtIsNull(userId)?.toDomain()
     }
 
     override fun existsByUserId(userId: UUID): Boolean {

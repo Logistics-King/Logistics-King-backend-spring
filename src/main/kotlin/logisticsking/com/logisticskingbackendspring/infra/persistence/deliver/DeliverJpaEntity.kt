@@ -5,7 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.deliver.Deliver
-import logisticsking.com.logisticskingbackendspring.infra.persistence.common.BaseJpaEntity
+import logisticsking.com.logisticskingbackendspring.infra.persistence.common.SoftDeletableJpaEntity
 import java.util.UUID
 
 @Entity
@@ -38,7 +38,7 @@ class DeliverJpaEntity(
 
     @Column(name = "memo", length = 255)
     val memo: String?,
-) : BaseJpaEntity() {
+) : SoftDeletableJpaEntity() {
 
     fun toDomain(): Deliver {
         return Deliver.restore(

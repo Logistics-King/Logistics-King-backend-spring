@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(30) NOT NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
+    deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_users_login_id (login_id),
     UNIQUE KEY uk_users_email (email)
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     main_region VARCHAR(100) NOT NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
+    deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_vendors_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -56,8 +58,88 @@ CREATE TABLE IF NOT EXISTS vendor_products (
     requires_cold_chain BOOLEAN NOT NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
+    deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
     KEY idx_vendor_products_vendor_id (vendor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS contract_requests (
+    id BINARY(16) NOT NULL,
+    vendor_id BINARY(16) NOT NULL,
+    product_id BINARY(16) NULL,
+    pickup_region VARCHAR(100) NOT NULL,
+    pickup_address VARCHAR(255) NULL,
+    monthly_volume INT NOT NULL,
+    product_category VARCHAR(30) NOT NULL,
+    product_name VARCHAR(100) NOT NULL,
+    box_size VARCHAR(30) NOT NULL,
+    pickup_start_time VARCHAR(10) NOT NULL,
+    pickup_end_time VARCHAR(10) NOT NULL,
+    saturday_delivery_required BOOLEAN NOT NULL,
+    return_required BOOLEAN NOT NULL,
+    cold_chain_required BOOLEAN NOT NULL,
+    target_unit_price DECIMAL(15, 2) NULL,
+    memo VARCHAR(255) NULL,
+    status VARCHAR(30) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_contract_requests_vendor_id (vendor_id),
+    KEY idx_contract_requests_product_id (product_id),
+    KEY idx_contract_requests_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS proposals (
+    id BINARY(16) NOT NULL,
+    contract_request_id BINARY(16) NOT NULL,
+    vendor_id BINARY(16) NOT NULL,
+    agency_id BINARY(16) NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    pickup_start_time VARCHAR(10) NOT NULL,
+    pickup_end_time VARCHAR(10) NOT NULL,
+    saturday_delivery_available BOOLEAN NOT NULL,
+    return_available BOOLEAN NOT NULL,
+    cold_chain_available BOOLEAN NOT NULL,
+    memo VARCHAR(255) NULL,
+    status VARCHAR(30) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_proposals_contract_request_agency (contract_request_id, agency_id),
+    KEY idx_proposals_contract_request_id (contract_request_id),
+    KEY idx_proposals_vendor_id (vendor_id),
+    KEY idx_proposals_agency_id (agency_id),
+    KEY idx_proposals_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS contracts (
+    id BINARY(16) NOT NULL,
+    contract_request_id BINARY(16) NOT NULL,
+    proposal_id BINARY(16) NOT NULL,
+    vendor_id BINARY(16) NOT NULL,
+    agency_id BINARY(16) NOT NULL,
+    pickup_region VARCHAR(100) NOT NULL,
+    pickup_address VARCHAR(255) NULL,
+    monthly_volume INT NOT NULL,
+    product_category VARCHAR(30) NOT NULL,
+    product_name VARCHAR(100) NOT NULL,
+    box_size VARCHAR(30) NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    pickup_start_time VARCHAR(10) NOT NULL,
+    pickup_end_time VARCHAR(10) NOT NULL,
+    saturday_delivery_available BOOLEAN NOT NULL,
+    return_available BOOLEAN NOT NULL,
+    cold_chain_available BOOLEAN NOT NULL,
+    memo VARCHAR(255) NULL,
+    status VARCHAR(30) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_contracts_contract_request_id (contract_request_id),
+    UNIQUE KEY uk_contracts_proposal_id (proposal_id),
+    KEY idx_contracts_vendor_id (vendor_id),
+    KEY idx_contracts_agency_id (agency_id),
+    KEY idx_contracts_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS agencies (
@@ -82,6 +164,7 @@ CREATE TABLE IF NOT EXISTS agencies (
     max_monthly_volume INT NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
+    deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_agencies_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -98,7 +181,28 @@ CREATE TABLE IF NOT EXISTS delivers (
     memo VARCHAR(255) NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
+    deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_delivers_user_id (user_id),
     KEY idx_delivers_agency_id (agency_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS deliver_contracts (
+    id BINARY(16) NOT NULL,
+    agency_id BINARY(16) NOT NULL,
+    deliver_id BINARY(16) NOT NULL,
+    service_region VARCHAR(100) NOT NULL,
+    expected_monthly_volume INT NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NULL,
+    memo VARCHAR(255) NULL,
+    status VARCHAR(30) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_deliver_contracts_agency_id (agency_id),
+    KEY idx_deliver_contracts_deliver_id (deliver_id),
+    KEY idx_deliver_contracts_agency_deliver_status (agency_id, deliver_id, status),
+    KEY idx_deliver_contracts_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -4,9 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.util.UUID
 
 interface VendorProductJpaRepository : JpaRepository<VendorProductJpaEntity, UUID> {
-    fun findByIdAndVendorId(
+    fun findByIdAndVendorIdAndDeletedAtIsNull(
         id: UUID,
         vendorId: UUID,
     ): VendorProductJpaEntity?
-    fun findAllByVendorId(vendorId: UUID): List<VendorProductJpaEntity>
+    fun findAllByVendorIdAndDeletedAtIsNull(vendorId: UUID): List<VendorProductJpaEntity>
 }

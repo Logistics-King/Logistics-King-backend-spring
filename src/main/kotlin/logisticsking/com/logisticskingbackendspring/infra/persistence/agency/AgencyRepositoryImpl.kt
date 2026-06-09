@@ -2,7 +2,6 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.agency
 
 import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 import java.util.UUID
 
@@ -16,11 +15,11 @@ class AgencyRepositoryImpl(
     }
 
     override fun findById(id: UUID): Agency? {
-        return jpaRepository.findByIdOrNull(id)?.toDomain()
+        return jpaRepository.findByIdAndDeletedAtIsNull(id)?.toDomain()
     }
 
     override fun findByUserId(userId: UUID): Agency? {
-        return jpaRepository.findByUserId(userId)?.toDomain()
+        return jpaRepository.findByUserIdAndDeletedAtIsNull(userId)?.toDomain()
     }
 
     override fun existsByUserId(userId: UUID): Boolean {
