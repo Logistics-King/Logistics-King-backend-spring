@@ -8,7 +8,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
-import logisticsking.com.logisticskingbackendspring.infra.persistence.common.BaseJpaEntity
+import logisticsking.com.logisticskingbackendspring.infra.persistence.common.SoftDeletableJpaEntity
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -52,7 +52,7 @@ class VendorProductJpaEntity(
 
     @Column(name = "requires_cold_chain", nullable = false)
     val requiresColdChain: Boolean,
-) : BaseJpaEntity() {
+) : SoftDeletableJpaEntity() {
 
     fun toDomain(): VendorProduct {
         return VendorProduct.restore(

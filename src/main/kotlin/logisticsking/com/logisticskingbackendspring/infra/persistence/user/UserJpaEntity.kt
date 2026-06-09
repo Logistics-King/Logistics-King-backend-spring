@@ -8,7 +8,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
-import logisticsking.com.logisticskingbackendspring.infra.persistence.common.BaseJpaEntity
+import logisticsking.com.logisticskingbackendspring.infra.persistence.common.SoftDeletableJpaEntity
 import java.util.UUID
 
 @Entity
@@ -33,7 +33,7 @@ class UserJpaEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 30)
     val role: UserRole,
-) : BaseJpaEntity() {
+) : SoftDeletableJpaEntity() {
 
     fun toDomain(): User {
         return User.restore(

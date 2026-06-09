@@ -5,7 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
-import logisticsking.com.logisticskingbackendspring.infra.persistence.common.BaseJpaEntity
+import logisticsking.com.logisticskingbackendspring.infra.persistence.common.SoftDeletableJpaEntity
 import java.util.UUID
 
 @Entity
@@ -41,7 +41,7 @@ class VendorJpaEntity(
 
     @Column(name = "main_region", nullable = false, length = 100)
     val mainRegion: String,
-) : BaseJpaEntity() {
+) : SoftDeletableJpaEntity() {
 
     fun toDomain(): Vendor {
         return Vendor.restore(
