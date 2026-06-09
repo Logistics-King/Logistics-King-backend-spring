@@ -41,6 +41,9 @@ class AuthService(
         val name = command.name.trim()
 
         requireDomain(command.password.isNotBlank(), UserErrorCode.INVALID_PASSWORD)
+        if (command.password != command.passwordConfirm) {
+            throw GlobalException(AuthErrorCode.PASSWORD_CONFIRM_MISMATCH)
+        }
 
         if (userRepository.existsByLoginId(loginId)) {
             throw GlobalException(UserErrorCode.DUPLICATED_LOGIN_ID)
