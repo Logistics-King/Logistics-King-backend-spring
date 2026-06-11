@@ -12,6 +12,7 @@ import java.util.UUID
 @Repository
 class ContractRequestRepositoryImpl(
     private val contractRequestJpaRepository: ContractRequestJpaRepository,
+    private val contractRequestQueryRepository: ContractRequestQueryRepository,
 ) : ContractRequestRepository {
 
     override fun save(contractRequest: ContractRequest): ContractRequest {
@@ -22,11 +23,25 @@ class ContractRequestRepositoryImpl(
         return contractRequestJpaRepository.findByIdOrNull(id)?.toDomain()
     }
 
+    override fun findByIdForUpdate(id: UUID): ContractRequest? {
+        return contractRequestQueryRepository.findByIdForUpdate(id)?.toDomain()
+    }
+
     override fun findByIdAndVendorId(
         id: UUID,
         vendorId: UUID,
     ): ContractRequest? {
         return contractRequestJpaRepository.findByIdAndVendorId(
+            id = id,
+            vendorId = vendorId,
+        )?.toDomain()
+    }
+
+    override fun findByIdAndVendorIdForUpdate(
+        id: UUID,
+        vendorId: UUID,
+    ): ContractRequest? {
+        return contractRequestQueryRepository.findByIdAndVendorIdForUpdate(
             id = id,
             vendorId = vendorId,
         )?.toDomain()

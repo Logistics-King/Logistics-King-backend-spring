@@ -7,7 +7,12 @@ import java.util.UUID
 interface ContractRequestRepository {
     fun save(contractRequest: ContractRequest): ContractRequest
     fun findById(id: UUID): ContractRequest?
+    fun findByIdForUpdate(id: UUID): ContractRequest?
     fun findByIdAndVendorId(
+        id: UUID,
+        vendorId: UUID,
+    ): ContractRequest?
+    fun findByIdAndVendorIdForUpdate(
         id: UUID,
         vendorId: UUID,
     ): ContractRequest?

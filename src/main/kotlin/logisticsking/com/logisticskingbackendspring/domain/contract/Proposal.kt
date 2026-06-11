@@ -29,8 +29,8 @@ class Proposal private constructor(
         memo: String?,
     ): Proposal {
         requireDomain(
-            status != ProposalStatus.WITHDRAWN,
-            ProposalErrorCode.WITHDRAWN_PROPOSAL_CANNOT_BE_UPDATED,
+            status == ProposalStatus.SUBMITTED,
+            ProposalErrorCode.ONLY_SUBMITTED_PROPOSAL_CAN_BE_UPDATED,
         )
 
         return create(

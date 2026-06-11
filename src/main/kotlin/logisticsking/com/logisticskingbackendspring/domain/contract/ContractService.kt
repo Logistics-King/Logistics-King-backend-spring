@@ -41,7 +41,8 @@ class ContractService(
             id = command.proposalId,
             vendorId = vendor.id,
         ) ?: throw GlobalException(ContractErrorCode.PROPOSAL_NOT_FOUND)
-        val contractRequest = contractRequestRepository.findByIdAndVendorId(
+
+        val contractRequest = contractRequestRepository.findByIdAndVendorIdForUpdate(
             id = proposal.contractRequestId,
             vendorId = vendor.id,
         ) ?: throw GlobalException(ContractErrorCode.CONTRACT_REQUEST_NOT_FOUND)
@@ -50,21 +51,25 @@ class ContractService(
             throw GlobalException(ContractErrorCode.CONTRACT_ALREADY_EXISTS)
         }
 
+        val proposals = proposalRepository.findAllByContractRequestIdForUpdate(contractRequest.id)
+        val selectedProposal = proposals.firstOrNull { current ->
+            current.id == command.proposalId && current.vendorId == vendor.id
+        } ?: throw GlobalException(ContractErrorCode.PROPOSAL_NOT_FOUND)
+
         val contract = Contract.create(
             id = idGenerator.generate(),
             contractRequest = contractRequest,
-            proposal = proposal,
+            proposal = selectedProposal,
         )
-        val proposals = proposalRepository.findAllByContractRequestId(contractRequest.id)
-            .map { current ->
-                when {
-                    current.id == proposal.id -> current.accept()
-                    current.status == ProposalStatus.SUBMITTED -> current.reject()
-                    else -> current
-                }
+        val proposalResults = proposals.map { current ->
+            when {
+                current.id == selectedProposal.id -> current.accept()
+                current.status == ProposalStatus.SUBMITTED -> current.reject()
+                else -> current
             }
+        }
 
-        proposalRepository.saveAll(proposals)
+        proposalRepository.saveAll(proposalResults)
         contractRequestRepository.save(contractRequest.contract())
 
         return ContractResult.from(contractRepository.save(contract))

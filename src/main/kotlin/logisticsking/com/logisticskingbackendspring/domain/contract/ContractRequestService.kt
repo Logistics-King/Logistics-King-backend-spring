@@ -88,7 +88,7 @@ class ContractRequestService(
         val vendor = findVendorByUserId(command.userId)
         validateProduct(command.productId, vendor.id)
 
-        val contractRequest = findContractRequest(command.contractRequestId, vendor.id)
+        val contractRequest = findContractRequestForUpdate(command.contractRequestId, vendor.id)
         val updated = contractRequest.update(
             productId = command.productId,
             pickupRegion = command.pickupRegion,
@@ -113,7 +113,7 @@ class ContractRequestService(
     override fun cancel(command: CancelContractRequestCommand): ContractRequestResult {
         findVendorUser(command.userId)
         val vendor = findVendorByUserId(command.userId)
-        val contractRequest = findContractRequest(command.contractRequestId, vendor.id)
+        val contractRequest = findContractRequestForUpdate(command.contractRequestId, vendor.id)
 
         return ContractRequestResult.from(contractRequestRepository.save(contractRequest.cancel()))
     }
@@ -150,6 +150,16 @@ class ContractRequestService(
         vendorId: UUID,
     ): ContractRequest {
         return contractRequestRepository.findByIdAndVendorId(
+            id = contractRequestId,
+            vendorId = vendorId,
+        ) ?: throw GlobalException(ContractRequestErrorCode.NOT_FOUND)
+    }
+
+    private fun findContractRequestForUpdate(
+        contractRequestId: UUID,
+        vendorId: UUID,
+    ): ContractRequest {
+        return contractRequestRepository.findByIdAndVendorIdForUpdate(
             id = contractRequestId,
             vendorId = vendorId,
         ) ?: throw GlobalException(ContractRequestErrorCode.NOT_FOUND)

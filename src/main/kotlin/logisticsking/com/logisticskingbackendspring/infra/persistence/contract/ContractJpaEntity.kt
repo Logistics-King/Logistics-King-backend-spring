@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 import logisticsking.com.logisticskingbackendspring.domain.contract.Contract
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractStatus
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
@@ -14,7 +15,13 @@ import java.math.BigDecimal
 import java.util.UUID
 
 @Entity
-@Table(name = "contracts")
+@Table(
+    name = "contracts",
+    uniqueConstraints = [
+        UniqueConstraint(name = "uk_contracts_contract_request_id", columnNames = ["contract_request_id"]),
+        UniqueConstraint(name = "uk_contracts_proposal_id", columnNames = ["proposal_id"]),
+    ],
+)
 class ContractJpaEntity(
     @Id
     @Column(name = "id", columnDefinition = "BINARY(16)", nullable = false, updatable = false)

@@ -108,7 +108,7 @@ class ProposalTest {
     }
 
     @Test
-    fun `철회된 제안은 수정할 수 없다`() {
+    fun `제출 상태가 아닌 제안은 수정할 수 없다`() {
         val withdrawn = proposal().withdraw()
 
         val exception = assertThrows(GlobalException::class.java) {
@@ -123,7 +123,7 @@ class ProposalTest {
             )
         }
 
-        assertEquals(ProposalErrorCode.WITHDRAWN_PROPOSAL_CANNOT_BE_UPDATED, exception.errorCode)
+        assertEquals(ProposalErrorCode.ONLY_SUBMITTED_PROPOSAL_CAN_BE_UPDATED, exception.errorCode)
     }
 
     @Test
