@@ -2,6 +2,7 @@ package logisticsking.com.logisticskingbackendspring.app.auth
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.validation.Valid
 import logisticsking.com.logisticskingbackendspring.app.auth.command.LogoutCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.command.RefreshTokenCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.dto.AuthRequest
@@ -37,7 +38,7 @@ class AuthController(
     @Operation(summary = "화주 회원가입", description = "화주 계정을 생성합니다.")
     @PostMapping("/sign-up/vendor")
     fun signUpVendor(
-        @RequestBody request: AuthRequest.SignUpVendor,
+        @Valid @RequestBody request: AuthRequest.SignUpVendor,
     ): ApiResponse<AuthResponse.SignUp> {
         val result = signUpUseCase.signUp(request.toCommand())
 
@@ -52,7 +53,7 @@ class AuthController(
     @Operation(summary = "대리점 회원가입", description = "택배 대리점 계정을 생성합니다.")
     @PostMapping("/sign-up/agency")
     fun signUpAgency(
-        @RequestBody request: AuthRequest.SignUpAgency,
+        @Valid @RequestBody request: AuthRequest.SignUpAgency,
     ): ApiResponse<AuthResponse.SignUp> {
         val result = signUpUseCase.signUp(request.toCommand())
 
@@ -67,7 +68,7 @@ class AuthController(
     @Operation(summary = "배송기사 회원가입", description = "배송기사 계정을 생성합니다.")
     @PostMapping("/sign-up/driver")
     fun signUpDriver(
-        @RequestBody request: AuthRequest.SignUpDriver,
+        @Valid @RequestBody request: AuthRequest.SignUpDriver,
     ): ApiResponse<AuthResponse.SignUp> {
         val result = signUpUseCase.signUp(request.toCommand())
 
@@ -82,7 +83,7 @@ class AuthController(
     @Operation(summary = "로그인", description = "로그인 후 access token과 refresh token을 HttpOnly cookie로 내려줍니다.")
     @PostMapping(value = ["/sign-in", "/login"])
     fun login(
-        @RequestBody request: AuthRequest.Login,
+        @Valid @RequestBody request: AuthRequest.Login,
         response: HttpServletResponse,
     ): ApiResponse<AuthResponse.Login> {
         val result = loginUseCase.login(request.toCommand())
