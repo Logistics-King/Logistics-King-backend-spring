@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -56,7 +57,7 @@ class ContractRequestTest {
             pickupEndTime = "17:00",
             saturdayDeliveryRequired = false,
             returnRequired = true,
-            coldChainRequired = false,
+            coldChainType = ColdChainType.NONE,
             targetUnitPrice = BigDecimal("2100"),
             memo = "반품 회수 필요",
         )
@@ -134,7 +135,7 @@ class ContractRequestTest {
                 pickupEndTime = "17:00",
                 saturdayDeliveryRequired = false,
                 returnRequired = true,
-                coldChainRequired = false,
+                coldChainType = ColdChainType.NONE,
                 targetUnitPrice = BigDecimal("2100"),
                 memo = null,
             )
@@ -160,7 +161,7 @@ class ContractRequestTest {
                 pickupEndTime = "17:00",
                 saturdayDeliveryRequired = false,
                 returnRequired = true,
-                coldChainRequired = false,
+                coldChainType = ColdChainType.NONE,
                 targetUnitPrice = BigDecimal("2100"),
                 memo = null,
             )
@@ -206,7 +207,7 @@ class ContractRequestTest {
             pickupEndTime = "18:00",
             saturdayDeliveryRequired = true,
             returnRequired = true,
-            coldChainRequired = false,
+            coldChainType = ColdChainType.NONE,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
         )

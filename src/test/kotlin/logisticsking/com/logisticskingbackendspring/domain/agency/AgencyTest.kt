@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.agency
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -59,7 +60,7 @@ class AgencyTest {
             saturdayPickupAvailable = false,
             saturdayDeliveryAvailable = false,
             returnAvailable = true,
-            coldChainAvailable = false,
+            coldChainType = ColdChainType.NONE,
             maxMonthlyVolume = 5000,
         )
 
@@ -124,7 +125,7 @@ class AgencyTest {
             saturdayPickupAvailable = true,
             saturdayDeliveryAvailable = true,
             returnAvailable = true,
-            coldChainAvailable = false,
+            coldChainType = ColdChainType.NONE,
             maxMonthlyVolume = maxMonthlyVolume,
         )
     }

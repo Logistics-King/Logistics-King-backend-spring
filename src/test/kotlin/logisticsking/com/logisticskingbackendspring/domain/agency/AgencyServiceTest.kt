@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.agency
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.app.agency.command.CreateAgencyCommand
 import logisticsking.com.logisticskingbackendspring.app.agency.command.UpdateAgencyCommand
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
@@ -122,7 +123,7 @@ class AgencyServiceTest {
             saturdayPickupAvailable = true,
             saturdayDeliveryAvailable = true,
             returnAvailable = true,
-            coldChainAvailable = false,
+            coldChainType = ColdChainType.NONE,
             maxMonthlyVolume = 10000,
         )
     }
@@ -145,7 +146,7 @@ class AgencyServiceTest {
             saturdayPickupAvailable = false,
             saturdayDeliveryAvailable = false,
             returnAvailable = true,
-            coldChainAvailable = false,
+            coldChainType = ColdChainType.NONE,
             maxMonthlyVolume = 5000,
         )
     }

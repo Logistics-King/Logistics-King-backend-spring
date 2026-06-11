@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.Proposal
 import logisticsking.com.logisticskingbackendspring.domain.contract.ProposalStatus
 import logisticsking.com.logisticskingbackendspring.infra.persistence.common.BaseJpaEntity
@@ -52,8 +53,9 @@ class ProposalJpaEntity(
     @Column(name = "return_available", nullable = false)
     val returnAvailable: Boolean,
 
-    @Column(name = "cold_chain_available", nullable = false)
-    val coldChainAvailable: Boolean,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cold_chain_type", nullable = false, length = 30)
+    val coldChainType: ColdChainType,
 
     @Column(name = "memo", length = 255)
     val memo: String?,
@@ -74,7 +76,7 @@ class ProposalJpaEntity(
             pickupEndTime = pickupEndTime,
             saturdayDeliveryAvailable = saturdayDeliveryAvailable,
             returnAvailable = returnAvailable,
-            coldChainAvailable = coldChainAvailable,
+            coldChainType = coldChainType,
             memo = memo,
             status = status,
         )
@@ -92,7 +94,7 @@ class ProposalJpaEntity(
                 pickupEndTime = proposal.pickupEndTime,
                 saturdayDeliveryAvailable = proposal.saturdayDeliveryAvailable,
                 returnAvailable = proposal.returnAvailable,
-                coldChainAvailable = proposal.coldChainAvailable,
+                coldChainType = proposal.coldChainType,
                 memo = proposal.memo,
                 status = proposal.status,
             )

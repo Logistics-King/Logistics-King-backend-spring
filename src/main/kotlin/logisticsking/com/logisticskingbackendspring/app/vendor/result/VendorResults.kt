@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.vendor.result
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
@@ -48,7 +49,7 @@ data class VendorProductResult(
     val fragile: Boolean,
     val liquid: Boolean,
     val freshFood: Boolean,
-    val requiresColdChain: Boolean,
+    val coldChainType: ColdChainType,
 ) {
     companion object {
         fun from(product: VendorProduct): VendorProductResult {
@@ -64,7 +65,7 @@ data class VendorProductResult(
                 fragile = product.fragile,
                 liquid = product.liquid,
                 freshFood = product.freshFood,
-                requiresColdChain = product.requiresColdChain,
+                coldChainType = product.coldChainType,
             )
         }
     }

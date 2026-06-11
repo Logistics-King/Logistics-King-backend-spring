@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.vendor
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorProductCommand
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
@@ -135,7 +136,7 @@ class VendorServiceTest {
             fragile = false,
             liquid = false,
             freshFood = false,
-            requiresColdChain = false,
+            coldChainType = ColdChainType.NONE,
         )
     }
 

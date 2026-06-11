@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.deliver
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.app.deliver.command.CreateDeliverCommand
 import logisticsking.com.logisticskingbackendspring.app.deliver.command.UpdateDeliverCommand
 import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
@@ -189,7 +190,7 @@ class DeliverServiceTest {
             saturdayPickupAvailable = true,
             saturdayDeliveryAvailable = true,
             returnAvailable = true,
-            coldChainAvailable = false,
+            coldChainType = ColdChainType.NONE,
             maxMonthlyVolume = 10000,
         )
     }

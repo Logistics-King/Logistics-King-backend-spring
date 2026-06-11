@@ -49,7 +49,7 @@ class AgencyService(
             saturdayPickupAvailable = command.saturdayPickupAvailable,
             saturdayDeliveryAvailable = command.saturdayDeliveryAvailable,
             returnAvailable = command.returnAvailable,
-            coldChainAvailable = command.coldChainAvailable,
+            coldChainType = command.coldChainType,
             maxMonthlyVolume = command.maxMonthlyVolume,
         )
 
@@ -83,7 +83,7 @@ class AgencyService(
             saturdayPickupAvailable = command.saturdayPickupAvailable,
             saturdayDeliveryAvailable = command.saturdayDeliveryAvailable,
             returnAvailable = command.returnAvailable,
-            coldChainAvailable = command.coldChainAvailable,
+            coldChainType = command.coldChainType,
             maxMonthlyVolume = command.maxMonthlyVolume,
         )
 

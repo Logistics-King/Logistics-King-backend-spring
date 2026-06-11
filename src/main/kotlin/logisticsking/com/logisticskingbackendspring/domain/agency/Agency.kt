@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.agency
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.requireDomain
 import java.util.UUID
 
@@ -21,7 +22,7 @@ class Agency private constructor(
     val saturdayPickupAvailable: Boolean,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainAvailable: Boolean,
+    val coldChainType: ColdChainType,
     val maxMonthlyVolume: Int?,
 ) {
 
@@ -41,7 +42,7 @@ class Agency private constructor(
         saturdayPickupAvailable: Boolean,
         saturdayDeliveryAvailable: Boolean,
         returnAvailable: Boolean,
-        coldChainAvailable: Boolean,
+        coldChainType: ColdChainType,
         maxMonthlyVolume: Int?,
     ): Agency {
         return create(
@@ -62,7 +63,7 @@ class Agency private constructor(
             saturdayPickupAvailable = saturdayPickupAvailable,
             saturdayDeliveryAvailable = saturdayDeliveryAvailable,
             returnAvailable = returnAvailable,
-            coldChainAvailable = coldChainAvailable,
+            coldChainType = coldChainType,
             maxMonthlyVolume = maxMonthlyVolume,
         )
     }
@@ -91,7 +92,7 @@ class Agency private constructor(
             saturdayPickupAvailable: Boolean,
             saturdayDeliveryAvailable: Boolean,
             returnAvailable: Boolean,
-            coldChainAvailable: Boolean,
+            coldChainType: ColdChainType,
             maxMonthlyVolume: Int?,
         ): Agency {
             requireDomain(agencyName.isNotBlank(), AgencyErrorCode.INVALID_AGENCY_NAME)
@@ -126,7 +127,7 @@ class Agency private constructor(
                 saturdayPickupAvailable = saturdayPickupAvailable,
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
                 returnAvailable = returnAvailable,
-                coldChainAvailable = coldChainAvailable,
+                coldChainType = coldChainType,
                 maxMonthlyVolume = maxMonthlyVolume,
             )
         }
@@ -149,7 +150,7 @@ class Agency private constructor(
             saturdayPickupAvailable: Boolean,
             saturdayDeliveryAvailable: Boolean,
             returnAvailable: Boolean,
-            coldChainAvailable: Boolean,
+            coldChainType: ColdChainType,
             maxMonthlyVolume: Int?,
         ): Agency {
             return Agency(
@@ -170,7 +171,7 @@ class Agency private constructor(
                 saturdayPickupAvailable = saturdayPickupAvailable,
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
                 returnAvailable = returnAvailable,
-                coldChainAvailable = coldChainAvailable,
+                coldChainType = coldChainType,
                 maxMonthlyVolume = maxMonthlyVolume,
             )
         }

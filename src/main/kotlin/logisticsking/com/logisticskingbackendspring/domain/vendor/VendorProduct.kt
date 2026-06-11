@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.vendor
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.requireDomain
 import java.math.BigDecimal
 import java.util.UUID
@@ -16,7 +17,7 @@ class VendorProduct private constructor(
     val fragile: Boolean,
     val liquid: Boolean,
     val freshFood: Boolean,
-    val requiresColdChain: Boolean,
+    val coldChainType: ColdChainType,
 ) {
 
     fun update(
@@ -29,7 +30,7 @@ class VendorProduct private constructor(
         fragile: Boolean,
         liquid: Boolean,
         freshFood: Boolean,
-        requiresColdChain: Boolean,
+        coldChainType: ColdChainType,
     ): VendorProduct {
         return create(
             id = id,
@@ -43,7 +44,7 @@ class VendorProduct private constructor(
             fragile = fragile,
             liquid = liquid,
             freshFood = freshFood,
-            requiresColdChain = requiresColdChain,
+            coldChainType = coldChainType,
         )
     }
 
@@ -60,7 +61,7 @@ class VendorProduct private constructor(
             fragile: Boolean,
             liquid: Boolean,
             freshFood: Boolean,
-            requiresColdChain: Boolean,
+            coldChainType: ColdChainType,
         ): VendorProduct {
             requireDomain(name.isNotBlank(), VendorErrorCode.INVALID_PRODUCT_NAME)
             requireDomain(
@@ -84,7 +85,7 @@ class VendorProduct private constructor(
                 fragile = fragile,
                 liquid = liquid,
                 freshFood = freshFood,
-                requiresColdChain = requiresColdChain,
+                coldChainType = coldChainType,
             )
         }
 
@@ -100,7 +101,7 @@ class VendorProduct private constructor(
             fragile: Boolean,
             liquid: Boolean,
             freshFood: Boolean,
-            requiresColdChain: Boolean,
+            coldChainType: ColdChainType,
         ): VendorProduct {
             return VendorProduct(
                 id = id,
@@ -114,7 +115,7 @@ class VendorProduct private constructor(
                 fragile = fragile,
                 liquid = liquid,
                 freshFood = freshFood,
-                requiresColdChain = requiresColdChain,
+                coldChainType = coldChainType,
             )
         }
     }

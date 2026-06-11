@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.requireDomain
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
@@ -22,7 +23,7 @@ class Contract private constructor(
     val pickupEndTime: String,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainAvailable: Boolean,
+    val coldChainType: ColdChainType,
     val memo: String?,
     val status: ContractStatus,
 ) {
@@ -55,7 +56,7 @@ class Contract private constructor(
                 pickupEndTime = proposal.pickupEndTime,
                 saturdayDeliveryAvailable = proposal.saturdayDeliveryAvailable,
                 returnAvailable = proposal.returnAvailable,
-                coldChainAvailable = proposal.coldChainAvailable,
+                coldChainType = proposal.coldChainType,
                 memo = proposal.memo,
                 status = ContractStatus.ACTIVE,
             )
@@ -78,7 +79,7 @@ class Contract private constructor(
             pickupEndTime: String,
             saturdayDeliveryAvailable: Boolean,
             returnAvailable: Boolean,
-            coldChainAvailable: Boolean,
+            coldChainType: ColdChainType,
             memo: String?,
             status: ContractStatus,
         ): Contract {
@@ -99,7 +100,7 @@ class Contract private constructor(
                 pickupEndTime = pickupEndTime,
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
                 returnAvailable = returnAvailable,
-                coldChainAvailable = coldChainAvailable,
+                coldChainType = coldChainType,
                 memo = memo,
                 status = status,
             )

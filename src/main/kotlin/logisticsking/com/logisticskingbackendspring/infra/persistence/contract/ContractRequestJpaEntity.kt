@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequest
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
@@ -57,8 +58,9 @@ class ContractRequestJpaEntity(
     @Column(name = "return_required", nullable = false)
     val returnRequired: Boolean,
 
-    @Column(name = "cold_chain_required", nullable = false)
-    val coldChainRequired: Boolean,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cold_chain_type", nullable = false, length = 30)
+    val coldChainType: ColdChainType,
 
     @Column(name = "target_unit_price", precision = 15, scale = 2)
     val targetUnitPrice: BigDecimal?,
@@ -86,7 +88,7 @@ class ContractRequestJpaEntity(
             pickupEndTime = pickupEndTime,
             saturdayDeliveryRequired = saturdayDeliveryRequired,
             returnRequired = returnRequired,
-            coldChainRequired = coldChainRequired,
+            coldChainType = coldChainType,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
             status = status,
@@ -109,7 +111,7 @@ class ContractRequestJpaEntity(
                 pickupEndTime = contractRequest.pickupEndTime,
                 saturdayDeliveryRequired = contractRequest.saturdayDeliveryRequired,
                 returnRequired = contractRequest.returnRequired,
-                coldChainRequired = contractRequest.coldChainRequired,
+                coldChainType = contractRequest.coldChainType,
                 targetUnitPrice = contractRequest.targetUnitPrice,
                 memo = contractRequest.memo,
                 status = contractRequest.status,

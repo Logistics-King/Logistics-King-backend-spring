@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.vendor.dto
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorProductCommand
@@ -99,8 +100,8 @@ sealed interface VendorRequest {
         val liquid: Boolean,
         @field:Schema(description = "신선식품 여부", example = "false")
         val freshFood: Boolean,
-        @field:Schema(description = "냉장/냉동 필요 여부", example = "false")
-        val requiresColdChain: Boolean,
+        @field:Schema(description = "콜드체인 필요 타입 (NONE, REFRIGERATED, FROZEN)", example = "NONE")
+        val coldChainType: ColdChainType,
     ) : VendorRequest {
         fun toCommand(userId: UUID): CreateVendorProductCommand {
             return CreateVendorProductCommand(
@@ -114,7 +115,7 @@ sealed interface VendorRequest {
                 fragile = fragile,
                 liquid = liquid,
                 freshFood = freshFood,
-                requiresColdChain = requiresColdChain,
+                coldChainType = coldChainType,
             )
         }
     }
@@ -139,8 +140,8 @@ sealed interface VendorRequest {
         val liquid: Boolean,
         @field:Schema(description = "신선식품 여부", example = "false")
         val freshFood: Boolean,
-        @field:Schema(description = "냉장/냉동 필요 여부", example = "false")
-        val requiresColdChain: Boolean,
+        @field:Schema(description = "콜드체인 필요 타입 (NONE, REFRIGERATED, FROZEN)", example = "NONE")
+        val coldChainType: ColdChainType,
     ) : VendorRequest {
         fun toCommand(
             userId: UUID,
@@ -158,7 +159,7 @@ sealed interface VendorRequest {
                 fragile = fragile,
                 liquid = liquid,
                 freshFood = freshFood,
-                requiresColdChain = requiresColdChain,
+                coldChainType = coldChainType,
             )
         }
     }

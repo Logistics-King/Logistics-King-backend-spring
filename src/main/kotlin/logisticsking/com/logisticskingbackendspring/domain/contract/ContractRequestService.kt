@@ -57,7 +57,7 @@ class ContractRequestService(
             pickupEndTime = command.pickupEndTime,
             saturdayDeliveryRequired = command.saturdayDeliveryRequired,
             returnRequired = command.returnRequired,
-            coldChainRequired = command.coldChainRequired,
+            coldChainType = command.coldChainType,
             targetUnitPrice = command.targetUnitPrice,
             memo = command.memo,
         )
@@ -101,7 +101,7 @@ class ContractRequestService(
             pickupEndTime = command.pickupEndTime,
             saturdayDeliveryRequired = command.saturdayDeliveryRequired,
             returnRequired = command.returnRequired,
-            coldChainRequired = command.coldChainRequired,
+            coldChainType = command.coldChainType,
             targetUnitPrice = command.targetUnitPrice,
             memo = command.memo,
         )

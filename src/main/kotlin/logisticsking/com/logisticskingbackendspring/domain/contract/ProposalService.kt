@@ -71,7 +71,7 @@ class ProposalService(
             pickupEndTime = command.pickupEndTime,
             saturdayDeliveryAvailable = command.saturdayDeliveryAvailable,
             returnAvailable = command.returnAvailable,
-            coldChainAvailable = command.coldChainAvailable,
+            coldChainType = command.coldChainType,
             memo = command.memo,
         )
 
@@ -114,7 +114,7 @@ class ProposalService(
             pickupEndTime = command.pickupEndTime,
             saturdayDeliveryAvailable = command.saturdayDeliveryAvailable,
             returnAvailable = command.returnAvailable,
-            coldChainAvailable = command.coldChainAvailable,
+            coldChainType = command.coldChainType,
             memo = command.memo,
         )
 

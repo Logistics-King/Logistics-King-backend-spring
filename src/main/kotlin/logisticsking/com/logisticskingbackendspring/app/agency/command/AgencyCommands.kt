@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.agency.command
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.agency.Carrier
 import java.util.UUID
 
@@ -20,7 +21,7 @@ data class CreateAgencyCommand(
     val saturdayPickupAvailable: Boolean,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainAvailable: Boolean,
+    val coldChainType: ColdChainType,
     val maxMonthlyVolume: Int?,
 )
 
@@ -41,6 +42,6 @@ data class UpdateAgencyCommand(
     val saturdayPickupAvailable: Boolean,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainAvailable: Boolean,
+    val coldChainType: ColdChainType,
     val maxMonthlyVolume: Int?,
 )
