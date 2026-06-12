@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.agency.result
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.Carrier
 import java.util.UUID
@@ -22,7 +23,7 @@ data class AgencyResult(
     val saturdayPickupAvailable: Boolean,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainAvailable: Boolean,
+    val coldChainType: ColdChainType,
     val maxMonthlyVolume: Int?,
 ) {
     companion object {
@@ -45,7 +46,7 @@ data class AgencyResult(
                 saturdayPickupAvailable = agency.saturdayPickupAvailable,
                 saturdayDeliveryAvailable = agency.saturdayDeliveryAvailable,
                 returnAvailable = agency.returnAvailable,
-                coldChainAvailable = agency.coldChainAvailable,
+                coldChainType = agency.coldChainType,
                 maxMonthlyVolume = agency.maxMonthlyVolume,
             )
         }

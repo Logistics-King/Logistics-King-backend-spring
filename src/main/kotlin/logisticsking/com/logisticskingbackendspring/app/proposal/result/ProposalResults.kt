@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.proposal.result
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.Proposal
 import logisticsking.com.logisticskingbackendspring.domain.contract.ProposalStatus
 import java.math.BigDecimal
@@ -15,7 +16,7 @@ data class ProposalResult(
     val pickupEndTime: String,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainAvailable: Boolean,
+    val coldChainType: ColdChainType,
     val memo: String?,
     val status: ProposalStatus,
 ) {
@@ -31,7 +32,7 @@ data class ProposalResult(
                 pickupEndTime = proposal.pickupEndTime,
                 saturdayDeliveryAvailable = proposal.saturdayDeliveryAvailable,
                 returnAvailable = proposal.returnAvailable,
-                coldChainAvailable = proposal.coldChainAvailable,
+                coldChainType = proposal.coldChainType,
                 memo = proposal.memo,
                 status = proposal.status,
             )

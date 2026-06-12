@@ -10,6 +10,7 @@ import java.util.UUID
 @Repository
 class ProposalRepositoryImpl(
     private val proposalJpaRepository: ProposalJpaRepository,
+    private val proposalQueryRepository: ProposalQueryRepository,
 ) : ProposalRepository {
 
     override fun save(proposal: Proposal): Proposal {
@@ -23,6 +24,13 @@ class ProposalRepositoryImpl(
         return proposalJpaRepository.findByIdAndAgencyId(id, agencyId)?.toDomain()
     }
 
+    override fun findByIdAndAgencyIdForUpdate(
+        id: UUID,
+        agencyId: UUID,
+    ): Proposal? {
+        return proposalQueryRepository.findByIdAndAgencyIdForUpdate(id, agencyId)?.toDomain()
+    }
+
     override fun findByIdAndVendorId(
         id: UUID,
         vendorId: UUID,
@@ -32,6 +40,11 @@ class ProposalRepositoryImpl(
 
     override fun findAllByContractRequestId(contractRequestId: UUID): List<Proposal> {
         return proposalJpaRepository.findAllByContractRequestIdOrderByCreatedAtDesc(contractRequestId)
+            .map(ProposalJpaEntity::toDomain)
+    }
+
+    override fun findAllByContractRequestIdForUpdate(contractRequestId: UUID): List<Proposal> {
+        return proposalQueryRepository.findAllByContractRequestIdForUpdate(contractRequestId)
             .map(ProposalJpaEntity::toDomain)
     }
 

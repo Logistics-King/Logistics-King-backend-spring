@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.requireDomain
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
@@ -33,8 +34,8 @@ class ContractRequest private constructor(
     val saturdayDeliveryRequired: Boolean,
     // 반품 회수 조건이 필요한지 여부.
     val returnRequired: Boolean,
-    // 냉장/냉동 배송 조건이 필요한지 여부.
-    val coldChainRequired: Boolean,
+    // 필요한 콜드체인 조건. NONE, REFRIGERATED, FROZEN 중 하나.
+    val coldChainType: ColdChainType,
     // 화주가 기대하는 건당 희망 단가. 확정 운임은 아님.
     val targetUnitPrice: BigDecimal?,
     // 대리점이 제안할 때 참고할 추가 요청 사항.
@@ -55,7 +56,7 @@ class ContractRequest private constructor(
         pickupEndTime: String,
         saturdayDeliveryRequired: Boolean,
         returnRequired: Boolean,
-        coldChainRequired: Boolean,
+        coldChainType: ColdChainType,
         targetUnitPrice: BigDecimal?,
         memo: String?,
     ): ContractRequest {
@@ -82,7 +83,7 @@ class ContractRequest private constructor(
             pickupEndTime = pickupEndTime,
             saturdayDeliveryRequired = saturdayDeliveryRequired,
             returnRequired = returnRequired,
-            coldChainRequired = coldChainRequired,
+            coldChainType = coldChainType,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
             status = status,
@@ -109,7 +110,7 @@ class ContractRequest private constructor(
             pickupEndTime = pickupEndTime,
             saturdayDeliveryRequired = saturdayDeliveryRequired,
             returnRequired = returnRequired,
-            coldChainRequired = coldChainRequired,
+            coldChainType = coldChainType,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
             status = ContractRequestStatus.CANCELED,
@@ -136,7 +137,7 @@ class ContractRequest private constructor(
             pickupEndTime = pickupEndTime,
             saturdayDeliveryRequired = saturdayDeliveryRequired,
             returnRequired = returnRequired,
-            coldChainRequired = coldChainRequired,
+            coldChainType = coldChainType,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
             status = ContractRequestStatus.CONTRACTED,
@@ -158,7 +159,7 @@ class ContractRequest private constructor(
             pickupEndTime: String,
             saturdayDeliveryRequired: Boolean,
             returnRequired: Boolean,
-            coldChainRequired: Boolean,
+            coldChainType: ColdChainType,
             targetUnitPrice: BigDecimal?,
             memo: String?,
             status: ContractRequestStatus = ContractRequestStatus.OPEN,
@@ -190,7 +191,7 @@ class ContractRequest private constructor(
                 pickupEndTime = pickupEndTime.trim(),
                 saturdayDeliveryRequired = saturdayDeliveryRequired,
                 returnRequired = returnRequired,
-                coldChainRequired = coldChainRequired,
+                coldChainType = coldChainType,
                 targetUnitPrice = targetUnitPrice,
                 memo = memo?.trim()?.takeIf { it.isNotBlank() },
                 status = status,
@@ -211,7 +212,7 @@ class ContractRequest private constructor(
             pickupEndTime: String,
             saturdayDeliveryRequired: Boolean,
             returnRequired: Boolean,
-            coldChainRequired: Boolean,
+            coldChainType: ColdChainType,
             targetUnitPrice: BigDecimal?,
             memo: String?,
             status: ContractRequestStatus,
@@ -230,7 +231,7 @@ class ContractRequest private constructor(
                 pickupEndTime = pickupEndTime,
                 saturdayDeliveryRequired = saturdayDeliveryRequired,
                 returnRequired = returnRequired,
-                coldChainRequired = coldChainRequired,
+                coldChainType = coldChainType,
                 targetUnitPrice = targetUnitPrice,
                 memo = memo,
                 status = status,

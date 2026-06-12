@@ -100,7 +100,7 @@ class VendorService(
             fragile = command.fragile,
             liquid = command.liquid,
             freshFood = command.freshFood,
-            requiresColdChain = command.requiresColdChain,
+            coldChainType = command.coldChainType,
         )
 
         return VendorProductResult.from(vendorProductRepository.save(product))
@@ -133,7 +133,7 @@ class VendorService(
             fragile = command.fragile,
             liquid = command.liquid,
             freshFood = command.freshFood,
-            requiresColdChain = command.requiresColdChain,
+            coldChainType = command.coldChainType,
         )
 
         return VendorProductResult.from(vendorProductRepository.save(updated))

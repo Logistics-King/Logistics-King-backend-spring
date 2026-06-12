@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.vendor.command
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
 import java.util.UUID
@@ -39,7 +40,7 @@ data class CreateVendorProductCommand(
     val fragile: Boolean,
     val liquid: Boolean,
     val freshFood: Boolean,
-    val requiresColdChain: Boolean,
+    val coldChainType: ColdChainType,
 )
 
 data class UpdateVendorProductCommand(
@@ -54,5 +55,5 @@ data class UpdateVendorProductCommand(
     val fragile: Boolean,
     val liquid: Boolean,
     val freshFood: Boolean,
-    val requiresColdChain: Boolean,
+    val coldChainType: ColdChainType,
 )

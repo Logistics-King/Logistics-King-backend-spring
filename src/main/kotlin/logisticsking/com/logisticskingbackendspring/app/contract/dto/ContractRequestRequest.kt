@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.contract.dto
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CreateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.UpdateContractRequestCommand
@@ -33,8 +34,8 @@ sealed interface ContractRequestRequest {
         val saturdayDeliveryRequired: Boolean,
         @field:Schema(description = "반품 처리 필요 여부", example = "true")
         val returnRequired: Boolean,
-        @field:Schema(description = "냉장/냉동 필요 여부", example = "false")
-        val coldChainRequired: Boolean,
+        @field:Schema(description = "콜드체인 필요 타입 (NONE, REFRIGERATED, FROZEN)", example = "NONE")
+        val coldChainType: ColdChainType,
         @field:Schema(description = "희망 단가", example = "2000")
         val targetUnitPrice: BigDecimal?,
         @field:Schema(description = "요청 메모", example = "의류 중심이며 평일 오전 픽업을 선호합니다.")
@@ -54,7 +55,7 @@ sealed interface ContractRequestRequest {
                 pickupEndTime = pickupEndTime,
                 saturdayDeliveryRequired = saturdayDeliveryRequired,
                 returnRequired = returnRequired,
-                coldChainRequired = coldChainRequired,
+                coldChainType = coldChainType,
                 targetUnitPrice = targetUnitPrice,
                 memo = memo,
             )
@@ -85,8 +86,8 @@ sealed interface ContractRequestRequest {
         val saturdayDeliveryRequired: Boolean,
         @field:Schema(description = "반품 처리 필요 여부", example = "true")
         val returnRequired: Boolean,
-        @field:Schema(description = "냉장/냉동 필요 여부", example = "false")
-        val coldChainRequired: Boolean,
+        @field:Schema(description = "콜드체인 필요 타입 (NONE, REFRIGERATED, FROZEN)", example = "NONE")
+        val coldChainType: ColdChainType,
         @field:Schema(description = "희망 단가", example = "2100")
         val targetUnitPrice: BigDecimal?,
         @field:Schema(description = "요청 메모", example = "반품 회수가 자주 발생합니다.")
@@ -110,7 +111,7 @@ sealed interface ContractRequestRequest {
                 pickupEndTime = pickupEndTime,
                 saturdayDeliveryRequired = saturdayDeliveryRequired,
                 returnRequired = returnRequired,
-                coldChainRequired = coldChainRequired,
+                coldChainType = coldChainType,
                 targetUnitPrice = targetUnitPrice,
                 memo = memo,
             )

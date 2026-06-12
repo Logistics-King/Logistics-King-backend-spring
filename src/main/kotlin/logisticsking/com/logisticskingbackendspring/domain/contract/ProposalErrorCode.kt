@@ -63,9 +63,9 @@ enum class ProposalErrorCode(
         message = "제안 픽업 시간은 필수입니다.",
         status = HttpStatus.BAD_REQUEST,
     ),
-    WITHDRAWN_PROPOSAL_CANNOT_BE_UPDATED(
-        code = "WITHDRAWN_PROPOSAL_CANNOT_BE_UPDATED",
-        message = "철회된 제안은 수정할 수 없습니다.",
+    ONLY_SUBMITTED_PROPOSAL_CAN_BE_UPDATED(
+        code = "ONLY_SUBMITTED_PROPOSAL_CAN_BE_UPDATED",
+        message = "제출 상태의 제안만 수정할 수 있습니다.",
         status = HttpStatus.CONFLICT,
     ),
     ONLY_SUBMITTED_PROPOSAL_CAN_BE_WITHDRAWN(

@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -47,7 +48,7 @@ class ProposalTest {
             pickupEndTime = "16:30",
             saturdayDeliveryAvailable = false,
             returnAvailable = true,
-            coldChainAvailable = false,
+            coldChainType = ColdChainType.NONE,
             memo = "오전 집하 기준 단가 조정",
         )
 
@@ -108,7 +109,7 @@ class ProposalTest {
     }
 
     @Test
-    fun `철회된 제안은 수정할 수 없다`() {
+    fun `제출 상태가 아닌 제안은 수정할 수 없다`() {
         val withdrawn = proposal().withdraw()
 
         val exception = assertThrows(GlobalException::class.java) {
@@ -118,12 +119,12 @@ class ProposalTest {
                 pickupEndTime = "16:30",
                 saturdayDeliveryAvailable = false,
                 returnAvailable = true,
-                coldChainAvailable = false,
+                coldChainType = ColdChainType.NONE,
                 memo = null,
             )
         }
 
-        assertEquals(ProposalErrorCode.WITHDRAWN_PROPOSAL_CANNOT_BE_UPDATED, exception.errorCode)
+        assertEquals(ProposalErrorCode.ONLY_SUBMITTED_PROPOSAL_CAN_BE_UPDATED, exception.errorCode)
     }
 
     @Test
@@ -168,7 +169,7 @@ class ProposalTest {
             pickupEndTime = pickupEndTime,
             saturdayDeliveryAvailable = true,
             returnAvailable = true,
-            coldChainAvailable = false,
+            coldChainType = ColdChainType.NONE,
             memo = memo,
         )
     }
