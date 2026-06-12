@@ -10,12 +10,14 @@ interface ProposalJpaRepository : JpaRepository<ProposalJpaEntity, UUID> {
         id: UUID,
         agencyId: UUID,
     ): ProposalJpaEntity?
+
     fun findByIdAndVendorId(
         id: UUID,
         vendorId: UUID,
     ): ProposalJpaEntity?
 
     fun findAllByContractRequestIdOrderByCreatedAtDesc(contractRequestId: UUID): List<ProposalJpaEntity>
+
     fun findAllByContractRequestIdOrderByCreatedAtDesc(
         contractRequestId: UUID,
         pageable: Pageable,

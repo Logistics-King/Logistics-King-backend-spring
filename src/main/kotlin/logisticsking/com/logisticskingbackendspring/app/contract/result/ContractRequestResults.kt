@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.contract.result
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequest
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
@@ -20,7 +21,7 @@ data class ContractRequestResult(
     val pickupEndTime: String,
     val saturdayDeliveryRequired: Boolean,
     val returnRequired: Boolean,
-    val coldChainRequired: Boolean,
+    val coldChainType: ColdChainType,
     val targetUnitPrice: BigDecimal?,
     val memo: String?,
     val status: ContractRequestStatus,
@@ -41,7 +42,7 @@ data class ContractRequestResult(
                 pickupEndTime = contractRequest.pickupEndTime,
                 saturdayDeliveryRequired = contractRequest.saturdayDeliveryRequired,
                 returnRequired = contractRequest.returnRequired,
-                coldChainRequired = contractRequest.coldChainRequired,
+                coldChainType = contractRequest.coldChainType,
                 targetUnitPrice = contractRequest.targetUnitPrice,
                 memo = contractRequest.memo,
                 status = contractRequest.status,

@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.agency.dto
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.agency.result.AgencyResult
 
@@ -41,8 +42,8 @@ sealed interface AgencyResponse {
         val saturdayDeliveryAvailable: Boolean,
         @field:Schema(description = "반품 처리 가능 여부", example = "true")
         val returnAvailable: Boolean,
-        @field:Schema(description = "냉장/냉동 가능 여부", example = "false")
-        val coldChainAvailable: Boolean,
+        @field:Schema(description = "지원 콜드체인 타입 (NONE, REFRIGERATED, FROZEN)", example = "REFRIGERATED")
+        val coldChainType: ColdChainType,
         @field:Schema(description = "월 처리 가능 물량", example = "10000")
         val maxMonthlyVolume: Int?,
     ) : AgencyResponse {
@@ -66,7 +67,7 @@ sealed interface AgencyResponse {
                     saturdayPickupAvailable = result.saturdayPickupAvailable,
                     saturdayDeliveryAvailable = result.saturdayDeliveryAvailable,
                     returnAvailable = result.returnAvailable,
-                    coldChainAvailable = result.coldChainAvailable,
+                    coldChainType = result.coldChainType,
                     maxMonthlyVolume = result.maxMonthlyVolume,
                 )
             }

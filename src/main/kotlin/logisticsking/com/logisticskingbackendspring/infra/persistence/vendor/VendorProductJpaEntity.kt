@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
 import logisticsking.com.logisticskingbackendspring.infra.persistence.common.SoftDeletableJpaEntity
@@ -50,8 +51,9 @@ class VendorProductJpaEntity(
     @Column(name = "fresh_food", nullable = false)
     val freshFood: Boolean,
 
-    @Column(name = "requires_cold_chain", nullable = false)
-    val requiresColdChain: Boolean,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cold_chain_type", nullable = false, length = 30)
+    val coldChainType: ColdChainType,
 ) : SoftDeletableJpaEntity() {
 
     fun toDomain(): VendorProduct {
@@ -67,7 +69,7 @@ class VendorProductJpaEntity(
             fragile = fragile,
             liquid = liquid,
             freshFood = freshFood,
-            requiresColdChain = requiresColdChain,
+            coldChainType = coldChainType,
         )
     }
 
@@ -85,7 +87,7 @@ class VendorProductJpaEntity(
                 fragile = product.fragile,
                 liquid = product.liquid,
                 freshFood = product.freshFood,
-                requiresColdChain = product.requiresColdChain,
+                coldChainType = product.coldChainType,
             )
         }
     }

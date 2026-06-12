@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.proposal.command
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -11,7 +12,7 @@ data class SubmitProposalCommand(
     val pickupEndTime: String,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainAvailable: Boolean,
+    val coldChainType: ColdChainType,
     val memo: String?,
 )
 
@@ -23,7 +24,7 @@ data class UpdateProposalCommand(
     val pickupEndTime: String,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainAvailable: Boolean,
+    val coldChainType: ColdChainType,
     val memo: String?,
 )
 

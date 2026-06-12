@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.contract.command
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
 import java.util.UUID
@@ -17,7 +18,7 @@ data class CreateContractRequestCommand(
     val pickupEndTime: String,
     val saturdayDeliveryRequired: Boolean,
     val returnRequired: Boolean,
-    val coldChainRequired: Boolean,
+    val coldChainType: ColdChainType,
     val targetUnitPrice: BigDecimal?,
     val memo: String?,
 )
@@ -36,7 +37,7 @@ data class UpdateContractRequestCommand(
     val pickupEndTime: String,
     val saturdayDeliveryRequired: Boolean,
     val returnRequired: Boolean,
-    val coldChainRequired: Boolean,
+    val coldChainType: ColdChainType,
     val targetUnitPrice: BigDecimal?,
     val memo: String?,
 )

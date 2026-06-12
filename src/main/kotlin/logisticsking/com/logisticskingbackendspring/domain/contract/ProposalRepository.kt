@@ -10,11 +10,16 @@ interface ProposalRepository {
         id: UUID,
         agencyId: UUID,
     ): Proposal?
+    fun findByIdAndAgencyIdForUpdate(
+        id: UUID,
+        agencyId: UUID,
+    ): Proposal?
     fun findByIdAndVendorId(
         id: UUID,
         vendorId: UUID,
     ): Proposal?
     fun findAllByContractRequestId(contractRequestId: UUID): List<Proposal>
+    fun findAllByContractRequestIdForUpdate(contractRequestId: UUID): List<Proposal>
     fun findAllByContractRequestId(contractRequestId: UUID, pageable: Pageable): Page<Proposal>
     fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Proposal>
     fun saveAll(proposals: List<Proposal>): List<Proposal>

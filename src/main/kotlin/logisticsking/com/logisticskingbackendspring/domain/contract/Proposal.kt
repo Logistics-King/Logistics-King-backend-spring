@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.requireDomain
 import java.math.BigDecimal
 import java.util.UUID
@@ -14,7 +15,7 @@ class Proposal private constructor(
     val pickupEndTime: String,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainAvailable: Boolean,
+    val coldChainType: ColdChainType,
     val memo: String?,
     val status: ProposalStatus,
 ) {
@@ -25,12 +26,12 @@ class Proposal private constructor(
         pickupEndTime: String,
         saturdayDeliveryAvailable: Boolean,
         returnAvailable: Boolean,
-        coldChainAvailable: Boolean,
+        coldChainType: ColdChainType,
         memo: String?,
     ): Proposal {
         requireDomain(
-            status != ProposalStatus.WITHDRAWN,
-            ProposalErrorCode.WITHDRAWN_PROPOSAL_CANNOT_BE_UPDATED,
+            status == ProposalStatus.SUBMITTED,
+            ProposalErrorCode.ONLY_SUBMITTED_PROPOSAL_CAN_BE_UPDATED,
         )
 
         return create(
@@ -43,7 +44,7 @@ class Proposal private constructor(
             pickupEndTime = pickupEndTime,
             saturdayDeliveryAvailable = saturdayDeliveryAvailable,
             returnAvailable = returnAvailable,
-            coldChainAvailable = coldChainAvailable,
+            coldChainType = coldChainType,
             memo = memo,
             status = status,
         )
@@ -65,7 +66,7 @@ class Proposal private constructor(
             pickupEndTime = pickupEndTime,
             saturdayDeliveryAvailable = saturdayDeliveryAvailable,
             returnAvailable = returnAvailable,
-            coldChainAvailable = coldChainAvailable,
+            coldChainType = coldChainType,
             memo = memo,
             status = ProposalStatus.WITHDRAWN,
         )
@@ -100,7 +101,7 @@ class Proposal private constructor(
             pickupEndTime = pickupEndTime,
             saturdayDeliveryAvailable = saturdayDeliveryAvailable,
             returnAvailable = returnAvailable,
-            coldChainAvailable = coldChainAvailable,
+            coldChainType = coldChainType,
             memo = memo,
             status = status,
         )
@@ -117,7 +118,7 @@ class Proposal private constructor(
             pickupEndTime: String,
             saturdayDeliveryAvailable: Boolean,
             returnAvailable: Boolean,
-            coldChainAvailable: Boolean,
+            coldChainType: ColdChainType,
             memo: String?,
             status: ProposalStatus = ProposalStatus.SUBMITTED,
         ): Proposal {
@@ -137,7 +138,7 @@ class Proposal private constructor(
                 pickupEndTime = pickupEndTime.trim(),
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
                 returnAvailable = returnAvailable,
-                coldChainAvailable = coldChainAvailable,
+                coldChainType = coldChainType,
                 memo = memo?.trim()?.takeIf { it.isNotBlank() },
                 status = status,
             )
@@ -153,7 +154,7 @@ class Proposal private constructor(
             pickupEndTime: String,
             saturdayDeliveryAvailable: Boolean,
             returnAvailable: Boolean,
-            coldChainAvailable: Boolean,
+            coldChainType: ColdChainType,
             memo: String?,
             status: ProposalStatus,
         ): Proposal {
@@ -167,7 +168,7 @@ class Proposal private constructor(
                 pickupEndTime = pickupEndTime,
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
                 returnAvailable = returnAvailable,
-                coldChainAvailable = coldChainAvailable,
+                coldChainType = coldChainType,
                 memo = memo,
                 status = status,
             )

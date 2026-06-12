@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS proposals (
     pickup_end_time VARCHAR(10) NOT NULL,
     saturday_delivery_available BOOLEAN NOT NULL,
     return_available BOOLEAN NOT NULL,
-    cold_chain_available BOOLEAN NOT NULL,
+    cold_chain_type VARCHAR(30) NOT NULL,
     memo VARCHAR(255) NULL,
     status VARCHAR(30) NOT NULL,
     created_at DATETIME(6) NOT NULL,

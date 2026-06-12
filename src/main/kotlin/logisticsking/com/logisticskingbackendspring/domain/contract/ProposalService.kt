@@ -55,7 +55,7 @@ class ProposalService(
     override fun submit(command: SubmitProposalCommand): ProposalResult {
         findAgencyUser(command.userId)
         val agency = findAgencyByUserId(command.userId)
-        val contractRequest = findContractRequest(command.contractRequestId)
+        val contractRequest = findContractRequestForUpdate(command.contractRequestId)
         validateOpen(contractRequest)
         if (proposalRepository.existsByContractRequestIdAndAgencyId(contractRequest.id, agency.id)) {
             throw GlobalException(ProposalErrorCode.ALREADY_EXISTS)
@@ -71,7 +71,7 @@ class ProposalService(
             pickupEndTime = command.pickupEndTime,
             saturdayDeliveryAvailable = command.saturdayDeliveryAvailable,
             returnAvailable = command.returnAvailable,
-            coldChainAvailable = command.coldChainAvailable,
+            coldChainType = command.coldChainType,
             memo = command.memo,
         )
 
@@ -114,7 +114,7 @@ class ProposalService(
             pickupEndTime = command.pickupEndTime,
             saturdayDeliveryAvailable = command.saturdayDeliveryAvailable,
             returnAvailable = command.returnAvailable,
-            coldChainAvailable = command.coldChainAvailable,
+            coldChainType = command.coldChainType,
             memo = command.memo,
         )
 
@@ -160,8 +160,8 @@ class ProposalService(
             ?: throw GlobalException(ProposalErrorCode.VENDOR_NOT_FOUND)
     }
 
-    private fun findContractRequest(contractRequestId: UUID): ContractRequest {
-        return contractRequestRepository.findById(contractRequestId)
+    private fun findContractRequestForUpdate(contractRequestId: UUID): ContractRequest {
+        return contractRequestRepository.findByIdForUpdate(contractRequestId)
             ?: throw GlobalException(ProposalErrorCode.CONTRACT_REQUEST_NOT_FOUND)
     }
 
@@ -175,7 +175,7 @@ class ProposalService(
         proposalId: UUID,
         agencyId: UUID,
     ): Proposal {
-        return proposalRepository.findByIdAndAgencyId(
+        return proposalRepository.findByIdAndAgencyIdForUpdate(
             id = proposalId,
             agencyId = agencyId,
         ) ?: throw GlobalException(ProposalErrorCode.NOT_FOUND)

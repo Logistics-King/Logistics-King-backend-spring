@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.proposal.dto
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.common.PageResponse
 import logisticsking.com.logisticskingbackendspring.app.proposal.result.ProposalResult
@@ -28,8 +29,8 @@ sealed interface ProposalResponse {
         val saturdayDeliveryAvailable: Boolean,
         @field:Schema(description = "반품 회수 가능 여부", example = "true")
         val returnAvailable: Boolean,
-        @field:Schema(description = "냉장/냉동 가능 여부", example = "false")
-        val coldChainAvailable: Boolean,
+        @field:Schema(description = "지원 콜드체인 타입 (NONE, REFRIGERATED, FROZEN)", example = "REFRIGERATED")
+        val coldChainType: ColdChainType,
         @field:Schema(description = "제안 메모", example = "의류 800박스 기준 집하 가능합니다.")
         val memo: String?,
         @field:Schema(description = "제안 상태", example = "SUBMITTED")
@@ -47,7 +48,7 @@ sealed interface ProposalResponse {
                     pickupEndTime = result.pickupEndTime,
                     saturdayDeliveryAvailable = result.saturdayDeliveryAvailable,
                     returnAvailable = result.returnAvailable,
-                    coldChainAvailable = result.coldChainAvailable,
+                    coldChainType = result.coldChainType,
                     memo = result.memo,
                     status = result.status.name,
                 )

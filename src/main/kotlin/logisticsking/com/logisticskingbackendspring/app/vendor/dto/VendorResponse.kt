@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.vendor.dto
 
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.common.PageResponse
 import logisticsking.com.logisticskingbackendspring.app.vendor.result.VendorProductResult
@@ -74,8 +75,8 @@ sealed interface VendorResponse {
         val liquid: Boolean,
         @field:Schema(description = "신선식품 여부", example = "false")
         val freshFood: Boolean,
-        @field:Schema(description = "냉장/냉동 필요 여부", example = "false")
-        val requiresColdChain: Boolean,
+        @field:Schema(description = "콜드체인 필요 타입 (NONE, REFRIGERATED, FROZEN)", example = "NONE")
+        val coldChainType: ColdChainType,
     ) : VendorResponse {
         companion object {
             fun from(result: VendorProductResult): ProductDetail {
@@ -91,7 +92,7 @@ sealed interface VendorResponse {
                     fragile = result.fragile,
                     liquid = result.liquid,
                     freshFood = result.freshFood,
-                    requiresColdChain = result.requiresColdChain,
+                    coldChainType = result.coldChainType,
                 )
             }
         }

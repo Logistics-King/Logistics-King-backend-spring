@@ -8,6 +8,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.Carrier
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.infra.persistence.common.SoftDeletableJpaEntity
 import java.util.UUID
 
@@ -67,8 +68,9 @@ class AgencyJpaEntity(
     @Column(name = "return_available", nullable = false)
     val returnAvailable: Boolean,
 
-    @Column(name = "cold_chain_available", nullable = false)
-    val coldChainAvailable: Boolean,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cold_chain_type", nullable = false, length = 30)
+    val coldChainType: ColdChainType,
 
     @Column(name = "max_monthly_volume")
     val maxMonthlyVolume: Int?,
@@ -95,7 +97,7 @@ class AgencyJpaEntity(
             saturdayPickupAvailable = saturdayPickupAvailable,
             saturdayDeliveryAvailable = saturdayDeliveryAvailable,
             returnAvailable = returnAvailable,
-            coldChainAvailable = coldChainAvailable,
+            coldChainType = coldChainType,
             maxMonthlyVolume = maxMonthlyVolume,
         )
     }
@@ -122,7 +124,7 @@ class AgencyJpaEntity(
                 saturdayPickupAvailable = agency.saturdayPickupAvailable,
                 saturdayDeliveryAvailable = agency.saturdayDeliveryAvailable,
                 returnAvailable = agency.returnAvailable,
-                coldChainAvailable = agency.coldChainAvailable,
+                coldChainType = agency.coldChainType,
                 maxMonthlyVolume = agency.maxMonthlyVolume,
             )
         }
