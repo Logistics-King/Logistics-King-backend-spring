@@ -209,6 +209,131 @@ CJ 일동대리점   평점 4.8 -> S박스 2,050원 / 토요일 가능 / 냉장 
 
 이 구조는 운영 리스크를 낮추면서도 플랫폼 수수료 기반으로 확장할 수 있는 모델이다.
 
+## 알림 도메인
+
+택배왕의 알림은 계약, 제안, 배송기사 계약, 추후 배송 상태 변경처럼 사용자가 놓치면 안 되는 상태 변화를 알려주는 사용자 이력이다.
+
+알림은 단순 캐시가 아니라 읽음/안읽음 상태와 재접속 후 조회가 필요하므로 Redis 단독 저장은 적합하지 않다. 기본 저장소는 MySQL을 사용하고, Redis는 추후 안 읽은 알림 수 캐시나 실시간 pub/sub 보조 용도로 검토한다.
+
+### 보관 정책
+
+초기 구현 기준은 다음과 같다.
+
+- DB에는 알림을 저장한다.
+- 조회 API는 기본적으로 최근 30일 알림을 대상으로 한다.
+- 오래된 알림 삭제는 별도 scheduler나 운영 정책으로 다룬다.
+- 읽지 않은 알림을 30일 후 바로 삭제할지는 추후 사용자 경험 기준으로 재검토한다.
+
+일주일 보관은 사용자가 며칠 접속하지 않았을 때 제안, 계약 확정, 배송기사 계약 같은 중요한 알림을 놓칠 수 있어 너무 짧다.
+
+### 알림 테이블 기준
+
+알림은 상황마다 문구와 이동 경로가 다르지만 공통 저장 구조는 같으므로 하나의 `notifications` 테이블로 관리한다. 상황 구분은 enum으로 관리한다.
+
+권장 필드:
+
+- `id`: 알림 식별자
+- `receiver_user_id`: 알림을 받을 사용자
+- `sender_user_id`: 알림을 발생시킨 사용자. 시스템 알림이면 null 가능
+- `type`: 알림 상황 enum
+- `title`: 알림 제목
+- `message`: 알림 본문
+- `link_url`: 프론트에서 이동할 URL
+- `reference_type`: 관련 도메인 타입
+- `reference_id`: 관련 도메인 식별자
+- `read_at`: 읽은 시각. null이면 읽지 않음
+- `created_at`, `updated_at`: 생성/수정 시각
+
+`title`과 `message`는 알림 생성 시점에 최종 문구로 저장한다. 문구 정책이 나중에 바뀌더라도 과거 알림은 당시 사용자에게 보여준 의미를 유지해야 하기 때문이다.
+
+### 알림 타입 후보
+
+계약 요청과 제안 흐름:
+
+- `CONTRACT_REQUEST_CREATED`: 새 계약 요청 등록
+- `PROPOSAL_SUBMITTED`: 대리점이 제안 제출
+- `PROPOSAL_UPDATED`: 대리점이 제안 수정
+- `PROPOSAL_WITHDRAWN`: 대리점이 제안 철회
+- `PROPOSAL_ACCEPTED`: 화주가 제안 수락
+- `PROPOSAL_REJECTED`: 제안이 선택되지 않음
+- `CONTRACT_CREATED`: 최종 계약 생성
+- `CONTRACT_CANCELED`: 계약 취소
+
+대리점과 배송기사 계약 흐름:
+
+- `DELIVER_CONTRACT_REQUESTED`: 배송기사 계약 요청
+- `DELIVER_CONTRACT_ACCEPTED`: 배송기사 계약 수락
+- `DELIVER_CONTRACT_REJECTED`: 배송기사 계약 거절
+
+추후 실제 배송 상태 관리가 추가되면 다음 타입을 확장 후보로 둔다.
+
+- `SHIPMENT_CREATED`
+- `SHIPMENT_PICKUP_ASSIGNED`
+- `SHIPMENT_PICKED_UP`
+- `SHIPMENT_IN_TRANSIT`
+- `SHIPMENT_OUT_FOR_DELIVERY`
+- `SHIPMENT_DELIVERED`
+- `SHIPMENT_RETURN_REQUESTED`
+- `SHIPMENT_RETURNED`
+- `SHIPMENT_CANCELED`
+
+### 알림 참조 타입 후보
+
+알림 클릭 시 어떤 도메인 화면으로 이동할지 알 수 있도록 `reference_type`과 `reference_id`를 함께 저장한다.
+
+- `CONTRACT_REQUEST`
+- `PROPOSAL`
+- `CONTRACT`
+- `DELIVER_CONTRACT`
+- 추후 배송 실행 도메인 추가 시 `SHIPMENT`
+
+### 우선 기록할 상황
+
+1. 대리점이 계약 요청에 제안 제출
+   - 수신자: 화주
+   - 예: 새 제안이 도착했습니다.
+2. 대리점이 제안 수정
+   - 수신자: 화주
+   - 예: 제안 조건이 수정되었습니다.
+3. 대리점이 제안 철회
+   - 수신자: 화주
+   - 예: 제안이 철회되었습니다.
+4. 화주가 제안 수락
+   - 수신자: 수락된 제안을 낸 대리점
+   - 예: 제안이 수락되어 계약이 생성되었습니다.
+5. 화주가 다른 제안을 선택해 나머지 제안이 거절됨
+   - 수신자: 선택되지 않은 제안을 낸 대리점
+   - 예: 제안이 선택되지 않았습니다.
+6. 최종 계약 생성
+   - 수신자: 화주, 대리점
+   - 예: 계약이 확정되었습니다.
+7. 배송기사 계약 생성, 수락, 거절
+   - 수신자: 대리점 또는 배송기사
+
+### 구현 방향
+
+초기 구현은 이벤트 브로커 없이 단순하게 시작한다.
+
+```text
+도메인 서비스
+-> NotificationService
+-> NotificationRepository
+-> MySQL notifications
+```
+
+다만 계약, 제안, 배송기사 계약 서비스 안에 알림 문구 생성 로직이 흩어지지 않도록 알림 생성 책임은 `NotificationService`에 모은다.
+
+초기 API 후보:
+
+```text
+GET /api/v1/notifications/me
+GET /api/v1/notifications/me/unread-count
+PUT /api/v1/notifications/{notificationId}/read
+PUT /api/v1/notifications/me/read-all
+```
+
+실시간 알림, SSE/WebSocket, Redis unread count cache는 2차 확장으로 둔다.
+
 ## 도메인 전제와 확인 필요 사항
 
 - `택배왕`은 기획 자료에서 제시된 서비스명이다.

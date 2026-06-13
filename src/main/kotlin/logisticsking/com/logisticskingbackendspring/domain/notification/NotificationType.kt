@@ -1,0 +1,15 @@
+package logisticsking.com.logisticskingbackendspring.domain.notification
+
+enum class NotificationType {
+    CONTRACT_REQUEST_CREATED,
+    PROPOSAL_SUBMITTED,
+    PROPOSAL_UPDATED,
+    PROPOSAL_WITHDRAWN,
+    PROPOSAL_ACCEPTED,
+    PROPOSAL_REJECTED,
+    CONTRACT_CREATED,
+    CONTRACT_CANCELED,
+    DELIVER_CONTRACT_REQUESTED,
+    DELIVER_CONTRACT_ACCEPTED,
+    DELIVER_CONTRACT_REJECTED,
+}

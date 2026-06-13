@@ -209,3 +209,22 @@ CREATE TABLE IF NOT EXISTS deliver_contracts (
     KEY idx_deliver_contracts_agency_deliver_status (agency_id, deliver_id, status),
     KEY idx_deliver_contracts_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id BINARY(16) NOT NULL,
+    receiver_user_id BINARY(16) NOT NULL,
+    sender_user_id BINARY(16) NULL,
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    message VARCHAR(500) NOT NULL,
+    link_url VARCHAR(255) NULL,
+    reference_type VARCHAR(50) NULL,
+    reference_id BINARY(16) NULL,
+    read_at DATETIME(6) NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_notifications_receiver_created_at (receiver_user_id, created_at),
+    KEY idx_notifications_receiver_read_at_created_at (receiver_user_id, read_at, created_at),
+    KEY idx_notifications_reference (reference_type, reference_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

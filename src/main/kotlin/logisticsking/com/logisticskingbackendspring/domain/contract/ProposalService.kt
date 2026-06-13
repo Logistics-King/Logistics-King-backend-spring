@@ -16,6 +16,9 @@ import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationPublisher
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationReferenceType
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationType
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
@@ -34,6 +37,7 @@ class ProposalService(
     private val agencyRepository: AgencyRepository,
     private val contractRequestRepository: ContractRequestRepository,
     private val proposalRepository: ProposalRepository,
+    private val notificationPublisher: NotificationPublisher,
     private val idGenerator: IdGenerator,
 ) : GetOpenContractRequestsUseCase,
     SubmitProposalUseCase,
@@ -75,7 +79,17 @@ class ProposalService(
             memo = command.memo,
         )
 
-        return ProposalResult.from(proposalRepository.save(proposal))
+        val saved = proposalRepository.save(proposal)
+        notificationPublisher.publish(
+            receiverUserId = findVendorById(contractRequest.vendorId).userId,
+            senderUserId = agency.userId,
+            type = NotificationType.PROPOSAL_SUBMITTED,
+            referenceType = NotificationReferenceType.PROPOSAL,
+            referenceId = saved.id,
+            linkUrl = "/contract-requests/${contractRequest.id}/proposals",
+        )
+
+        return ProposalResult.from(saved)
     }
 
     @Transactional(readOnly = true)
@@ -118,7 +132,17 @@ class ProposalService(
             memo = command.memo,
         )
 
-        return ProposalResult.from(proposalRepository.save(updated))
+        val saved = proposalRepository.save(updated)
+        notificationPublisher.publish(
+            receiverUserId = findVendorById(saved.vendorId).userId,
+            senderUserId = agency.userId,
+            type = NotificationType.PROPOSAL_UPDATED,
+            referenceType = NotificationReferenceType.PROPOSAL,
+            referenceId = saved.id,
+            linkUrl = "/contract-requests/${saved.contractRequestId}/proposals",
+        )
+
+        return ProposalResult.from(saved)
     }
 
     @Transactional
@@ -127,7 +151,17 @@ class ProposalService(
         val agency = findAgencyByUserId(command.userId)
         val proposal = findProposal(command.proposalId, agency.id)
 
-        return ProposalResult.from(proposalRepository.save(proposal.withdraw()))
+        val saved = proposalRepository.save(proposal.withdraw())
+        notificationPublisher.publish(
+            receiverUserId = findVendorById(saved.vendorId).userId,
+            senderUserId = agency.userId,
+            type = NotificationType.PROPOSAL_WITHDRAWN,
+            referenceType = NotificationReferenceType.PROPOSAL,
+            referenceId = saved.id,
+            linkUrl = "/contract-requests/${saved.contractRequestId}/proposals",
+        )
+
+        return ProposalResult.from(saved)
     }
 
     private fun findAgencyUser(userId: UUID): User {
@@ -157,6 +191,11 @@ class ProposalService(
 
     private fun findVendorByUserId(userId: UUID): Vendor {
         return vendorRepository.findByUserId(userId)
+            ?: throw GlobalException(ProposalErrorCode.VENDOR_NOT_FOUND)
+    }
+
+    private fun findVendorById(vendorId: UUID): Vendor {
+        return vendorRepository.findById(vendorId)
             ?: throw GlobalException(ProposalErrorCode.VENDOR_NOT_FOUND)
     }
 
