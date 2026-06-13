@@ -15,8 +15,8 @@ import java.math.BigDecimal
 import java.util.UUID
 
 @Entity
-@Table(name = "vendor_products")
-class VendorProductJpaEntity(
+@Table(name = "products")
+class ProductJpaEntity(
     @Id
     @Column(name = "id", columnDefinition = "BINARY(16)", nullable = false, updatable = false)
     val id: UUID,
@@ -88,8 +88,8 @@ class VendorProductJpaEntity(
     }
 
     companion object {
-        fun from(product: VendorProduct): VendorProductJpaEntity {
-            return VendorProductJpaEntity(
+        fun from(product: VendorProduct): ProductJpaEntity {
+            return ProductJpaEntity(
                 id = product.id,
                 vendorId = product.vendorId,
                 category = product.category,

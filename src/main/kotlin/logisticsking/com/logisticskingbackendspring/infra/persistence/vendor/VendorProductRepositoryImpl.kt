@@ -12,13 +12,13 @@ import java.util.UUID
 
 @Repository
 class VendorProductRepositoryImpl(
-    private val jpaRepository: VendorProductJpaRepository,
+    private val jpaRepository: ProductJpaRepository,
     private val queryFactory: JPAQueryFactory,
 ) : VendorProductRepository {
-    private val vendorProduct = QVendorProductJpaEntity.vendorProductJpaEntity
+    private val vendorProduct = QProductJpaEntity.productJpaEntity
 
     override fun save(product: VendorProduct): VendorProduct {
-        return jpaRepository.save(VendorProductJpaEntity.from(product)).toDomain()
+        return jpaRepository.save(ProductJpaEntity.from(product)).toDomain()
     }
 
     override fun findByIdAndVendorId(
@@ -47,7 +47,7 @@ class VendorProductRepositoryImpl(
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
             .fetch()
-            .map(VendorProductJpaEntity::toDomain)
+            .map(ProductJpaEntity::toDomain)
 
         val total = queryFactory
             .select(vendorProduct.count())

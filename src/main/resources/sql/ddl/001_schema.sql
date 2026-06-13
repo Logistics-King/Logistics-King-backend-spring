@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     UNIQUE KEY uk_vendors_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS vendor_products (
+CREATE TABLE IF NOT EXISTS products (
     id BINARY(16) NOT NULL,
     vendor_id BINARY(16) NOT NULL,
     category VARCHAR(30) NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS vendor_products (
     updated_at DATETIME(6) NOT NULL,
     deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
-    KEY idx_vendor_products_vendor_id (vendor_id)
+    KEY idx_products_vendor_id (vendor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS contract_requests (
