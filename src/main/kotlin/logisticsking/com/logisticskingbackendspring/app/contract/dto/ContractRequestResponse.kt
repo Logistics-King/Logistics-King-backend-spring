@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.contract.dto
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.common.PageResponse
@@ -27,8 +28,8 @@ sealed interface ContractRequestResponse {
         val productCategory: String,
         @field:Schema(description = "품목명", example = "일반 의류")
         val productName: String,
-        @field:Schema(description = "주요 박스 크기", example = "60")
-        val boxSize: String,
+        @field:Schema(description = "주요 박스 크기", example = "SIZE_60")
+        val boxSize: BoxSize,
         @field:Schema(description = "픽업 희망 시작 시간", example = "09:00")
         val pickupStartTime: String,
         @field:Schema(description = "픽업 희망 종료 시간", example = "18:00")

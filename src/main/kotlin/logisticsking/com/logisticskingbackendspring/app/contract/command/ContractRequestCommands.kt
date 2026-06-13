@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.contract.command
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
@@ -13,7 +14,7 @@ data class CreateContractRequestCommand(
     val monthlyVolume: Int,
     val productCategory: ProductCategory,
     val productName: String,
-    val boxSize: String,
+    val boxSize: BoxSize,
     val pickupStartTime: String,
     val pickupEndTime: String,
     val saturdayDeliveryRequired: Boolean,
@@ -32,7 +33,7 @@ data class UpdateContractRequestCommand(
     val monthlyVolume: Int,
     val productCategory: ProductCategory,
     val productName: String,
-    val boxSize: String,
+    val boxSize: BoxSize,
     val pickupStartTime: String,
     val pickupEndTime: String,
     val saturdayDeliveryRequired: Boolean,

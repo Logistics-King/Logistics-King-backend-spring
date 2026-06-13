@@ -63,6 +63,11 @@ enum class VendorErrorCode(
         message = "배송 품목명은 필수입니다.",
         status = HttpStatus.BAD_REQUEST,
     ),
+    INVALID_DESTINATION_ADDRESS(
+        code = "INVALID_VENDOR_PRODUCT_DESTINATION_ADDRESS",
+        message = "배송 목적지 주소는 필수입니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
     INVALID_AVERAGE_PRICE(
         code = "INVALID_VENDOR_PRODUCT_AVERAGE_PRICE",
         message = "평균 상품 가격은 0 이상이어야 합니다.",

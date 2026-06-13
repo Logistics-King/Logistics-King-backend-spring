@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
@@ -73,7 +74,7 @@ class ContractTest {
             monthlyVolume = 800,
             productCategory = ProductCategory.CLOTHING,
             productName = "일반 의류",
-            boxSize = "60",
+            boxSize = BoxSize.SIZE_60,
             pickupStartTime = "09:00",
             pickupEndTime = "18:00",
             saturdayDeliveryRequired = true,

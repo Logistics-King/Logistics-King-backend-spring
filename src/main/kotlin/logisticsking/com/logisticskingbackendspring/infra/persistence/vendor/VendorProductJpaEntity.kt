@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
@@ -39,8 +40,18 @@ class VendorProductJpaEntity(
     @Column(name = "average_weight_gram")
     val averageWeightGram: Int?,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "box_size", length = 30)
-    val boxSize: String?,
+    val boxSize: BoxSize?,
+
+    @Column(name = "destination_postal_code", length = 20)
+    val destinationPostalCode: String?,
+
+    @Column(name = "destination_address", nullable = false, length = 255)
+    val destinationAddress: String,
+
+    @Column(name = "destination_address_detail", length = 255)
+    val destinationAddressDetail: String?,
 
     @Column(name = "fragile", nullable = false)
     val fragile: Boolean,
@@ -66,6 +77,9 @@ class VendorProductJpaEntity(
             averagePrice = averagePrice,
             averageWeightGram = averageWeightGram,
             boxSize = boxSize,
+            destinationPostalCode = destinationPostalCode,
+            destinationAddress = destinationAddress,
+            destinationAddressDetail = destinationAddressDetail,
             fragile = fragile,
             liquid = liquid,
             freshFood = freshFood,
@@ -84,6 +98,9 @@ class VendorProductJpaEntity(
                 averagePrice = product.averagePrice,
                 averageWeightGram = product.averageWeightGram,
                 boxSize = product.boxSize,
+                destinationPostalCode = product.destinationPostalCode,
+                destinationAddress = product.destinationAddress,
+                destinationAddressDetail = product.destinationAddressDetail,
                 fragile = product.fragile,
                 liquid = product.liquid,
                 freshFood = product.freshFood,

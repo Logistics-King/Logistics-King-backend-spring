@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.contract.result
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequest
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
@@ -16,7 +17,7 @@ data class ContractRequestResult(
     val monthlyVolume: Int,
     val productCategory: ProductCategory,
     val productName: String,
-    val boxSize: String,
+    val boxSize: BoxSize,
     val pickupStartTime: String,
     val pickupEndTime: String,
     val saturdayDeliveryRequired: Boolean,

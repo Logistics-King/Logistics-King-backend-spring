@@ -6,6 +6,7 @@ import logisticsking.com.logisticskingbackendspring.app.vendor.command.UpdateVen
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.UpdateVendorProductCommand
 import logisticsking.com.logisticskingbackendspring.app.vendor.result.VendorProductResult
 import logisticsking.com.logisticskingbackendspring.app.vendor.result.VendorResult
+import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductSearchCondition
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.util.UUID
@@ -27,7 +28,11 @@ interface CreateVendorProductUseCase {
 }
 
 interface GetVendorProductsUseCase {
-    fun getProducts(userId: UUID, pageable: Pageable): Page<VendorProductResult>
+    fun getProducts(
+        userId: UUID,
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+    ): Page<VendorProductResult>
 }
 
 interface UpdateVendorProductUseCase {

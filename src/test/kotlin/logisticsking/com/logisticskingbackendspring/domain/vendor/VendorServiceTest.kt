@@ -1,8 +1,9 @@
 package logisticsking.com.logisticskingbackendspring.domain.vendor
 
-import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorProductCommand
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.User
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import java.math.BigDecimal
 import java.util.UUID
@@ -85,6 +87,44 @@ class VendorServiceTest {
     }
 
     @Test
+    fun `getProducts는 물품명 카테고리 박스 사이즈로 검색한다`() {
+        val user = user(role = UserRole.VENDOR)
+        val vendorRepository = FakeVendorRepository()
+        val productRepository = FakeVendorProductRepository()
+        val service = vendorService(
+            userRepository = FakeUserRepository(user),
+            vendorRepository = vendorRepository,
+            vendorProductRepository = productRepository,
+            idGenerator = QueueIdGenerator(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()),
+        )
+        service.create(createVendorCommand(user.id))
+        service.createProduct(createVendorProductCommand(user.id))
+        service.createProduct(
+            createVendorProductCommand(
+                userId = user.id,
+                category = ProductCategory.ELECTRONICS,
+                name = "노트북",
+                boxSize = BoxSize.SIZE_100,
+            )
+        )
+
+        val result = service.getProducts(
+            userId = user.id,
+            condition = VendorProductSearchCondition(
+                name = "의류",
+                category = ProductCategory.CLOTHING,
+                boxSize = BoxSize.SIZE_60,
+                coldChainType = null,
+            ),
+            pageable = PageRequest.of(0, 20),
+        )
+
+        assertEquals(1, result.totalElements)
+        assertEquals("여성 의류", result.content.first().name)
+        assertEquals(BoxSize.SIZE_60, result.content.first().boxSize)
+    }
+
+    @Test
     fun `createProduct 시 화주 프로필이 없으면 예외가 발생한다`() {
         val user = user(role = UserRole.VENDOR)
         val service = vendorService(userRepository = FakeUserRepository(user))
@@ -124,15 +164,23 @@ class VendorServiceTest {
         )
     }
 
-    private fun createVendorProductCommand(userId: UUID): CreateVendorProductCommand {
+    private fun createVendorProductCommand(
+        userId: UUID,
+        category: ProductCategory = ProductCategory.CLOTHING,
+        name: String = "여성 의류",
+        boxSize: BoxSize = BoxSize.SIZE_60,
+    ): CreateVendorProductCommand {
         return CreateVendorProductCommand(
             userId = userId,
-            category = ProductCategory.CLOTHING,
-            name = "여성 의류",
+            category = category,
+            name = name,
             description = "일반 의류",
             averagePrice = BigDecimal("25000"),
             averageWeightGram = 700,
-            boxSize = "60",
+            boxSize = boxSize,
+            destinationPostalCode = "06164",
+            destinationAddress = "서울특별시 강남구 테헤란로 521",
+            destinationAddressDetail = "10층",
             fragile = false,
             liquid = false,
             freshFood = false,
@@ -216,8 +264,18 @@ class VendorServiceTest {
             return products[id]?.takeIf { it.vendorId == vendorId }
         }
 
-        override fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<VendorProduct> {
-            val filteredProducts = products.values.filter { it.vendorId == vendorId }
+        override fun findAllByVendorId(
+            vendorId: UUID,
+            condition: VendorProductSearchCondition,
+            pageable: Pageable,
+        ): Page<VendorProduct> {
+            val filteredProducts = products.values.filter {
+                it.vendorId == vendorId &&
+                    (condition.normalizedName == null || it.name.contains(condition.normalizedName, ignoreCase = true)) &&
+                    (condition.category == null || it.category == condition.category) &&
+                    (condition.boxSize == null || it.boxSize == condition.boxSize) &&
+                    (condition.coldChainType == null || it.coldChainType == condition.coldChainType)
+            }
 
             return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
         }

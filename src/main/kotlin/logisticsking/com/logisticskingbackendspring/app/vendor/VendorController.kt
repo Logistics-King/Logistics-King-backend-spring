@@ -13,7 +13,11 @@ import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetVendor
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorProductUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorUseCase
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
+import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductSearchCondition
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -96,9 +101,22 @@ class VendorController(
     @GetMapping("/me/products")
     fun getProducts(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @RequestParam(required = false) name: String?,
+        @RequestParam(required = false) category: ProductCategory?,
+        @RequestParam(required = false) boxSize: BoxSize?,
+        @RequestParam(required = false) coldChainType: ColdChainType?,
         @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<VendorResponse.ProductList> {
-        val results = getVendorProductsUseCase.getProducts(user.userId, pageable)
+        val results = getVendorProductsUseCase.getProducts(
+            userId = user.userId,
+            condition = VendorProductSearchCondition(
+                name = name,
+                category = category,
+                boxSize = boxSize,
+                coldChainType = coldChainType,
+            ),
+            pageable = pageable,
+        )
 
         return ApiResponse.success(
             response = VendorResponse.ProductList.from(results),

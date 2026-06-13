@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.vendor.result
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
@@ -45,7 +46,10 @@ data class VendorProductResult(
     val description: String?,
     val averagePrice: BigDecimal?,
     val averageWeightGram: Int?,
-    val boxSize: String?,
+    val boxSize: BoxSize?,
+    val destinationPostalCode: String?,
+    val destinationAddress: String,
+    val destinationAddressDetail: String?,
     val fragile: Boolean,
     val liquid: Boolean,
     val freshFood: Boolean,
@@ -62,6 +66,9 @@ data class VendorProductResult(
                 averagePrice = product.averagePrice,
                 averageWeightGram = product.averageWeightGram,
                 boxSize = product.boxSize,
+                destinationPostalCode = product.destinationPostalCode,
+                destinationAddress = product.destinationAddress,
+                destinationAddressDetail = product.destinationAddressDetail,
                 fragile = product.fragile,
                 liquid = product.liquid,
                 freshFood = product.freshFood,

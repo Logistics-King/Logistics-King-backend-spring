@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
@@ -25,7 +26,7 @@ class ContractRequestTest {
             pickupRegion = " 경기도 안산시 일동 ",
             pickupAddress = " ",
             productName = " 일반 의류 ",
-            boxSize = " 60 ",
+            boxSize = BoxSize.SIZE_60,
             memo = " 오전 픽업 선호 ",
         )
 
@@ -35,7 +36,7 @@ class ContractRequestTest {
         assertEquals("경기도 안산시 일동", contractRequest.pickupRegion)
         assertNull(contractRequest.pickupAddress)
         assertEquals("일반 의류", contractRequest.productName)
-        assertEquals("60", contractRequest.boxSize)
+        assertEquals(BoxSize.SIZE_60, contractRequest.boxSize)
         assertEquals("오전 픽업 선호", contractRequest.memo)
         assertEquals(ContractRequestStatus.OPEN, contractRequest.status)
     }
@@ -52,7 +53,7 @@ class ContractRequestTest {
             monthlyVolume = 1000,
             productCategory = ProductCategory.CLOTHING,
             productName = "여성 의류",
-            boxSize = "80",
+            boxSize = BoxSize.SIZE_80,
             pickupStartTime = "10:00",
             pickupEndTime = "17:00",
             saturdayDeliveryRequired = false,
@@ -67,7 +68,7 @@ class ContractRequestTest {
         assertEquals(productId, updated.productId)
         assertEquals("경기도 안산시 본오동", updated.pickupRegion)
         assertEquals(1000, updated.monthlyVolume)
-        assertEquals("80", updated.boxSize)
+        assertEquals(BoxSize.SIZE_80, updated.boxSize)
         assertEquals(BigDecimal("2100"), updated.targetUnitPrice)
     }
 
@@ -130,7 +131,7 @@ class ContractRequestTest {
                 monthlyVolume = 1000,
                 productCategory = ProductCategory.CLOTHING,
                 productName = "여성 의류",
-                boxSize = "80",
+                boxSize = BoxSize.SIZE_80,
                 pickupStartTime = "10:00",
                 pickupEndTime = "17:00",
                 saturdayDeliveryRequired = false,
@@ -156,7 +157,7 @@ class ContractRequestTest {
                 monthlyVolume = 1000,
                 productCategory = ProductCategory.CLOTHING,
                 productName = "여성 의류",
-                boxSize = "80",
+                boxSize = BoxSize.SIZE_80,
                 pickupStartTime = "10:00",
                 pickupEndTime = "17:00",
                 saturdayDeliveryRequired = false,
@@ -189,7 +190,7 @@ class ContractRequestTest {
         pickupAddress: String? = "경기도 안산시 상록구 일동 101호",
         monthlyVolume: Int = 800,
         productName: String = "일반 의류",
-        boxSize: String = "60",
+        boxSize: BoxSize = BoxSize.SIZE_60,
         targetUnitPrice: BigDecimal? = BigDecimal("2000"),
         memo: String? = "의류 중심",
     ): ContractRequest {

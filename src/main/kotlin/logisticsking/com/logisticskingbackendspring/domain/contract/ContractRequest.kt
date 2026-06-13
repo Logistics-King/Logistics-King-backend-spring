@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.requireDomain
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
@@ -23,9 +24,8 @@ class ContractRequest private constructor(
     val productCategory: ProductCategory,
     // 화주가 보내려는 대표 품목명.
     val productName: String,
-    // @Todo : 박스 사이즈가 규격화 돼 있다면 Enum으로 수정할 것.
     // 대리점 단가 산정에 사용할 주요 박스 규격.
-    val boxSize: String,
+    val boxSize: BoxSize,
     // 화주가 원하는 집하 시작 시간.
     val pickupStartTime: String,
     // 화주가 원하는 집하 종료 시간.
@@ -51,7 +51,7 @@ class ContractRequest private constructor(
         monthlyVolume: Int,
         productCategory: ProductCategory,
         productName: String,
-        boxSize: String,
+        boxSize: BoxSize,
         pickupStartTime: String,
         pickupEndTime: String,
         saturdayDeliveryRequired: Boolean,
@@ -154,7 +154,7 @@ class ContractRequest private constructor(
             monthlyVolume: Int,
             productCategory: ProductCategory,
             productName: String,
-            boxSize: String,
+            boxSize: BoxSize,
             pickupStartTime: String,
             pickupEndTime: String,
             saturdayDeliveryRequired: Boolean,
@@ -167,7 +167,6 @@ class ContractRequest private constructor(
             requireDomain(pickupRegion.isNotBlank(), ContractRequestErrorCode.INVALID_PICKUP_REGION)
             requireDomain(monthlyVolume > 0, ContractRequestErrorCode.INVALID_MONTHLY_VOLUME)
             requireDomain(productName.isNotBlank(), ContractRequestErrorCode.INVALID_PRODUCT_NAME)
-            requireDomain(boxSize.isNotBlank(), ContractRequestErrorCode.INVALID_BOX_SIZE)
             requireDomain(
                 pickupStartTime.isNotBlank() && pickupEndTime.isNotBlank(),
                 ContractRequestErrorCode.INVALID_PICKUP_TIME,
@@ -186,7 +185,7 @@ class ContractRequest private constructor(
                 monthlyVolume = monthlyVolume,
                 productCategory = productCategory,
                 productName = productName.trim(),
-                boxSize = boxSize.trim(),
+                boxSize = boxSize,
                 pickupStartTime = pickupStartTime.trim(),
                 pickupEndTime = pickupEndTime.trim(),
                 saturdayDeliveryRequired = saturdayDeliveryRequired,
@@ -207,7 +206,7 @@ class ContractRequest private constructor(
             monthlyVolume: Int,
             productCategory: ProductCategory,
             productName: String,
-            boxSize: String,
+            boxSize: BoxSize,
             pickupStartTime: String,
             pickupEndTime: String,
             saturdayDeliveryRequired: Boolean,

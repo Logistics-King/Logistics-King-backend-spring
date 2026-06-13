@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.requireDomain
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
@@ -17,7 +18,7 @@ class Contract private constructor(
     val monthlyVolume: Int,
     val productCategory: ProductCategory,
     val productName: String,
-    val boxSize: String,
+    val boxSize: BoxSize,
     val unitPrice: BigDecimal,
     val pickupStartTime: String,
     val pickupEndTime: String,
@@ -73,7 +74,7 @@ class Contract private constructor(
             monthlyVolume: Int,
             productCategory: ProductCategory,
             productName: String,
-            boxSize: String,
+            boxSize: BoxSize,
             unitPrice: BigDecimal,
             pickupStartTime: String,
             pickupEndTime: String,
