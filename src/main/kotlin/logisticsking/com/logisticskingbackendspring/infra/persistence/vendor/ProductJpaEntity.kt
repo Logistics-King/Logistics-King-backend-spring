@@ -44,6 +44,12 @@ class ProductJpaEntity(
     @Column(name = "box_size", length = 30)
     val boxSize: BoxSize?,
 
+    @Column(name = "box_quantity", nullable = false)
+    val boxQuantity: Int,
+
+    @Column(name = "item_quantity", nullable = false)
+    val itemQuantity: Int,
+
     @Column(name = "destination_postal_code", length = 20)
     val destinationPostalCode: String?,
 
@@ -77,6 +83,8 @@ class ProductJpaEntity(
             averagePrice = averagePrice,
             averageWeightGram = averageWeightGram,
             boxSize = boxSize,
+            boxQuantity = boxQuantity,
+            itemQuantity = itemQuantity,
             destinationPostalCode = destinationPostalCode,
             destinationAddress = destinationAddress,
             destinationAddressDetail = destinationAddressDetail,
@@ -98,6 +106,8 @@ class ProductJpaEntity(
                 averagePrice = product.averagePrice,
                 averageWeightGram = product.averageWeightGram,
                 boxSize = product.boxSize,
+                boxQuantity = product.boxQuantity,
+                itemQuantity = product.itemQuantity,
                 destinationPostalCode = product.destinationPostalCode,
                 destinationAddress = product.destinationAddress,
                 destinationAddressDetail = product.destinationAddressDetail,

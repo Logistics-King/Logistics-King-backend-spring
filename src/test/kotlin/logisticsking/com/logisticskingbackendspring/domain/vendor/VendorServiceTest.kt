@@ -74,7 +74,7 @@ class VendorServiceTest {
     fun `createProduct 성공 시 화주 배송 품목을 저장한다`() {
         val user = user(role = UserRole.VENDOR)
         val vendorRepository = FakeVendorRepository()
-        val productRepository = FakeVendorProductRepository()
+        val productRepository = FakeVendorProductRepository(vendorRepository)
         val service = vendorService(
             userRepository = FakeUserRepository(user),
             vendorRepository = vendorRepository,
@@ -88,6 +88,8 @@ class VendorServiceTest {
         assertEquals(ProductCategory.CLOTHING, result.category)
         assertEquals("여성 의류", result.name)
         assertEquals(BigDecimal("25000"), result.averagePrice)
+        assertEquals(800, result.boxQuantity)
+        assertEquals(0, result.itemQuantity)
     }
 
     @Test
@@ -173,7 +175,7 @@ class VendorServiceTest {
         val anotherVendorUser = user(role = UserRole.VENDOR)
         val agencyUser = user(role = UserRole.AGENCY)
         val vendorRepository = FakeVendorRepository()
-        val productRepository = FakeVendorProductRepository()
+        val productRepository = FakeVendorProductRepository(vendorRepository)
         val service = vendorService(
             userRepository = FakeUserRepository(vendorUser, anotherVendorUser, agencyUser),
             vendorRepository = vendorRepository,
@@ -202,6 +204,7 @@ class VendorServiceTest {
         )
 
         assertEquals(2, result.totalElements)
+        assertEquals("안산 옷가게", result.content.first().vendor?.businessName)
     }
 
     @Test
@@ -291,6 +294,8 @@ class VendorServiceTest {
             averagePrice = BigDecimal("25000"),
             averageWeightGram = 700,
             boxSize = boxSize,
+            boxQuantity = 800,
+            itemQuantity = 0,
             destinationPostalCode = "06164",
             destinationAddress = "서울특별시 강남구 테헤란로 521",
             destinationAddressDetail = "10층",
@@ -386,7 +391,9 @@ class VendorServiceTest {
         }
     }
 
-    private class FakeVendorProductRepository : VendorProductRepository {
+    private class FakeVendorProductRepository(
+        private val vendorRepository: FakeVendorRepository? = null,
+    ) : VendorProductRepository {
         private val products = mutableMapOf<UUID, VendorProduct>()
 
         override fun save(product: VendorProduct): VendorProduct {
@@ -420,12 +427,31 @@ class VendorServiceTest {
             return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
         }
 
+        override fun findAllWithVendor(
+            condition: VendorProductSearchCondition,
+            pageable: Pageable,
+        ): Page<VendorProductWithVendor> {
+            val filteredProducts = filterProducts(condition).map(::withVendor)
+
+            return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
+        }
+
         override fun findNearbyForAgency(
             agency: Agency,
             condition: VendorProductSearchCondition,
             pageable: Pageable,
         ): Page<VendorProduct> {
             val filteredProducts = filterProducts(condition)
+
+            return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
+        }
+
+        override fun findNearbyWithVendorForAgency(
+            agency: Agency,
+            condition: VendorProductSearchCondition,
+            pageable: Pageable,
+        ): Page<VendorProductWithVendor> {
+            val filteredProducts = filterProducts(condition).map(::withVendor)
 
             return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
         }
@@ -441,6 +467,24 @@ class VendorServiceTest {
                     (condition.boxSize == null || it.boxSize == condition.boxSize) &&
                     (condition.coldChainType == null || it.coldChainType == condition.coldChainType)
             }
+        }
+
+        private fun withVendor(product: VendorProduct): VendorProductWithVendor {
+            return VendorProductWithVendor(
+                product = product,
+                vendor = vendorRepository?.findById(product.vendorId) ?: Vendor.restore(
+                    id = product.vendorId,
+                    userId = UUID.randomUUID(),
+                    businessName = "화주",
+                    businessRegistrationNumber = null,
+                    representativeName = "대표자",
+                    phoneNumber = "010-0000-0000",
+                    postalCode = null,
+                    address = "주소",
+                    addressDetail = null,
+                    mainRegion = "지역",
+                ),
+            )
         }
     }
 

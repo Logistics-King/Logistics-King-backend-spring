@@ -93,4 +93,9 @@ enum class VendorErrorCode(
         message = "평균 무게는 0 이상이어야 합니다.",
         status = HttpStatus.BAD_REQUEST,
     ),
+    INVALID_PRODUCT_QUANTITY(
+        code = "INVALID_VENDOR_PRODUCT_QUANTITY",
+        message = "박스 수량과 낱개 수량은 0 이상이어야 하며, 둘 중 하나는 1 이상이어야 합니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
 }

@@ -103,6 +103,8 @@ class VendorService(
             averagePrice = command.averagePrice,
             averageWeightGram = command.averageWeightGram,
             boxSize = command.boxSize,
+            boxQuantity = command.boxQuantity,
+            itemQuantity = command.itemQuantity,
             destinationPostalCode = command.destinationPostalCode,
             destinationAddress = command.destinationAddress,
             destinationAddressDetail = command.destinationAddressDetail,
@@ -158,8 +160,8 @@ class VendorService(
         val agencyUser = findAgencyUser(userId)
 
         val products = when (condition.scope) {
-            ListViewScope.ALL -> vendorProductRepository.findAll(condition, pageable)
-            ListViewScope.NEARBY -> vendorProductRepository.findNearbyForAgency(
+            ListViewScope.ALL -> vendorProductRepository.findAllWithVendor(condition, pageable)
+            ListViewScope.NEARBY -> vendorProductRepository.findNearbyWithVendorForAgency(
                 agency = findAgencyByUserId(agencyUser.id),
                 condition = condition,
                 pageable = pageable,
@@ -185,6 +187,8 @@ class VendorService(
             averagePrice = command.averagePrice,
             averageWeightGram = command.averageWeightGram,
             boxSize = command.boxSize,
+            boxQuantity = command.boxQuantity,
+            itemQuantity = command.itemQuantity,
             destinationPostalCode = command.destinationPostalCode,
             destinationAddress = command.destinationAddress,
             destinationAddressDetail = command.destinationAddressDetail,

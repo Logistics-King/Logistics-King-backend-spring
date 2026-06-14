@@ -67,6 +67,8 @@ CREATE TABLE IF NOT EXISTS products (
     average_price DECIMAL(15, 2) NULL,
     average_weight_gram INT NULL,
     box_size VARCHAR(30) NULL,
+    box_quantity INT NOT NULL,
+    item_quantity INT NOT NULL,
     destination_postal_code VARCHAR(20) NULL,
     destination_address VARCHAR(255) NOT NULL,
     destination_address_detail VARCHAR(255) NULL,

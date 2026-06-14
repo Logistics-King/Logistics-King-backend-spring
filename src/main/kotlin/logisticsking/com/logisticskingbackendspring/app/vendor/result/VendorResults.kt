@@ -5,6 +5,7 @@ import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
+import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductWithVendor
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -41,12 +42,15 @@ data class VendorResult(
 data class VendorProductResult(
     val productId: UUID,
     val vendorId: UUID,
+    val vendor: VendorResult?,
     val category: ProductCategory,
     val name: String,
     val description: String?,
     val averagePrice: BigDecimal?,
     val averageWeightGram: Int?,
     val boxSize: BoxSize?,
+    val boxQuantity: Int,
+    val itemQuantity: Int,
     val destinationPostalCode: String?,
     val destinationAddress: String,
     val destinationAddressDetail: String?,
@@ -60,12 +64,40 @@ data class VendorProductResult(
             return VendorProductResult(
                 productId = product.id,
                 vendorId = product.vendorId,
+                vendor = null,
                 category = product.category,
                 name = product.name,
                 description = product.description,
                 averagePrice = product.averagePrice,
                 averageWeightGram = product.averageWeightGram,
                 boxSize = product.boxSize,
+                boxQuantity = product.boxQuantity,
+                itemQuantity = product.itemQuantity,
+                destinationPostalCode = product.destinationPostalCode,
+                destinationAddress = product.destinationAddress,
+                destinationAddressDetail = product.destinationAddressDetail,
+                fragile = product.fragile,
+                liquid = product.liquid,
+                freshFood = product.freshFood,
+                coldChainType = product.coldChainType,
+            )
+        }
+
+        fun from(productWithVendor: VendorProductWithVendor): VendorProductResult {
+            val product = productWithVendor.product
+
+            return VendorProductResult(
+                productId = product.id,
+                vendorId = product.vendorId,
+                vendor = VendorResult.from(productWithVendor.vendor),
+                category = product.category,
+                name = product.name,
+                description = product.description,
+                averagePrice = product.averagePrice,
+                averageWeightGram = product.averageWeightGram,
+                boxSize = product.boxSize,
+                boxQuantity = product.boxQuantity,
+                itemQuantity = product.itemQuantity,
                 destinationPostalCode = product.destinationPostalCode,
                 destinationAddress = product.destinationAddress,
                 destinationAddressDetail = product.destinationAddressDetail,

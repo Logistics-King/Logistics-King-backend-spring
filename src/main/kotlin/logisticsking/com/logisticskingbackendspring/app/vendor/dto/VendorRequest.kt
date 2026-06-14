@@ -95,6 +95,10 @@ sealed interface VendorRequest {
         val averageWeightGram: Int?,
         @field:Schema(description = "주요 박스 크기", example = "SIZE_60")
         val boxSize: BoxSize?,
+        @field:Schema(description = "박스 수량", example = "800")
+        val boxQuantity: Int,
+        @field:Schema(description = "낱개 수량", example = "0")
+        val itemQuantity: Int,
         @field:Schema(description = "배송 목적지 우편번호", example = "06164")
         val destinationPostalCode: String?,
         @field:Schema(description = "배송 목적지 주소", example = "서울특별시 강남구 테헤란로 521")
@@ -119,6 +123,8 @@ sealed interface VendorRequest {
                 averagePrice = averagePrice,
                 averageWeightGram = averageWeightGram,
                 boxSize = boxSize,
+                boxQuantity = boxQuantity,
+                itemQuantity = itemQuantity,
                 destinationPostalCode = destinationPostalCode,
                 destinationAddress = destinationAddress,
                 destinationAddressDetail = destinationAddressDetail,
@@ -144,6 +150,10 @@ sealed interface VendorRequest {
         val averageWeightGram: Int?,
         @field:Schema(description = "주요 박스 크기", example = "SIZE_60")
         val boxSize: BoxSize?,
+        @field:Schema(description = "박스 수량", example = "850")
+        val boxQuantity: Int,
+        @field:Schema(description = "낱개 수량", example = "0")
+        val itemQuantity: Int,
         @field:Schema(description = "배송 목적지 우편번호", example = "06164")
         val destinationPostalCode: String?,
         @field:Schema(description = "배송 목적지 주소", example = "서울특별시 강남구 테헤란로 521")
@@ -172,6 +182,8 @@ sealed interface VendorRequest {
                 averagePrice = averagePrice,
                 averageWeightGram = averageWeightGram,
                 boxSize = boxSize,
+                boxQuantity = boxQuantity,
+                itemQuantity = itemQuantity,
                 destinationPostalCode = destinationPostalCode,
                 destinationAddress = destinationAddress,
                 destinationAddressDetail = destinationAddressDetail,

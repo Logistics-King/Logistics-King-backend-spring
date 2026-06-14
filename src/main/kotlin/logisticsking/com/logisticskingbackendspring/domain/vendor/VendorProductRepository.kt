@@ -22,9 +22,20 @@ interface VendorProductRepository {
         pageable: Pageable,
     ): Page<VendorProduct>
 
+    fun findAllWithVendor(
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+    ): Page<VendorProductWithVendor>
+
     fun findNearbyForAgency(
         agency: Agency,
         condition: VendorProductSearchCondition,
         pageable: Pageable,
     ): Page<VendorProduct>
+
+    fun findNearbyWithVendorForAgency(
+        agency: Agency,
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+    ): Page<VendorProductWithVendor>
 }
