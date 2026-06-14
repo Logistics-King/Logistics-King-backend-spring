@@ -14,6 +14,7 @@ import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.domain.agency.AgencySearchCondition
 import logisticsking.com.logisticskingbackendspring.domain.agency.Carrier
+import logisticsking.com.logisticskingbackendspring.domain.common.ListViewScope
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
 import org.springframework.data.domain.Pageable
@@ -72,19 +73,23 @@ class AgencyController(
     @GetMapping
     fun getAgencies(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @RequestParam(required = false) agencyName: String?,
         @RequestParam(required = false) region: String?,
         @RequestParam(required = false) carrier: Carrier?,
         @RequestParam(required = false) saturdayDeliveryAvailable: Boolean?,
         @RequestParam(required = false) returnAvailable: Boolean?,
+        @RequestParam(required = false, defaultValue = "ALL") scope: ListViewScope,
         @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<AgencyResponse.List> {
         val results = getAgenciesUseCase.getAgencies(
             userId = user.userId,
             condition = AgencySearchCondition(
+                agencyName = agencyName,
                 region = region,
                 carrier = carrier,
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
                 returnAvailable = returnAvailable,
+                scope = scope,
             ),
             pageable = pageable,
         )

@@ -1,6 +1,7 @@
 package logisticsking.com.logisticskingbackendspring.infra.persistence.vendor
 
 import com.querydsl.jpa.impl.JPAQueryFactory
+import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductRepository
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductSearchCondition
@@ -16,6 +17,7 @@ class VendorProductRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
 ) : VendorProductRepository {
     private val vendorProduct = QProductJpaEntity.productJpaEntity
+    private val vendor = QVendorJpaEntity.vendorJpaEntity
 
     override fun save(product: VendorProduct): VendorProduct {
         return jpaRepository.save(ProductJpaEntity.from(product)).toDomain()
@@ -49,6 +51,49 @@ class VendorProductRepositoryImpl(
             pageable = pageable,
             vendorId = null,
         )
+    }
+
+    override fun findNearbyForAgency(
+        agency: Agency,
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+    ): Page<VendorProduct> {
+        val serviceRegions = agency.serviceRegions.ifEmpty { listOf(agency.mainRegion) }
+
+        val content = queryFactory
+            .selectFrom(vendorProduct)
+            .join(vendor).on(vendorProduct.vendorId.eq(vendor.id))
+            .where(
+                vendorProduct.deletedAt.isNull,
+                vendor.deletedAt.isNull,
+                vendor.mainRegion.`in`(serviceRegions),
+                condition.normalizedName?.let { vendorProduct.name.containsIgnoreCase(it) },
+                condition.category?.let { vendorProduct.category.eq(it) },
+                condition.boxSize?.let { vendorProduct.boxSize.eq(it) },
+                condition.coldChainType?.let { vendorProduct.coldChainType.eq(it) },
+            )
+            .orderBy(vendorProduct.createdAt.desc())
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .fetch()
+            .map(ProductJpaEntity::toDomain)
+
+        val total = queryFactory
+            .select(vendorProduct.count())
+            .from(vendorProduct)
+            .join(vendor).on(vendorProduct.vendorId.eq(vendor.id))
+            .where(
+                vendorProduct.deletedAt.isNull,
+                vendor.deletedAt.isNull,
+                vendor.mainRegion.`in`(serviceRegions),
+                condition.normalizedName?.let { vendorProduct.name.containsIgnoreCase(it) },
+                condition.category?.let { vendorProduct.category.eq(it) },
+                condition.boxSize?.let { vendorProduct.boxSize.eq(it) },
+                condition.coldChainType?.let { vendorProduct.coldChainType.eq(it) },
+            )
+            .fetchOne() ?: 0L
+
+        return PageImpl(content, pageable, total)
     }
 
     private fun findAllByCondition(

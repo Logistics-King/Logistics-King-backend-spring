@@ -38,6 +38,11 @@ enum class VendorErrorCode(
         message = "화주 프로필을 찾을 수 없습니다.",
         status = HttpStatus.NOT_FOUND,
     ),
+    AGENCY_NOT_FOUND(
+        code = "VENDOR_AGENCY_NOT_FOUND",
+        message = "대리점 프로필을 찾을 수 없습니다.",
+        status = HttpStatus.NOT_FOUND,
+    ),
     PRODUCT_NOT_FOUND(
         code = "VENDOR_PRODUCT_NOT_FOUND",
         message = "화주 배송 품목을 찾을 수 없습니다.",

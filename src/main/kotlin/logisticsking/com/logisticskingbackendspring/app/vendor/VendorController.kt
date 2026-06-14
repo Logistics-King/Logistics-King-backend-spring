@@ -15,6 +15,7 @@ import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVen
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
+import logisticsking.com.logisticskingbackendspring.domain.common.ListViewScope
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductSearchCondition
@@ -132,6 +133,7 @@ class VendorController(
         @RequestParam(required = false) category: ProductCategory?,
         @RequestParam(required = false) boxSize: BoxSize?,
         @RequestParam(required = false) coldChainType: ColdChainType?,
+        @RequestParam(required = false, defaultValue = "ALL") scope: ListViewScope,
         @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<VendorResponse.ProductList> {
         val results = getVendorProductsUseCase.getPublicProductsForAgency(
@@ -141,6 +143,7 @@ class VendorController(
                 category = category,
                 boxSize = boxSize,
                 coldChainType = coldChainType,
+                scope = scope,
             ),
             pageable = pageable,
         )

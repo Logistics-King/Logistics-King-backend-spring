@@ -9,10 +9,13 @@ import logisticsking.com.logisticskingbackendspring.app.agency.usecase.GetAgency
 import logisticsking.com.logisticskingbackendspring.app.agency.usecase.GetMyAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.app.agency.usecase.UpdateAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
+import logisticsking.com.logisticskingbackendspring.domain.common.ListViewScope
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
+import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -23,6 +26,7 @@ import java.util.UUID
 class AgencyService(
     private val userRepository: UserRepository,
     private val agencyRepository: AgencyRepository,
+    private val vendorRepository: VendorRepository,
     private val idGenerator: IdGenerator,
 ) : CreateAgencyUseCase,
     GetMyAgencyUseCase,
@@ -76,8 +80,15 @@ class AgencyService(
         pageable: Pageable,
     ): Page<AgencyResult> {
         findVendorUser(userId)
+        val effectiveCondition = when (condition.scope) {
+            ListViewScope.ALL -> condition
+            ListViewScope.NEARBY -> {
+                val vendor = findVendorByUserId(userId)
+                condition.copy(region = vendor.mainRegion)
+            }
+        }
 
-        return agencyRepository.findAll(condition, pageable)
+        return agencyRepository.findAll(effectiveCondition, pageable)
             .map(AgencyResult::from)
     }
 
@@ -146,5 +157,10 @@ class AgencyService(
     private fun findAgencyByUserId(userId: UUID): Agency {
         return agencyRepository.findByUserId(userId)
             ?: throw GlobalException(AgencyErrorCode.AGENCY_NOT_FOUND)
+    }
+
+    private fun findVendorByUserId(userId: UUID): Vendor {
+        return vendorRepository.findByUserId(userId)
+            ?: throw GlobalException(AgencyErrorCode.VENDOR_NOT_FOUND)
     }
 }

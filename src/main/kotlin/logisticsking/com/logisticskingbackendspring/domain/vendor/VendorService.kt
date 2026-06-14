@@ -12,7 +12,10 @@ import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetMyVend
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetVendorProductsUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorProductUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorUseCase
+import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
+import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
+import logisticsking.com.logisticskingbackendspring.domain.common.ListViewScope
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
@@ -27,6 +30,7 @@ import java.util.UUID
 @Service
 class VendorService(
     private val userRepository: UserRepository,
+    private val agencyRepository: AgencyRepository,
     private val vendorRepository: VendorRepository,
     private val vendorProductRepository: VendorProductRepository,
     private val idGenerator: IdGenerator,
@@ -151,9 +155,18 @@ class VendorService(
         if (!agencyPublicReadEnabled) {
             throw GlobalException(VendorErrorCode.AGENCY_PRODUCT_PUBLIC_READ_DISABLED)
         }
-        findAgencyUser(userId)
+        val agencyUser = findAgencyUser(userId)
 
-        return vendorProductRepository.findAll(condition, pageable)
+        val products = when (condition.scope) {
+            ListViewScope.ALL -> vendorProductRepository.findAll(condition, pageable)
+            ListViewScope.NEARBY -> vendorProductRepository.findNearbyForAgency(
+                agency = findAgencyByUserId(agencyUser.id),
+                condition = condition,
+                pageable = pageable,
+            )
+        }
+
+        return products
             .map(VendorProductResult::from)
     }
 
@@ -207,5 +220,10 @@ class VendorService(
     private fun findVendorByUserId(userId: UUID): Vendor {
         return vendorRepository.findByUserId(userId)
             ?: throw GlobalException(VendorErrorCode.VENDOR_NOT_FOUND)
+    }
+
+    private fun findAgencyByUserId(userId: UUID): Agency {
+        return agencyRepository.findByUserId(userId)
+            ?: throw GlobalException(VendorErrorCode.AGENCY_NOT_FOUND)
     }
 }

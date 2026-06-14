@@ -34,6 +34,7 @@ class AgencyRepositoryImpl(
             .selectFrom(agency)
             .where(
                 agency.deletedAt.isNull,
+                condition.normalizedAgencyName?.let { agency.agencyName.containsIgnoreCase(it) },
                 condition.normalizedRegion?.let(::regionContains),
                 condition.carrier?.let { agency.carrier.eq(it) },
                 condition.saturdayDeliveryAvailable?.let { agency.saturdayDeliveryAvailable.eq(it) },
@@ -50,6 +51,7 @@ class AgencyRepositoryImpl(
             .from(agency)
             .where(
                 agency.deletedAt.isNull,
+                condition.normalizedAgencyName?.let { agency.agencyName.containsIgnoreCase(it) },
                 condition.normalizedRegion?.let(::regionContains),
                 condition.carrier?.let { agency.carrier.eq(it) },
                 condition.saturdayDeliveryAvailable?.let { agency.saturdayDeliveryAvailable.eq(it) },

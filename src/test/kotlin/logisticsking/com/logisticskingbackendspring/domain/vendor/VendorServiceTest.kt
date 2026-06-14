@@ -2,6 +2,10 @@ package logisticsking.com.logisticskingbackendspring.domain.vendor
 
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorProductCommand
+import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
+import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
+import logisticsking.com.logisticskingbackendspring.domain.agency.AgencySearchCondition
+import logisticsking.com.logisticskingbackendspring.domain.agency.Carrier
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
@@ -243,6 +247,7 @@ class VendorServiceTest {
 
     private fun vendorService(
         userRepository: FakeUserRepository = FakeUserRepository(user(role = UserRole.VENDOR)),
+        agencyRepository: FakeAgencyRepository = FakeAgencyRepository(),
         vendorRepository: FakeVendorRepository = FakeVendorRepository(),
         vendorProductRepository: FakeVendorProductRepository = FakeVendorProductRepository(),
         idGenerator: IdGenerator = FakeIdGenerator(UUID.randomUUID()),
@@ -250,6 +255,7 @@ class VendorServiceTest {
     ): VendorService {
         return VendorService(
             userRepository = userRepository,
+            agencyRepository = agencyRepository,
             vendorRepository = vendorRepository,
             vendorProductRepository = vendorProductRepository,
             idGenerator = idGenerator,
@@ -414,6 +420,16 @@ class VendorServiceTest {
             return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
         }
 
+        override fun findNearbyForAgency(
+            agency: Agency,
+            condition: VendorProductSearchCondition,
+            pageable: Pageable,
+        ): Page<VendorProduct> {
+            val filteredProducts = filterProducts(condition)
+
+            return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
+        }
+
         private fun filterProducts(
             condition: VendorProductSearchCondition,
             extraPredicate: (VendorProduct) -> Boolean = { true },
@@ -425,6 +441,38 @@ class VendorServiceTest {
                     (condition.boxSize == null || it.boxSize == condition.boxSize) &&
                     (condition.coldChainType == null || it.coldChainType == condition.coldChainType)
             }
+        }
+    }
+
+    private class FakeAgencyRepository(
+        agency: Agency? = null,
+    ) : AgencyRepository {
+        private val agencies = agency
+            ?.let { mutableMapOf(it.id to it) }
+            ?: mutableMapOf()
+
+        override fun save(agency: Agency): Agency {
+            agencies[agency.id] = agency
+            return agency
+        }
+
+        override fun findById(id: UUID): Agency? {
+            return agencies[id]
+        }
+
+        override fun findAll(
+            condition: AgencySearchCondition,
+            pageable: Pageable,
+        ): Page<Agency> {
+            return PageImpl(agencies.values.toList(), pageable, agencies.size.toLong())
+        }
+
+        override fun findByUserId(userId: UUID): Agency? {
+            return agencies.values.firstOrNull { it.userId == userId }
+        }
+
+        override fun existsByUserId(userId: UUID): Boolean {
+            return agencies.values.any { it.userId == userId }
         }
     }
 

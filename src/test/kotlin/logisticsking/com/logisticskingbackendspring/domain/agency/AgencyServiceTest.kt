@@ -8,6 +8,8 @@ import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
+import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -159,11 +161,13 @@ class AgencyServiceTest {
     private fun agencyService(
         userRepository: FakeUserRepository = FakeUserRepository(user(role = UserRole.AGENCY)),
         agencyRepository: FakeAgencyRepository = FakeAgencyRepository(),
+        vendorRepository: FakeVendorRepository = FakeVendorRepository(),
         idGenerator: IdGenerator = FakeIdGenerator(UUID.randomUUID()),
     ): AgencyService {
         return AgencyService(
             userRepository = userRepository,
             agencyRepository = agencyRepository,
+            vendorRepository = vendorRepository,
             idGenerator = idGenerator,
         )
     }
@@ -343,6 +347,27 @@ class AgencyServiceTest {
 
         override fun existsByUserId(userId: UUID): Boolean {
             return agencies.values.any { it.userId == userId }
+        }
+    }
+
+    private class FakeVendorRepository : VendorRepository {
+        private val vendors = mutableMapOf<UUID, Vendor>()
+
+        override fun save(vendor: Vendor): Vendor {
+            vendors[vendor.id] = vendor
+            return vendor
+        }
+
+        override fun findById(id: UUID): Vendor? {
+            return vendors[id]
+        }
+
+        override fun findByUserId(userId: UUID): Vendor? {
+            return vendors.values.firstOrNull { it.userId == userId }
+        }
+
+        override fun existsByUserId(userId: UUID): Boolean {
+            return vendors.values.any { it.userId == userId }
         }
     }
 

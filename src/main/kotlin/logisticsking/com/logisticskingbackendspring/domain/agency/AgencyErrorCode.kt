@@ -33,6 +33,11 @@ enum class AgencyErrorCode(
         message = "대리점 프로필을 찾을 수 없습니다.",
         status = HttpStatus.NOT_FOUND,
     ),
+    VENDOR_NOT_FOUND(
+        code = "AGENCY_VENDOR_NOT_FOUND",
+        message = "화주 프로필을 찾을 수 없습니다.",
+        status = HttpStatus.NOT_FOUND,
+    ),
     INVALID_AGENCY_NAME(
         code = "INVALID_AGENCY_NAME",
         message = "대리점명은 필수입니다.",
