@@ -33,6 +33,19 @@ interface GetVendorProductsUseCase {
         condition: VendorProductSearchCondition,
         pageable: Pageable,
     ): Page<VendorProductResult>
+
+    fun getProductsByVendorIdForAgency(
+        userId: UUID,
+        vendorId: UUID,
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+    ): Page<VendorProductResult>
+
+    fun getPublicProductsForAgency(
+        userId: UUID,
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+    ): Page<VendorProductResult>
 }
 
 interface UpdateVendorProductUseCase {

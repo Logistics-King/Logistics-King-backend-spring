@@ -123,6 +123,62 @@ class VendorController(
         )
     }
 
+    @EndpointAccess(roles = [UserRole.AGENCY])
+    @Operation(summary = "화주 배송 품목 전체 공개 목록 조회", description = "대리점이 일감 조회에서 모든 화주의 배송 품목 프로필 목록을 조회합니다. 프로토타입에서는 전체 조회를 허용합니다.")
+    @GetMapping("/products")
+    fun getPublicProductsForAgency(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @RequestParam(required = false) name: String?,
+        @RequestParam(required = false) category: ProductCategory?,
+        @RequestParam(required = false) boxSize: BoxSize?,
+        @RequestParam(required = false) coldChainType: ColdChainType?,
+        @PageableDefault(size = 20) pageable: Pageable,
+    ): ApiResponse<VendorResponse.ProductList> {
+        val results = getVendorProductsUseCase.getPublicProductsForAgency(
+            userId = user.userId,
+            condition = VendorProductSearchCondition(
+                name = name,
+                category = category,
+                boxSize = boxSize,
+                coldChainType = coldChainType,
+            ),
+            pageable = pageable,
+        )
+
+        return ApiResponse.success(
+            response = VendorResponse.ProductList.from(results),
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.AGENCY])
+    @Operation(summary = "특정 화주 배송 품목 공개 목록 조회", description = "대리점이 특정 화주의 배송 품목 프로필 목록을 조회합니다. 프로토타입에서는 전체 조회를 허용합니다.")
+    @GetMapping("/{vendorId}/products")
+    fun getVendorProductsForAgency(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable vendorId: UUID,
+        @RequestParam(required = false) name: String?,
+        @RequestParam(required = false) category: ProductCategory?,
+        @RequestParam(required = false) boxSize: BoxSize?,
+        @RequestParam(required = false) coldChainType: ColdChainType?,
+        @PageableDefault(size = 20) pageable: Pageable,
+    ): ApiResponse<VendorResponse.ProductList> {
+        val results = getVendorProductsUseCase.getProductsByVendorIdForAgency(
+            userId = user.userId,
+            vendorId = vendorId,
+            condition = VendorProductSearchCondition(
+                name = name,
+                category = category,
+                boxSize = boxSize,
+                coldChainType = coldChainType,
+            ),
+            pageable = pageable,
+        )
+
+        return ApiResponse.success(
+            response = VendorResponse.ProductList.from(results),
+        )
+    }
+
     @Operation(summary = "화주 배송 품목 수정", description = "로그인한 화주의 배송 품목 프로필을 수정합니다.")
     @PutMapping("/me/products/{productId}")
     fun updateProduct(

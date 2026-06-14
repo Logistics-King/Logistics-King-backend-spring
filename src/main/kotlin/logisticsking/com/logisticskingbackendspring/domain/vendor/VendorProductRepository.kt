@@ -15,4 +15,9 @@ interface VendorProductRepository {
         condition: VendorProductSearchCondition,
         pageable: Pageable,
     ): Page<VendorProduct>
+
+    fun findAll(
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+    ): Page<VendorProduct>
 }

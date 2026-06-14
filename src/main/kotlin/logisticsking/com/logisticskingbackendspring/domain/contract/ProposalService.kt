@@ -49,9 +49,9 @@ class ProposalService(
     @Transactional(readOnly = true)
     override fun getOpenContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult> {
         findAgencyUser(userId)
-        findAgencyByUserId(userId)
+        val agency = findAgencyByUserId(userId)
 
-        return contractRequestRepository.findAllByStatus(ContractRequestStatus.OPEN, pageable)
+        return contractRequestRepository.findOpenVendorOffersForAgency(agency.id, pageable)
             .map(ContractRequestResult::from)
     }
 
@@ -61,6 +61,7 @@ class ProposalService(
         val agency = findAgencyByUserId(command.userId)
         val contractRequest = findContractRequestForUpdate(command.contractRequestId)
         validateOpen(contractRequest)
+        validateAgencyCanPropose(contractRequest, agency.id)
         if (proposalRepository.existsByContractRequestIdAndAgencyId(contractRequest.id, agency.id)) {
             throw GlobalException(ProposalErrorCode.ALREADY_EXISTS)
         }
@@ -207,6 +208,19 @@ class ProposalService(
     private fun validateOpen(contractRequest: ContractRequest) {
         if (contractRequest.status != ContractRequestStatus.OPEN) {
             throw GlobalException(ProposalErrorCode.CONTRACT_REQUEST_IS_NOT_OPEN)
+        }
+    }
+
+    private fun validateAgencyCanPropose(
+        contractRequest: ContractRequest,
+        agencyId: UUID,
+    ) {
+        if (
+            contractRequest.type != ContractRequestType.VENDOR_OFFER ||
+            contractRequest.approverType != ContractPartyType.AGENCY ||
+            (contractRequest.approverId != null && contractRequest.approverId != agencyId)
+        ) {
+            throw GlobalException(ProposalErrorCode.CONTRACT_REQUEST_NOT_FOUND)
         }
     }
 

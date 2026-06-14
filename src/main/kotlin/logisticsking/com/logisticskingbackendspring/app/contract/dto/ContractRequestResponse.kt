@@ -16,6 +16,18 @@ sealed interface ContractRequestResponse {
         val contractRequestId: String,
         @field:Schema(description = "화주 ID", example = "019b1f44-a741-7000-8000-000000000001")
         val vendorId: String,
+        @field:Schema(description = "대리점 ID. 공개 화주 요청이면 null", example = "019b1f44-a741-7000-8000-000000000002")
+        val agencyId: String?,
+        @field:Schema(description = "계약 요청 타입", example = "VENDOR_OFFER")
+        val type: String,
+        @field:Schema(description = "요청자 타입", example = "VENDOR")
+        val requesterType: String,
+        @field:Schema(description = "요청자 ID", example = "019b1f44-a741-7000-8000-000000000001")
+        val requesterId: String,
+        @field:Schema(description = "승인자 타입", example = "AGENCY")
+        val approverType: String,
+        @field:Schema(description = "승인자 ID. 공개 요청이면 null", example = "019b1f44-a741-7000-8000-000000000002")
+        val approverId: String?,
         @field:Schema(description = "화주 배송 품목 ID", example = "019b1f44-a741-7000-8000-000000000003")
         val productId: String?,
         @field:Schema(description = "픽업 지역", example = "경기도 안산시 일동")
@@ -52,6 +64,12 @@ sealed interface ContractRequestResponse {
                 return Detail(
                     contractRequestId = result.contractRequestId.toString(),
                     vendorId = result.vendorId.toString(),
+                    agencyId = result.agencyId?.toString(),
+                    type = result.type.name,
+                    requesterType = result.requesterType.name,
+                    requesterId = result.requesterId.toString(),
+                    approverType = result.approverType.name,
+                    approverId = result.approverId?.toString(),
                     productId = result.productId?.toString(),
                     pickupRegion = result.pickupRegion,
                     pickupAddress = result.pickupAddress,

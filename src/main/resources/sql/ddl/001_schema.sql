@@ -25,6 +25,21 @@ CREATE TABLE IF NOT EXISTS end_points (
     UNIQUE KEY uk_end_points_url_method (url, method)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS account_recovery_tokens (
+    id BINARY(16) NOT NULL,
+    user_id BINARY(16) NOT NULL,
+    purpose VARCHAR(30) NOT NULL,
+    token_hash VARCHAR(64) NOT NULL,
+    expires_at DATETIME(6) NOT NULL,
+    used_at DATETIME(6) NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_account_recovery_tokens_token_hash (token_hash),
+    KEY idx_account_recovery_tokens_user_purpose (user_id, purpose),
+    KEY idx_account_recovery_tokens_expires_at (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS vendors (
     id BINARY(16) NOT NULL,
     user_id BINARY(16) NOT NULL,
@@ -68,7 +83,11 @@ CREATE TABLE IF NOT EXISTS products (
 
 CREATE TABLE IF NOT EXISTS contract_requests (
     id BINARY(16) NOT NULL,
-    vendor_id BINARY(16) NOT NULL,
+    type VARCHAR(30) NOT NULL,
+    requester_type VARCHAR(30) NOT NULL,
+    requester_id BINARY(16) NOT NULL,
+    approver_type VARCHAR(30) NOT NULL,
+    approver_id BINARY(16) NULL,
     product_id BINARY(16) NULL,
     pickup_region VARCHAR(100) NOT NULL,
     pickup_address VARCHAR(255) NULL,
@@ -87,9 +106,11 @@ CREATE TABLE IF NOT EXISTS contract_requests (
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
     PRIMARY KEY (id),
-    KEY idx_contract_requests_vendor_id (vendor_id),
+    KEY idx_contract_requests_requester (requester_type, requester_id),
+    KEY idx_contract_requests_approver (approver_type, approver_id),
     KEY idx_contract_requests_product_id (product_id),
-    KEY idx_contract_requests_status (status)
+    KEY idx_contract_requests_status (status),
+    KEY idx_contract_requests_open_agency (type, status, approver_type, approver_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS proposals (
@@ -163,7 +184,7 @@ CREATE TABLE IF NOT EXISTS agencies (
     saturday_pickup_available BOOLEAN NOT NULL,
     saturday_delivery_available BOOLEAN NOT NULL,
     return_available BOOLEAN NOT NULL,
-    cold_chain_type VARCHAR(30) NOT NULL,
+    supported_cold_chain_types JSON NOT NULL,
     max_monthly_volume INT NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,

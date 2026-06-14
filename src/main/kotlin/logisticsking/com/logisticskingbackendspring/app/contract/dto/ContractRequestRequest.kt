@@ -5,6 +5,7 @@ import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CreateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.UpdateContractRequestCommand
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
 import java.util.UUID
@@ -13,6 +14,10 @@ import java.util.UUID
 sealed interface ContractRequestRequest {
     @Schema(name = "ContractRequestCreateRequest")
     data class Create(
+        @field:Schema(description = "계약 요청 타입. VENDOR_OFFER는 화주 -> 대리점, AGENCY_OFFER는 대리점 -> 화주", example = "VENDOR_OFFER")
+        val type: ContractRequestType = ContractRequestType.VENDOR_OFFER,
+        @field:Schema(description = "특정 승인자 ID. VENDOR_OFFER이면 대리점 ID, AGENCY_OFFER이면 화주 ID", example = "019b1f44-a741-7000-8000-000000000004")
+        val approverId: UUID? = null,
         @field:Schema(description = "화주 배송 품목 ID", example = "019b1f44-a741-7000-8000-000000000003")
         val productId: UUID?,
         @field:Schema(description = "픽업 지역", example = "경기도 안산시 일동")
@@ -45,6 +50,8 @@ sealed interface ContractRequestRequest {
         fun toCommand(userId: UUID): CreateContractRequestCommand {
             return CreateContractRequestCommand(
                 userId = userId,
+                type = type,
+                approverId = approverId,
                 productId = productId,
                 pickupRegion = pickupRegion,
                 pickupAddress = pickupAddress,

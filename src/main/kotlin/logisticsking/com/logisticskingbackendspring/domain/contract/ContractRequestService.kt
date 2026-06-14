@@ -1,18 +1,24 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CancelContractRequestCommand
+import logisticsking.com.logisticskingbackendspring.app.contract.command.ContractRequestDecisionCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CreateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.GetContractRequestCommand
+import logisticsking.com.logisticskingbackendspring.app.contract.command.GetReceivedContractRequestsCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.UpdateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.result.ContractRequestResult
+import logisticsking.com.logisticskingbackendspring.app.contract.result.ContractResult
+import logisticsking.com.logisticskingbackendspring.app.contract.usecase.AcceptContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.CancelContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.CreateContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.GetContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.GetMyContractRequestsUseCase
+import logisticsking.com.logisticskingbackendspring.app.contract.usecase.GetReceivedContractRequestsUseCase
+import logisticsking.com.logisticskingbackendspring.app.contract.usecase.RejectContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.UpdateContractRequestUseCase
+import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
-import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
@@ -28,24 +34,32 @@ import java.util.UUID
 class ContractRequestService(
     private val userRepository: UserRepository,
     private val vendorRepository: VendorRepository,
+    private val agencyRepository: AgencyRepository,
     private val vendorProductRepository: VendorProductRepository,
     private val contractRequestRepository: ContractRequestRepository,
+    private val proposalRepository: ProposalRepository,
+    private val contractRepository: ContractRepository,
     private val idGenerator: IdGenerator,
 ) : CreateContractRequestUseCase,
     GetMyContractRequestsUseCase,
+    GetReceivedContractRequestsUseCase,
     GetContractRequestUseCase,
     UpdateContractRequestUseCase,
-    CancelContractRequestUseCase {
+    CancelContractRequestUseCase,
+    AcceptContractRequestUseCase,
+    RejectContractRequestUseCase {
 
     @Transactional
     override fun create(command: CreateContractRequestCommand): ContractRequestResult {
-        findVendorUser(command.userId)
-        val vendor = findVendorByUserId(command.userId)
-        validateProduct(command.productId, vendor.id)
+        val requester = findRequester(command.userId, command.type)
+        validateApprover(command.type, command.approverId)
+        validateProduct(command.productId, vendorIdOf(command.type, requester.id, command.approverId))
 
         val contractRequest = ContractRequest.create(
             id = idGenerator.generate(),
-            vendorId = vendor.id,
+            type = command.type,
+            requesterId = requester.id,
+            approverId = command.approverId,
             productId = command.productId,
             pickupRegion = command.pickupRegion,
             pickupAddress = command.pickupAddress,
@@ -67,28 +81,47 @@ class ContractRequestService(
 
     @Transactional(readOnly = true)
     override fun getMyContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult> {
-        findVendorUser(userId)
-        val vendor = findVendorByUserId(userId)
+        val party = findParty(userId)
 
-        return contractRequestRepository.findAllByVendorId(vendor.id, pageable)
-            .map(ContractRequestResult::from)
+        return contractRequestRepository.findAllByRequester(
+            requesterType = party.type,
+            requesterId = party.id,
+            pageable = pageable,
+        ).map(ContractRequestResult::from)
+    }
+
+    @Transactional(readOnly = true)
+    override fun getReceivedContractRequests(
+        command: GetReceivedContractRequestsCommand,
+        pageable: Pageable,
+    ): Page<ContractRequestResult> {
+        val party = findParty(command.userId)
+
+        return contractRequestRepository.findAllByApprover(
+            approverType = party.type,
+            approverId = party.id,
+            pageable = pageable,
+        ).map(ContractRequestResult::from)
     }
 
     @Transactional(readOnly = true)
     override fun get(command: GetContractRequestCommand): ContractRequestResult {
-        findVendorUser(command.userId)
-        val vendor = findVendorByUserId(command.userId)
+        val party = findParty(command.userId)
+        val contractRequest = contractRequestRepository.findById(command.contractRequestId)
+            ?: throw GlobalException(ContractRequestErrorCode.NOT_FOUND)
+        if (!contractRequest.isParticipant(party.type, party.id)) {
+            throw GlobalException(ContractRequestErrorCode.NOT_FOUND)
+        }
 
-        return ContractRequestResult.from(findContractRequest(command.contractRequestId, vendor.id))
+        return ContractRequestResult.from(contractRequest)
     }
 
     @Transactional
     override fun update(command: UpdateContractRequestCommand): ContractRequestResult {
-        findVendorUser(command.userId)
-        val vendor = findVendorByUserId(command.userId)
-        validateProduct(command.productId, vendor.id)
+        val party = findParty(command.userId)
+        val contractRequest = findContractRequestForUpdate(command.contractRequestId, party)
+        validateProduct(command.productId, contractRequest.vendorId)
 
-        val contractRequest = findContractRequestForUpdate(command.contractRequestId, vendor.id)
         val updated = contractRequest.update(
             productId = command.productId,
             pickupRegion = command.pickupRegion,
@@ -111,26 +144,117 @@ class ContractRequestService(
 
     @Transactional
     override fun cancel(command: CancelContractRequestCommand): ContractRequestResult {
-        findVendorUser(command.userId)
-        val vendor = findVendorByUserId(command.userId)
-        val contractRequest = findContractRequestForUpdate(command.contractRequestId, vendor.id)
+        val party = findParty(command.userId)
+        val contractRequest = findContractRequestForUpdate(command.contractRequestId, party)
 
         return ContractRequestResult.from(contractRequestRepository.save(contractRequest.cancel()))
     }
 
-    private fun findVendorUser(userId: UUID): User {
-        val user = userRepository.findById(userId)
-            ?: throw GlobalException(ContractRequestErrorCode.USER_NOT_FOUND)
-        if (user.role != UserRole.VENDOR) {
-            throw GlobalException(ContractRequestErrorCode.USER_IS_NOT_VENDOR)
+    @Transactional
+    override fun accept(command: ContractRequestDecisionCommand): ContractResult {
+        val party = findParty(command.userId)
+        val contractRequest = findContractRequestForApproval(command.contractRequestId, party)
+        val unitPrice = contractRequest.targetUnitPrice
+            ?: throw GlobalException(ContractRequestErrorCode.TARGET_UNIT_PRICE_REQUIRED)
+        if (contractRepository.existsByContractRequestId(contractRequest.id)) {
+            throw GlobalException(ContractErrorCode.CONTRACT_ALREADY_EXISTS)
         }
 
-        return user
+        val proposal = Proposal.create(
+            id = idGenerator.generate(),
+            contractRequestId = contractRequest.id,
+            vendorId = contractRequest.vendorId,
+            agencyId = contractRequest.agencyId
+                ?: throw GlobalException(ContractRequestErrorCode.INVALID_CONTRACT_PARTY),
+            unitPrice = unitPrice,
+            pickupStartTime = contractRequest.pickupStartTime,
+            pickupEndTime = contractRequest.pickupEndTime,
+            saturdayDeliveryAvailable = contractRequest.saturdayDeliveryRequired,
+            returnAvailable = contractRequest.returnRequired,
+            coldChainType = contractRequest.coldChainType,
+            memo = contractRequest.memo,
+            status = ProposalStatus.ACCEPTED,
+        )
+        val savedProposal = proposalRepository.save(proposal)
+        val savedRequest = contractRequestRepository.save(contractRequest.contract())
+        val contract = Contract.create(
+            id = idGenerator.generate(),
+            contractRequest = savedRequest,
+            proposal = savedProposal,
+        )
+
+        return ContractResult.from(contractRepository.save(contract))
+    }
+
+    @Transactional
+    override fun reject(command: ContractRequestDecisionCommand): ContractRequestResult {
+        val party = findParty(command.userId)
+        val contractRequest = findContractRequestForApproval(command.contractRequestId, party)
+
+        return ContractRequestResult.from(contractRequestRepository.save(contractRequest.reject()))
+    }
+
+    private fun findRequester(
+        userId: UUID,
+        type: ContractRequestType,
+    ): ContractParty {
+        val party = findParty(userId)
+        if (party.type != type.requesterType) {
+            throw GlobalException(ContractRequestErrorCode.INVALID_CONTRACT_PARTY)
+        }
+
+        return party
+    }
+
+    private fun findParty(userId: UUID): ContractParty {
+        val user = userRepository.findById(userId)
+            ?: throw GlobalException(ContractRequestErrorCode.USER_NOT_FOUND)
+
+        return when (user.role) {
+            UserRole.VENDOR -> ContractParty(
+                type = ContractPartyType.VENDOR,
+                id = findVendorByUserId(userId).id,
+            )
+            UserRole.AGENCY -> ContractParty(
+                type = ContractPartyType.AGENCY,
+                id = agencyRepository.findByUserId(userId)?.id
+                    ?: throw GlobalException(ContractRequestErrorCode.AGENCY_NOT_FOUND),
+            )
+            else -> throw GlobalException(ContractRequestErrorCode.USER_ROLE_NOT_SUPPORTED)
+        }
     }
 
     private fun findVendorByUserId(userId: UUID): Vendor {
         return vendorRepository.findByUserId(userId)
             ?: throw GlobalException(ContractRequestErrorCode.VENDOR_NOT_FOUND)
+    }
+
+    private fun validateApprover(
+        type: ContractRequestType,
+        approverId: UUID?,
+    ) {
+        if (approverId == null) {
+            return
+        }
+
+        when (type.approverType) {
+            ContractPartyType.VENDOR -> vendorRepository.findById(approverId)
+                ?: throw GlobalException(ContractRequestErrorCode.VENDOR_NOT_FOUND)
+            ContractPartyType.AGENCY -> agencyRepository.findById(approverId)
+                ?: throw GlobalException(ContractRequestErrorCode.AGENCY_NOT_FOUND)
+        }
+    }
+
+    private fun vendorIdOf(
+        type: ContractRequestType,
+        requesterId: UUID,
+        approverId: UUID?,
+    ): UUID {
+        return when (type.requesterType) {
+            ContractPartyType.VENDOR -> requesterId
+            ContractPartyType.AGENCY -> approverId
+                ?: throw GlobalException(ContractRequestErrorCode.INVALID_CONTRACT_PARTY)
+        }
     }
 
     private fun validateProduct(
@@ -145,23 +269,30 @@ class ContractRequestService(
             ?: throw GlobalException(ContractRequestErrorCode.PRODUCT_NOT_FOUND)
     }
 
-    private fun findContractRequest(
+    private fun findContractRequestForUpdate(
         contractRequestId: UUID,
-        vendorId: UUID,
+        party: ContractParty,
     ): ContractRequest {
-        return contractRequestRepository.findByIdAndVendorId(
+        return contractRequestRepository.findByIdAndRequesterForUpdate(
             id = contractRequestId,
-            vendorId = vendorId,
+            requesterType = party.type,
+            requesterId = party.id,
         ) ?: throw GlobalException(ContractRequestErrorCode.NOT_FOUND)
     }
 
-    private fun findContractRequestForUpdate(
+    private fun findContractRequestForApproval(
         contractRequestId: UUID,
-        vendorId: UUID,
+        party: ContractParty,
     ): ContractRequest {
-        return contractRequestRepository.findByIdAndVendorIdForUpdate(
+        return contractRequestRepository.findByIdAndApproverForUpdate(
             id = contractRequestId,
-            vendorId = vendorId,
+            approverType = party.type,
+            approverId = party.id,
         ) ?: throw GlobalException(ContractRequestErrorCode.NOT_FOUND)
     }
+
+    private data class ContractParty(
+        val type: ContractPartyType,
+        val id: UUID,
+    )
 }

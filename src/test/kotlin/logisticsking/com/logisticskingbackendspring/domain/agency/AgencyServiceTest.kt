@@ -8,6 +8,10 @@ import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Pageable.unpaged
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -77,6 +81,65 @@ class AgencyServiceTest {
     }
 
     @Test
+    fun `getAgencies 성공 시 화주가 지역으로 근방 대리점 목록을 조회한다`() {
+        val vendorUser = user(role = UserRole.VENDOR)
+        val agencyRepository = FakeAgencyRepository()
+        val service = agencyService(
+            userRepository = FakeUserRepository(vendorUser),
+            agencyRepository = agencyRepository,
+        )
+        val matched = agency(name = "CJ 일동대리점", mainRegion = "경기도 안산시 일동")
+        val unmatched = agency(name = "롯데 선부대리점", mainRegion = "경기도 안산시 선부동")
+        agencyRepository.save(matched)
+        agencyRepository.save(unmatched)
+
+        val result = service.getAgencies(
+            userId = vendorUser.id,
+            condition = AgencySearchCondition(region = "일동"),
+            pageable = unpaged(),
+        )
+
+        assertEquals(1, result.totalElements)
+        assertEquals(matched.id, result.content.first().agencyId)
+    }
+
+    @Test
+    fun `getAgency 성공 시 화주가 대리점 상세를 조회한다`() {
+        val vendorUser = user(role = UserRole.VENDOR)
+        val agencyRepository = FakeAgencyRepository()
+        val service = agencyService(
+            userRepository = FakeUserRepository(vendorUser),
+            agencyRepository = agencyRepository,
+        )
+        val agency = agency(name = "한진 사동대리점", mainRegion = "경기도 안산시 사동")
+        agencyRepository.save(agency)
+
+        val result = service.getAgency(
+            userId = vendorUser.id,
+            agencyId = agency.id,
+        )
+
+        assertEquals(agency.id, result.agencyId)
+        assertEquals("한진 사동대리점", result.agencyName)
+    }
+
+    @Test
+    fun `getAgencies 시 화주 권한이 아니면 예외가 발생한다`() {
+        val agencyUser = user(role = UserRole.AGENCY)
+        val service = agencyService(userRepository = FakeUserRepository(agencyUser))
+
+        val exception = assertThrows(GlobalException::class.java) {
+            service.getAgencies(
+                userId = agencyUser.id,
+                condition = AgencySearchCondition(region = "일동"),
+                pageable = unpaged(),
+            )
+        }
+
+        assertEquals(AgencyErrorCode.USER_IS_NOT_VENDOR, exception.errorCode)
+    }
+
+    @Test
     fun `update 성공 시 대리점 프로필을 수정한다`() {
         val user = user(role = UserRole.AGENCY)
         val agencyRepository = FakeAgencyRepository()
@@ -123,7 +186,7 @@ class AgencyServiceTest {
             saturdayPickupAvailable = true,
             saturdayDeliveryAvailable = true,
             returnAvailable = true,
-            coldChainType = ColdChainType.NONE,
+            supportedColdChainTypes = setOf(ColdChainType.REFRIGERATED, ColdChainType.FROZEN),
             maxMonthlyVolume = 10000,
         )
     }
@@ -146,8 +209,35 @@ class AgencyServiceTest {
             saturdayPickupAvailable = false,
             saturdayDeliveryAvailable = false,
             returnAvailable = true,
-            coldChainType = ColdChainType.NONE,
+            supportedColdChainTypes = setOf(ColdChainType.NONE),
             maxMonthlyVolume = 5000,
+        )
+    }
+
+    private fun agency(
+        name: String,
+        mainRegion: String,
+    ): Agency {
+        return Agency.create(
+            id = UUID.randomUUID(),
+            userId = UUID.randomUUID(),
+            carrier = Carrier.CJ,
+            agencyName = name,
+            businessRegistrationNumber = "123-45-67890",
+            representativeName = "김대표",
+            phoneNumber = "010-1234-5678",
+            postalCode = "15360",
+            address = mainRegion,
+            addressDetail = "1층",
+            mainRegion = mainRegion,
+            serviceRegions = listOf(mainRegion),
+            weekdayPickupStartTime = "09:00",
+            weekdayPickupEndTime = "18:00",
+            saturdayPickupAvailable = true,
+            saturdayDeliveryAvailable = true,
+            returnAvailable = true,
+            supportedColdChainTypes = setOf(ColdChainType.NONE),
+            maxMonthlyVolume = 10000,
         )
     }
 
@@ -177,6 +267,20 @@ class AgencyServiceTest {
             return users.values.firstOrNull { it.loginId == loginId }
         }
 
+        override fun findByNameAndEmail(
+            name: String,
+            email: String,
+        ): User? {
+            return users.values.firstOrNull { it.name == name && it.email == email }
+        }
+
+        override fun findByLoginIdAndEmail(
+            loginId: String,
+            email: String,
+        ): User? {
+            return users.values.firstOrNull { it.loginId == loginId && it.email == email }
+        }
+
         override fun existsByLoginId(loginId: String): Boolean {
             return users.values.any { it.loginId == loginId }
         }
@@ -188,6 +292,16 @@ class AgencyServiceTest {
         override fun save(user: User): User {
             users[user.id] = user
             return user
+        }
+
+        override fun updatePassword(
+            id: UUID,
+            encodedPassword: String,
+        ): User? {
+            val user = users[id] ?: return null
+            val changed = user.changePassword(encodedPassword)
+            users[id] = changed
+            return changed
         }
     }
 
@@ -201,6 +315,26 @@ class AgencyServiceTest {
 
         override fun findById(id: UUID): Agency? {
             return agencies[id]
+        }
+
+        override fun findAll(
+            condition: AgencySearchCondition,
+            pageable: Pageable,
+        ): Page<Agency> {
+            val content = agencies.values
+                .filter { agency ->
+                    condition.normalizedRegion == null ||
+                        agency.mainRegion.contains(condition.normalizedRegion, ignoreCase = true) ||
+                        agency.serviceRegions.any { it.contains(condition.normalizedRegion, ignoreCase = true) }
+                }
+                .filter { agency -> condition.carrier == null || agency.carrier == condition.carrier }
+                .filter { agency ->
+                    condition.saturdayDeliveryAvailable == null ||
+                        agency.saturdayDeliveryAvailable == condition.saturdayDeliveryAvailable
+                }
+                .filter { agency -> condition.returnAvailable == null || agency.returnAvailable == condition.returnAvailable }
+
+            return PageImpl(content, pageable, content.size.toLong())
         }
 
         override fun findByUserId(userId: UUID): Agency? {

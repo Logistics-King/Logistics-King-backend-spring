@@ -172,6 +172,32 @@ class ContractRequestTest {
     }
 
     @Test
+    fun `거절된 계약 요청은 수정할 수 없다`() {
+        val rejected = contractRequest().reject()
+
+        val exception = assertThrows(GlobalException::class.java) {
+            rejected.update(
+                productId = null,
+                pickupRegion = "경기도 안산시 본오동",
+                pickupAddress = null,
+                monthlyVolume = 1000,
+                productCategory = ProductCategory.CLOTHING,
+                productName = "여성 의류",
+                boxSize = BoxSize.SIZE_80,
+                pickupStartTime = "10:00",
+                pickupEndTime = "17:00",
+                saturdayDeliveryRequired = false,
+                returnRequired = true,
+                coldChainType = ColdChainType.NONE,
+                targetUnitPrice = BigDecimal("2100"),
+                memo = null,
+            )
+        }
+
+        assertEquals(ContractRequestErrorCode.REJECTED_REQUEST_CANNOT_BE_UPDATED, exception.errorCode)
+    }
+
+    @Test
     fun `계약 완료된 계약 요청은 취소할 수 없다`() {
         val contracted = contractRequest().contract()
 
@@ -180,6 +206,17 @@ class ContractRequestTest {
         }
 
         assertEquals(ContractRequestErrorCode.CONTRACTED_REQUEST_CANNOT_BE_CANCELED, exception.errorCode)
+    }
+
+    @Test
+    fun `거절된 계약 요청은 취소할 수 없다`() {
+        val rejected = contractRequest().reject()
+
+        val exception = assertThrows(GlobalException::class.java) {
+            rejected.cancel()
+        }
+
+        assertEquals(ContractRequestErrorCode.REJECTED_REQUEST_CANNOT_BE_CANCELED, exception.errorCode)
     }
 
     private fun contractRequest(
@@ -196,7 +233,9 @@ class ContractRequestTest {
     ): ContractRequest {
         return ContractRequest.create(
             id = id,
-            vendorId = vendorId,
+            type = ContractRequestType.VENDOR_OFFER,
+            requesterId = vendorId,
+            approverId = null,
             productId = productId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,

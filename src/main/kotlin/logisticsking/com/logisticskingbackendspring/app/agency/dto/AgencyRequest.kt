@@ -41,8 +41,8 @@ sealed interface AgencyRequest {
         val saturdayDeliveryAvailable: Boolean,
         @field:Schema(description = "반품 처리 가능 여부", example = "true")
         val returnAvailable: Boolean,
-        @field:Schema(description = "지원 콜드체인 타입 (NONE, REFRIGERATED, FROZEN)", example = "REFRIGERATED")
-        val coldChainType: ColdChainType,
+        @field:Schema(description = "지원 콜드체인 타입 목록 (NONE, REFRIGERATED, FROZEN)", example = "[\"REFRIGERATED\", \"FROZEN\"]")
+        val supportedColdChainTypes: Set<ColdChainType>,
         @field:Schema(description = "월 처리 가능 물량", example = "10000")
         val maxMonthlyVolume: Int?,
     ) : AgencyRequest {
@@ -64,7 +64,7 @@ sealed interface AgencyRequest {
                 saturdayPickupAvailable = saturdayPickupAvailable,
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
                 returnAvailable = returnAvailable,
-                coldChainType = coldChainType,
+                supportedColdChainTypes = supportedColdChainTypes,
                 maxMonthlyVolume = maxMonthlyVolume,
             )
         }
@@ -102,8 +102,8 @@ sealed interface AgencyRequest {
         val saturdayDeliveryAvailable: Boolean,
         @field:Schema(description = "반품 처리 가능 여부", example = "true")
         val returnAvailable: Boolean,
-        @field:Schema(description = "지원 콜드체인 타입 (NONE, REFRIGERATED, FROZEN)", example = "REFRIGERATED")
-        val coldChainType: ColdChainType,
+        @field:Schema(description = "지원 콜드체인 타입 목록 (NONE, REFRIGERATED, FROZEN)", example = "[\"REFRIGERATED\", \"FROZEN\"]")
+        val supportedColdChainTypes: Set<ColdChainType>,
         @field:Schema(description = "월 처리 가능 물량", example = "5000")
         val maxMonthlyVolume: Int?,
     ) : AgencyRequest {
@@ -125,7 +125,7 @@ sealed interface AgencyRequest {
                 saturdayPickupAvailable = saturdayPickupAvailable,
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
                 returnAvailable = returnAvailable,
-                coldChainType = coldChainType,
+                supportedColdChainTypes = supportedColdChainTypes,
                 maxMonthlyVolume = maxMonthlyVolume,
             )
         }

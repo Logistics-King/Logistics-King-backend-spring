@@ -1,6 +1,7 @@
 package logisticsking.com.logisticskingbackendspring.infra.persistence.contract
 
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequest
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractPartyType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestRepository
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
 import org.springframework.data.domain.Page
@@ -27,14 +28,35 @@ class ContractRequestRepositoryImpl(
         return contractRequestQueryRepository.findByIdForUpdate(id)?.toDomain()
     }
 
+    override fun findByIdAndRequesterForUpdate(
+        id: UUID,
+        requesterType: ContractPartyType,
+        requesterId: UUID,
+    ): ContractRequest? {
+        return contractRequestQueryRepository.findByIdAndRequesterForUpdate(
+            id = id,
+            requesterType = requesterType,
+            requesterId = requesterId,
+        )?.toDomain()
+    }
+
+    override fun findByIdAndApproverForUpdate(
+        id: UUID,
+        approverType: ContractPartyType,
+        approverId: UUID,
+    ): ContractRequest? {
+        return contractRequestQueryRepository.findByIdAndApproverForUpdate(
+            id = id,
+            approverType = approverType,
+            approverId = approverId,
+        )?.toDomain()
+    }
+
     override fun findByIdAndVendorId(
         id: UUID,
         vendorId: UUID,
     ): ContractRequest? {
-        return contractRequestJpaRepository.findByIdAndVendorId(
-            id = id,
-            vendorId = vendorId,
-        )?.toDomain()
+        return findById(id)?.takeIf { it.vendorId == vendorId }
     }
 
     override fun findByIdAndVendorIdForUpdate(
@@ -48,12 +70,47 @@ class ContractRequestRepositoryImpl(
     }
 
     override fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<ContractRequest> {
-        return contractRequestJpaRepository.findAllByVendorIdOrderByCreatedAtDesc(vendorId, pageable)
+        return contractRequestJpaRepository.findAllByRequesterTypeAndRequesterIdOrderByCreatedAtDesc(
+            requesterType = ContractPartyType.VENDOR,
+            requesterId = vendorId,
+            pageable = pageable,
+        )
             .map(ContractRequestJpaEntity::toDomain)
+    }
+
+    override fun findAllByRequester(
+        requesterType: ContractPartyType,
+        requesterId: UUID,
+        pageable: Pageable,
+    ): Page<ContractRequest> {
+        return contractRequestJpaRepository.findAllByRequesterTypeAndRequesterIdOrderByCreatedAtDesc(
+            requesterType = requesterType,
+            requesterId = requesterId,
+            pageable = pageable,
+        ).map(ContractRequestJpaEntity::toDomain)
+    }
+
+    override fun findAllByApprover(
+        approverType: ContractPartyType,
+        approverId: UUID,
+        pageable: Pageable,
+    ): Page<ContractRequest> {
+        return contractRequestJpaRepository.findAllByApproverTypeAndApproverIdOrderByCreatedAtDesc(
+            approverType = approverType,
+            approverId = approverId,
+            pageable = pageable,
+        ).map(ContractRequestJpaEntity::toDomain)
     }
 
     override fun findAllByStatus(status: ContractRequestStatus, pageable: Pageable): Page<ContractRequest> {
         return contractRequestJpaRepository.findAllByStatusOrderByCreatedAtDesc(status, pageable)
             .map(ContractRequestJpaEntity::toDomain)
+    }
+
+    override fun findOpenVendorOffersForAgency(agencyId: UUID, pageable: Pageable): Page<ContractRequest> {
+        return contractRequestQueryRepository.findOpenVendorOffersForAgency(
+            agencyId = agencyId,
+            pageable = pageable,
+        ).map(ContractRequestJpaEntity::toDomain)
     }
 }

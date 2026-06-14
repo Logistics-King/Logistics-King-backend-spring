@@ -8,6 +8,16 @@ interface ContractRequestRepository {
     fun save(contractRequest: ContractRequest): ContractRequest
     fun findById(id: UUID): ContractRequest?
     fun findByIdForUpdate(id: UUID): ContractRequest?
+    fun findByIdAndRequesterForUpdate(
+        id: UUID,
+        requesterType: ContractPartyType,
+        requesterId: UUID,
+    ): ContractRequest?
+    fun findByIdAndApproverForUpdate(
+        id: UUID,
+        approverType: ContractPartyType,
+        approverId: UUID,
+    ): ContractRequest?
     fun findByIdAndVendorId(
         id: UUID,
         vendorId: UUID,
@@ -17,5 +27,16 @@ interface ContractRequestRepository {
         vendorId: UUID,
     ): ContractRequest?
     fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<ContractRequest>
+    fun findAllByRequester(
+        requesterType: ContractPartyType,
+        requesterId: UUID,
+        pageable: Pageable,
+    ): Page<ContractRequest>
+    fun findAllByApprover(
+        approverType: ContractPartyType,
+        approverId: UUID,
+        pageable: Pageable,
+    ): Page<ContractRequest>
     fun findAllByStatus(status: ContractRequestStatus, pageable: Pageable): Page<ContractRequest>
+    fun findOpenVendorOffersForAgency(agencyId: UUID, pageable: Pageable): Page<ContractRequest>
 }

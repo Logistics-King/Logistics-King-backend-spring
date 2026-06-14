@@ -67,7 +67,9 @@ class ContractTest {
     ): ContractRequest {
         return ContractRequest.create(
             id = id,
-            vendorId = vendorId,
+            type = ContractRequestType.VENDOR_OFFER,
+            requesterId = vendorId,
+            approverId = null,
             productId = null,
             pickupRegion = "경기도 안산시 일동",
             pickupAddress = "경기도 안산시 상록구 일동 101호",

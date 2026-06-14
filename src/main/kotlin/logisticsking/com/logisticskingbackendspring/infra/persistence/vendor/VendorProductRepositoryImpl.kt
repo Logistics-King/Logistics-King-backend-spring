@@ -33,10 +33,33 @@ class VendorProductRepositoryImpl(
         condition: VendorProductSearchCondition,
         pageable: Pageable,
     ): Page<VendorProduct> {
+        return findAllByCondition(
+            condition = condition,
+            pageable = pageable,
+            vendorId = vendorId,
+        )
+    }
+
+    override fun findAll(
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+    ): Page<VendorProduct> {
+        return findAllByCondition(
+            condition = condition,
+            pageable = pageable,
+            vendorId = null,
+        )
+    }
+
+    private fun findAllByCondition(
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+        vendorId: UUID?,
+    ): Page<VendorProduct> {
         val content = queryFactory
             .selectFrom(vendorProduct)
             .where(
-                vendorProduct.vendorId.eq(vendorId),
+                vendorId?.let { vendorProduct.vendorId.eq(it) },
                 vendorProduct.deletedAt.isNull,
                 condition.normalizedName?.let { vendorProduct.name.containsIgnoreCase(it) },
                 condition.category?.let { vendorProduct.category.eq(it) },
@@ -53,7 +76,7 @@ class VendorProductRepositoryImpl(
             .select(vendorProduct.count())
             .from(vendorProduct)
             .where(
-                vendorProduct.vendorId.eq(vendorId),
+                vendorId?.let { vendorProduct.vendorId.eq(it) },
                 vendorProduct.deletedAt.isNull,
                 condition.normalizedName?.let { vendorProduct.name.containsIgnoreCase(it) },
                 condition.category?.let { vendorProduct.category.eq(it) },

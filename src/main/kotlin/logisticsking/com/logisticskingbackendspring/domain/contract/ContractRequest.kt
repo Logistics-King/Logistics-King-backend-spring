@@ -10,8 +10,16 @@ import java.util.UUID
 class ContractRequest private constructor(
     // 계약 요청 식별자.
     val id: UUID,
-    // 계약 요청을 등록한 화주 식별자.
-    val vendorId: UUID,
+    // 계약 요청 타입. VENDOR_OFFER는 화주 -> 대리점, AGENCY_OFFER는 대리점 -> 화주.
+    val type: ContractRequestType,
+    // 계약 요청을 시작한 주체 타입.
+    val requesterType: ContractPartyType,
+    // 계약 요청을 시작한 주체 식별자.
+    val requesterId: UUID,
+    // 계약 요청을 승인할 주체 타입.
+    val approverType: ContractPartyType,
+    // 특정 승인자가 정해진 경우의 식별자. 공개 요청이면 null.
+    val approverId: UUID?,
     // 화주가 미리 등록한 배송 품목 식별자. 직접 입력 요청이면 null.
     val productId: UUID?,
     // 대리점 매칭에 사용할 픽업 가능 지역.
@@ -43,6 +51,34 @@ class ContractRequest private constructor(
     // 계약 요청 진행 상태.
     val status: ContractRequestStatus,
 ) {
+    val vendorId: UUID
+        get() = when (ContractPartyType.VENDOR) {
+            requesterType -> requesterId
+            approverType -> requireNotNull(approverId) { "화주 승인자 ID가 필요합니다." }
+            else -> error("계약 요청에 화주가 없습니다.")
+        }
+
+    val agencyId: UUID?
+        get() = when (ContractPartyType.AGENCY) {
+            requesterType -> requesterId
+            approverType -> approverId
+            else -> null
+        }
+
+    fun isRequester(
+        partyType: ContractPartyType,
+        partyId: UUID,
+    ): Boolean {
+        return requesterType == partyType && requesterId == partyId
+    }
+
+    fun isParticipant(
+        partyType: ContractPartyType,
+        partyId: UUID,
+    ): Boolean {
+        return isRequester(partyType, partyId) ||
+            (approverType == partyType && (approverId == null || approverId == partyId))
+    }
 
     fun update(
         productId: UUID?,
@@ -68,10 +104,16 @@ class ContractRequest private constructor(
             status != ContractRequestStatus.CONTRACTED,
             ContractRequestErrorCode.CONTRACTED_REQUEST_CANNOT_BE_UPDATED,
         )
+        requireDomain(
+            status != ContractRequestStatus.REJECTED,
+            ContractRequestErrorCode.REJECTED_REQUEST_CANNOT_BE_UPDATED,
+        )
 
         return create(
             id = id,
-            vendorId = vendorId,
+            type = type,
+            requesterId = requesterId,
+            approverId = approverId,
             productId = productId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,
@@ -95,10 +137,18 @@ class ContractRequest private constructor(
             status != ContractRequestStatus.CONTRACTED,
             ContractRequestErrorCode.CONTRACTED_REQUEST_CANNOT_BE_CANCELED,
         )
+        requireDomain(
+            status != ContractRequestStatus.REJECTED,
+            ContractRequestErrorCode.REJECTED_REQUEST_CANNOT_BE_CANCELED,
+        )
 
         return restore(
             id = id,
-            vendorId = vendorId,
+            type = type,
+            requesterType = requesterType,
+            requesterId = requesterId,
+            approverType = approverType,
+            approverId = approverId,
             productId = productId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,
@@ -125,7 +175,11 @@ class ContractRequest private constructor(
 
         return restore(
             id = id,
-            vendorId = vendorId,
+            type = type,
+            requesterType = requesterType,
+            requesterId = requesterId,
+            approverType = approverType,
+            approverId = approverId,
             productId = productId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,
@@ -144,10 +198,43 @@ class ContractRequest private constructor(
         )
     }
 
+    fun reject(): ContractRequest {
+        requireDomain(
+            status == ContractRequestStatus.OPEN,
+            ContractRequestErrorCode.ONLY_OPEN_REQUEST_CAN_BE_REJECTED,
+        )
+
+        return restore(
+            id = id,
+            type = type,
+            requesterType = requesterType,
+            requesterId = requesterId,
+            approverType = approverType,
+            approverId = approverId,
+            productId = productId,
+            pickupRegion = pickupRegion,
+            pickupAddress = pickupAddress,
+            monthlyVolume = monthlyVolume,
+            productCategory = productCategory,
+            productName = productName,
+            boxSize = boxSize,
+            pickupStartTime = pickupStartTime,
+            pickupEndTime = pickupEndTime,
+            saturdayDeliveryRequired = saturdayDeliveryRequired,
+            returnRequired = returnRequired,
+            coldChainType = coldChainType,
+            targetUnitPrice = targetUnitPrice,
+            memo = memo,
+            status = ContractRequestStatus.REJECTED,
+        )
+    }
+
     companion object {
         fun create(
             id: UUID,
-            vendorId: UUID,
+            type: ContractRequestType,
+            requesterId: UUID,
+            approverId: UUID?,
             productId: UUID?,
             pickupRegion: String,
             pickupAddress: String?,
@@ -164,6 +251,10 @@ class ContractRequest private constructor(
             memo: String?,
             status: ContractRequestStatus = ContractRequestStatus.OPEN,
         ): ContractRequest {
+            requireDomain(
+                approverId != requesterId,
+                ContractRequestErrorCode.INVALID_CONTRACT_PARTY,
+            )
             requireDomain(pickupRegion.isNotBlank(), ContractRequestErrorCode.INVALID_PICKUP_REGION)
             requireDomain(monthlyVolume > 0, ContractRequestErrorCode.INVALID_MONTHLY_VOLUME)
             requireDomain(productName.isNotBlank(), ContractRequestErrorCode.INVALID_PRODUCT_NAME)
@@ -178,7 +269,11 @@ class ContractRequest private constructor(
 
             return ContractRequest(
                 id = id,
-                vendorId = vendorId,
+                type = type,
+                requesterType = type.requesterType,
+                requesterId = requesterId,
+                approverType = type.approverType,
+                approverId = approverId,
                 productId = productId,
                 pickupRegion = pickupRegion.trim(),
                 pickupAddress = pickupAddress?.trim()?.takeIf { it.isNotBlank() },
@@ -199,7 +294,11 @@ class ContractRequest private constructor(
 
         fun restore(
             id: UUID,
-            vendorId: UUID,
+            type: ContractRequestType,
+            requesterType: ContractPartyType,
+            requesterId: UUID,
+            approverType: ContractPartyType,
+            approverId: UUID?,
             productId: UUID?,
             pickupRegion: String,
             pickupAddress: String?,
@@ -216,9 +315,18 @@ class ContractRequest private constructor(
             memo: String?,
             status: ContractRequestStatus,
         ): ContractRequest {
+            requireDomain(
+                requesterType == type.requesterType && approverType == type.approverType,
+                ContractRequestErrorCode.INVALID_CONTRACT_PARTY,
+            )
+
             return ContractRequest(
                 id = id,
-                vendorId = vendorId,
+                type = type,
+                requesterType = requesterType,
+                requesterId = requesterId,
+                approverType = approverType,
+                approverId = approverId,
                 productId = productId,
                 pickupRegion = pickupRegion,
                 pickupAddress = pickupAddress,

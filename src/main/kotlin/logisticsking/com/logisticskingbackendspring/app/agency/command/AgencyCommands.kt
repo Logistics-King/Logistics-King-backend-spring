@@ -21,7 +21,7 @@ data class CreateAgencyCommand(
     val saturdayPickupAvailable: Boolean,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainType: ColdChainType,
+    val supportedColdChainTypes: Set<ColdChainType>,
     val maxMonthlyVolume: Int?,
 )
 
@@ -42,6 +42,6 @@ data class UpdateAgencyCommand(
     val saturdayPickupAvailable: Boolean,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainType: ColdChainType,
+    val supportedColdChainTypes: Set<ColdChainType>,
     val maxMonthlyVolume: Int?,
 )

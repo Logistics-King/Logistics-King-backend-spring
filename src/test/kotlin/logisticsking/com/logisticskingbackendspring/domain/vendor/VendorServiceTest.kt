@@ -125,6 +125,111 @@ class VendorServiceTest {
     }
 
     @Test
+    fun `대리점은 프로토타입 정책상 특정 화주의 배송 품목을 조회할 수 있다`() {
+        val vendorUser = user(role = UserRole.VENDOR)
+        val agencyUser = user(role = UserRole.AGENCY)
+        val vendorRepository = FakeVendorRepository()
+        val productRepository = FakeVendorProductRepository()
+        val service = vendorService(
+            userRepository = FakeUserRepository(vendorUser, agencyUser),
+            vendorRepository = vendorRepository,
+            vendorProductRepository = productRepository,
+            idGenerator = QueueIdGenerator(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()),
+        )
+        val vendor = service.create(createVendorCommand(vendorUser.id))
+        service.createProduct(createVendorProductCommand(vendorUser.id))
+        service.createProduct(
+            createVendorProductCommand(
+                userId = vendorUser.id,
+                category = ProductCategory.ELECTRONICS,
+                name = "노트북",
+                boxSize = BoxSize.SIZE_100,
+            )
+        )
+
+        val result = service.getProductsByVendorIdForAgency(
+            userId = agencyUser.id,
+            vendorId = vendor.vendorId,
+            condition = VendorProductSearchCondition(
+                name = "의류",
+                category = ProductCategory.CLOTHING,
+                boxSize = BoxSize.SIZE_60,
+                coldChainType = null,
+            ),
+            pageable = PageRequest.of(0, 20),
+        )
+
+        assertEquals(1, result.totalElements)
+        assertEquals("여성 의류", result.content.first().name)
+    }
+
+    @Test
+    fun `대리점은 일감 조회에서 모든 화주의 배송 품목을 조회할 수 있다`() {
+        val vendorUser = user(role = UserRole.VENDOR)
+        val anotherVendorUser = user(role = UserRole.VENDOR)
+        val agencyUser = user(role = UserRole.AGENCY)
+        val vendorRepository = FakeVendorRepository()
+        val productRepository = FakeVendorProductRepository()
+        val service = vendorService(
+            userRepository = FakeUserRepository(vendorUser, anotherVendorUser, agencyUser),
+            vendorRepository = vendorRepository,
+            vendorProductRepository = productRepository,
+            idGenerator = QueueIdGenerator(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+            ),
+        )
+        service.create(createVendorCommand(vendorUser.id))
+        service.create(createVendorCommand(anotherVendorUser.id))
+        service.createProduct(createVendorProductCommand(vendorUser.id, name = "여성 의류"))
+        service.createProduct(createVendorProductCommand(anotherVendorUser.id, name = "남성 의류"))
+
+        val result = service.getPublicProductsForAgency(
+            userId = agencyUser.id,
+            condition = VendorProductSearchCondition(
+                name = "의류",
+                category = ProductCategory.CLOTHING,
+                boxSize = BoxSize.SIZE_60,
+                coldChainType = null,
+            ),
+            pageable = PageRequest.of(0, 20),
+        )
+
+        assertEquals(2, result.totalElements)
+    }
+
+    @Test
+    fun `대리점 배송 품목 전체 조회 토글이 꺼져 있으면 예외가 발생한다`() {
+        val vendorUser = user(role = UserRole.VENDOR)
+        val agencyUser = user(role = UserRole.AGENCY)
+        val vendorRepository = FakeVendorRepository()
+        val service = vendorService(
+            userRepository = FakeUserRepository(vendorUser, agencyUser),
+            vendorRepository = vendorRepository,
+            agencyPublicReadEnabled = false,
+        )
+        val vendor = service.create(createVendorCommand(vendorUser.id))
+
+        val exception = assertThrows(GlobalException::class.java) {
+            service.getProductsByVendorIdForAgency(
+                userId = agencyUser.id,
+                vendorId = vendor.vendorId,
+                condition = VendorProductSearchCondition(
+                    name = null,
+                    category = null,
+                    boxSize = null,
+                    coldChainType = null,
+                ),
+                pageable = PageRequest.of(0, 20),
+            )
+        }
+
+        assertEquals(VendorErrorCode.AGENCY_PRODUCT_PUBLIC_READ_DISABLED, exception.errorCode)
+    }
+
+    @Test
     fun `createProduct 시 화주 프로필이 없으면 예외가 발생한다`() {
         val user = user(role = UserRole.VENDOR)
         val service = vendorService(userRepository = FakeUserRepository(user))
@@ -141,12 +246,14 @@ class VendorServiceTest {
         vendorRepository: FakeVendorRepository = FakeVendorRepository(),
         vendorProductRepository: FakeVendorProductRepository = FakeVendorProductRepository(),
         idGenerator: IdGenerator = FakeIdGenerator(UUID.randomUUID()),
+        agencyPublicReadEnabled: Boolean = true,
     ): VendorService {
         return VendorService(
             userRepository = userRepository,
             vendorRepository = vendorRepository,
             vendorProductRepository = vendorProductRepository,
             idGenerator = idGenerator,
+            agencyPublicReadEnabled = agencyPublicReadEnabled,
         )
     }
 
@@ -200,11 +307,11 @@ class VendorServiceTest {
     }
 
     private class FakeUserRepository(
-        user: User? = null,
+        vararg seedUsers: User,
     ) : UserRepository {
-        private val users = user
-            ?.let { mutableMapOf(it.id to it) }
-            ?: mutableMapOf()
+        constructor(user: User? = null) : this(*listOfNotNull(user).toTypedArray())
+
+        private val users = seedUsers.associateBy { it.id }.toMutableMap()
 
         override fun findById(id: UUID): User? {
             return users[id]
@@ -212,6 +319,20 @@ class VendorServiceTest {
 
         override fun findByLoginId(loginId: String): User? {
             return users.values.firstOrNull { it.loginId == loginId }
+        }
+
+        override fun findByNameAndEmail(
+            name: String,
+            email: String,
+        ): User? {
+            return users.values.firstOrNull { it.name == name && it.email == email }
+        }
+
+        override fun findByLoginIdAndEmail(
+            loginId: String,
+            email: String,
+        ): User? {
+            return users.values.firstOrNull { it.loginId == loginId && it.email == email }
         }
 
         override fun existsByLoginId(loginId: String): Boolean {
@@ -225,6 +346,16 @@ class VendorServiceTest {
         override fun save(user: User): User {
             users[user.id] = user
             return user
+        }
+
+        override fun updatePassword(
+            id: UUID,
+            encodedPassword: String,
+        ): User? {
+            val user = users[id] ?: return null
+            val changed = user.changePassword(encodedPassword)
+            users[id] = changed
+            return changed
         }
     }
 
@@ -269,15 +400,31 @@ class VendorServiceTest {
             condition: VendorProductSearchCondition,
             pageable: Pageable,
         ): Page<VendorProduct> {
-            val filteredProducts = products.values.filter {
-                it.vendorId == vendorId &&
+            val filteredProducts = filterProducts(condition) { it.vendorId == vendorId }
+
+            return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
+        }
+
+        override fun findAll(
+            condition: VendorProductSearchCondition,
+            pageable: Pageable,
+        ): Page<VendorProduct> {
+            val filteredProducts = filterProducts(condition)
+
+            return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
+        }
+
+        private fun filterProducts(
+            condition: VendorProductSearchCondition,
+            extraPredicate: (VendorProduct) -> Boolean = { true },
+        ): List<VendorProduct> {
+            return products.values.filter {
+                extraPredicate(it) &&
                     (condition.normalizedName == null || it.name.contains(condition.normalizedName, ignoreCase = true)) &&
                     (condition.category == null || it.category == condition.category) &&
                     (condition.boxSize == null || it.boxSize == condition.boxSize) &&
                     (condition.coldChainType == null || it.coldChainType == condition.coldChainType)
             }
-
-            return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
         }
     }
 
