@@ -1,8 +1,12 @@
 package logisticsking.com.logisticskingbackendspring.app.contract.result
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequest
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestItem
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractPartyType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
 import java.util.UUID
@@ -10,13 +14,19 @@ import java.util.UUID
 data class ContractRequestResult(
     val contractRequestId: UUID,
     val vendorId: UUID,
+    val agencyId: UUID?,
+    val type: ContractRequestType,
+    val requesterType: ContractPartyType,
+    val requesterId: UUID,
+    val approverType: ContractPartyType,
+    val approverId: UUID?,
     val productId: UUID?,
     val pickupRegion: String,
     val pickupAddress: String?,
     val monthlyVolume: Int,
     val productCategory: ProductCategory,
     val productName: String,
-    val boxSize: String,
+    val boxSize: BoxSize,
     val pickupStartTime: String,
     val pickupEndTime: String,
     val saturdayDeliveryRequired: Boolean,
@@ -24,6 +34,7 @@ data class ContractRequestResult(
     val coldChainType: ColdChainType,
     val targetUnitPrice: BigDecimal?,
     val memo: String?,
+    val items: List<ContractRequestItemResult>,
     val status: ContractRequestStatus,
 ) {
     companion object {
@@ -31,6 +42,12 @@ data class ContractRequestResult(
             return ContractRequestResult(
                 contractRequestId = contractRequest.id,
                 vendorId = contractRequest.vendorId,
+                agencyId = contractRequest.agencyId,
+                type = contractRequest.type,
+                requesterType = contractRequest.requesterType,
+                requesterId = contractRequest.requesterId,
+                approverType = contractRequest.approverType,
+                approverId = contractRequest.approverId,
                 productId = contractRequest.productId,
                 pickupRegion = contractRequest.pickupRegion,
                 pickupAddress = contractRequest.pickupAddress,
@@ -45,7 +62,44 @@ data class ContractRequestResult(
                 coldChainType = contractRequest.coldChainType,
                 targetUnitPrice = contractRequest.targetUnitPrice,
                 memo = contractRequest.memo,
+                items = contractRequest.items.map(ContractRequestItemResult::from),
                 status = contractRequest.status,
+            )
+        }
+    }
+}
+
+data class ContractRequestItemResult(
+    val itemId: UUID,
+    val productId: UUID?,
+    val productCategory: ProductCategory,
+    val productName: String,
+    val boxSize: BoxSize,
+    val boxQuantity: Int,
+    val itemQuantity: Int,
+    val averageWeightGram: Int?,
+    val fragile: Boolean,
+    val liquid: Boolean,
+    val freshFood: Boolean,
+    val coldChainType: ColdChainType,
+    val targetUnitPrice: BigDecimal?,
+) {
+    companion object {
+        fun from(item: ContractRequestItem): ContractRequestItemResult {
+            return ContractRequestItemResult(
+                itemId = item.id,
+                productId = item.productId,
+                productCategory = item.productCategory,
+                productName = item.productName,
+                boxSize = item.boxSize,
+                boxQuantity = item.boxQuantity,
+                itemQuantity = item.itemQuantity,
+                averageWeightGram = item.averageWeightGram,
+                fragile = item.fragile,
+                liquid = item.liquid,
+                freshFood = item.freshFood,
+                coldChainType = item.coldChainType,
+                targetUnitPrice = item.targetUnitPrice,
             )
         }
     }

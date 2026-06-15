@@ -1,8 +1,10 @@
 package logisticsking.com.logisticskingbackendspring.app.contract.dto
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.common.PageResponse
+import logisticsking.com.logisticskingbackendspring.app.contract.result.ContractRequestItemResult
 import logisticsking.com.logisticskingbackendspring.app.contract.result.ContractRequestResult
 import org.springframework.data.domain.Page
 import java.math.BigDecimal
@@ -15,6 +17,18 @@ sealed interface ContractRequestResponse {
         val contractRequestId: String,
         @field:Schema(description = "화주 ID", example = "019b1f44-a741-7000-8000-000000000001")
         val vendorId: String,
+        @field:Schema(description = "대리점 ID. 공개 화주 요청이면 null", example = "019b1f44-a741-7000-8000-000000000002")
+        val agencyId: String?,
+        @field:Schema(description = "계약 요청 타입", example = "VENDOR_OFFER")
+        val type: String,
+        @field:Schema(description = "요청자 타입", example = "VENDOR")
+        val requesterType: String,
+        @field:Schema(description = "요청자 ID", example = "019b1f44-a741-7000-8000-000000000001")
+        val requesterId: String,
+        @field:Schema(description = "승인자 타입", example = "AGENCY")
+        val approverType: String,
+        @field:Schema(description = "승인자 ID. 공개 요청이면 null", example = "019b1f44-a741-7000-8000-000000000002")
+        val approverId: String?,
         @field:Schema(description = "화주 배송 품목 ID", example = "019b1f44-a741-7000-8000-000000000003")
         val productId: String?,
         @field:Schema(description = "픽업 지역", example = "경기도 안산시 일동")
@@ -27,8 +41,8 @@ sealed interface ContractRequestResponse {
         val productCategory: String,
         @field:Schema(description = "품목명", example = "일반 의류")
         val productName: String,
-        @field:Schema(description = "주요 박스 크기", example = "60")
-        val boxSize: String,
+        @field:Schema(description = "주요 박스 크기", example = "SIZE_60")
+        val boxSize: BoxSize,
         @field:Schema(description = "픽업 희망 시작 시간", example = "09:00")
         val pickupStartTime: String,
         @field:Schema(description = "픽업 희망 종료 시간", example = "18:00")
@@ -43,6 +57,8 @@ sealed interface ContractRequestResponse {
         val targetUnitPrice: BigDecimal?,
         @field:Schema(description = "요청 메모", example = "의류 중심이며 평일 오전 픽업을 선호합니다.")
         val memo: String?,
+        @field:Schema(description = "배송 물품 라인 목록")
+        val items: kotlin.collections.List<Item>,
         @field:Schema(description = "계약 요청 상태", example = "OPEN")
         val status: String,
     ) : ContractRequestResponse {
@@ -51,6 +67,12 @@ sealed interface ContractRequestResponse {
                 return Detail(
                     contractRequestId = result.contractRequestId.toString(),
                     vendorId = result.vendorId.toString(),
+                    agencyId = result.agencyId?.toString(),
+                    type = result.type.name,
+                    requesterType = result.requesterType.name,
+                    requesterId = result.requesterId.toString(),
+                    approverType = result.approverType.name,
+                    approverId = result.approverId?.toString(),
                     productId = result.productId?.toString(),
                     pickupRegion = result.pickupRegion,
                     pickupAddress = result.pickupAddress,
@@ -65,7 +87,58 @@ sealed interface ContractRequestResponse {
                     coldChainType = result.coldChainType,
                     targetUnitPrice = result.targetUnitPrice,
                     memo = result.memo,
+                    items = result.items.map(Item::from),
                     status = result.status.name,
+                )
+            }
+        }
+    }
+
+    @Schema(name = "ContractRequestItemResponse")
+    data class Item(
+        @field:Schema(description = "계약 요청 배송 물품 라인 ID", example = "019b1f44-a741-7000-8000-000000000021")
+        val itemId: String,
+        @field:Schema(description = "화주 배송 품목 ID", example = "019b1f44-a741-7000-8000-000000000003")
+        val productId: String?,
+        @field:Schema(description = "품목 카테고리", example = "CLOTHING")
+        val productCategory: String,
+        @field:Schema(description = "품목명", example = "일반 의류")
+        val productName: String,
+        @field:Schema(description = "박스 크기", example = "SIZE_60")
+        val boxSize: BoxSize,
+        @field:Schema(description = "박스 수량", example = "6")
+        val boxQuantity: Int,
+        @field:Schema(description = "낱개 수량", example = "0")
+        val itemQuantity: Int,
+        @field:Schema(description = "평균 무게(g)", example = "700")
+        val averageWeightGram: Int?,
+        @field:Schema(description = "파손 주의 여부", example = "false")
+        val fragile: Boolean,
+        @field:Schema(description = "액체 포함 여부", example = "false")
+        val liquid: Boolean,
+        @field:Schema(description = "신선식품 여부", example = "false")
+        val freshFood: Boolean,
+        @field:Schema(description = "콜드체인 필요 타입", example = "NONE")
+        val coldChainType: ColdChainType,
+        @field:Schema(description = "라인 희망 단가", example = "2000")
+        val targetUnitPrice: BigDecimal?,
+    ) : ContractRequestResponse {
+        companion object {
+            fun from(result: ContractRequestItemResult): Item {
+                return Item(
+                    itemId = result.itemId.toString(),
+                    productId = result.productId?.toString(),
+                    productCategory = result.productCategory.name,
+                    productName = result.productName,
+                    boxSize = result.boxSize,
+                    boxQuantity = result.boxQuantity,
+                    itemQuantity = result.itemQuantity,
+                    averageWeightGram = result.averageWeightGram,
+                    fragile = result.fragile,
+                    liquid = result.liquid,
+                    freshFood = result.freshFood,
+                    coldChainType = result.coldChainType,
+                    targetUnitPrice = result.targetUnitPrice,
                 )
             }
         }

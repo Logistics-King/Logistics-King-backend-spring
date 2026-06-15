@@ -17,6 +17,9 @@ import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.deliver.Deliver
 import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverRepository
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationPublisher
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationReferenceType
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationType
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
@@ -32,6 +35,7 @@ class DeliverContractService(
     private val agencyRepository: AgencyRepository,
     private val deliverRepository: DeliverRepository,
     private val deliverContractRepository: DeliverContractRepository,
+    private val notificationPublisher: NotificationPublisher,
     private val idGenerator: IdGenerator,
 ) : CreateDeliverContractUseCase,
     GetMyAgencyDeliverContractsUseCase,
@@ -63,7 +67,17 @@ class DeliverContractService(
             memo = command.memo,
         )
 
-        return DeliverContractResult.from(deliverContractRepository.save(deliverContract))
+        val saved = deliverContractRepository.save(deliverContract)
+        notificationPublisher.publish(
+            receiverUserId = deliver.userId,
+            senderUserId = agency.userId,
+            type = NotificationType.DELIVER_CONTRACT_REQUESTED,
+            referenceType = NotificationReferenceType.DELIVER_CONTRACT,
+            referenceId = saved.id,
+            linkUrl = "/deliver-contracts/driver/me",
+        )
+
+        return DeliverContractResult.from(saved)
     }
 
     @Transactional(readOnly = true)
@@ -107,7 +121,17 @@ class DeliverContractService(
         val deliver = findDeliverByUserId(command.userId)
         val deliverContract = findDeliverContractByDeliver(command.deliverContractId, deliver.id)
 
-        return DeliverContractResult.from(deliverContractRepository.save(deliverContract.accept()))
+        val saved = deliverContractRepository.save(deliverContract.accept())
+        notificationPublisher.publish(
+            receiverUserId = findAgency(saved.agencyId).userId,
+            senderUserId = deliver.userId,
+            type = NotificationType.DELIVER_CONTRACT_ACCEPTED,
+            referenceType = NotificationReferenceType.DELIVER_CONTRACT,
+            referenceId = saved.id,
+            linkUrl = "/deliver-contracts/agency/me",
+        )
+
+        return DeliverContractResult.from(saved)
     }
 
     @Transactional
@@ -116,7 +140,17 @@ class DeliverContractService(
         val deliver = findDeliverByUserId(command.userId)
         val deliverContract = findDeliverContractByDeliver(command.deliverContractId, deliver.id)
 
-        return DeliverContractResult.from(deliverContractRepository.save(deliverContract.reject()))
+        val saved = deliverContractRepository.save(deliverContract.reject())
+        notificationPublisher.publish(
+            receiverUserId = findAgency(saved.agencyId).userId,
+            senderUserId = deliver.userId,
+            type = NotificationType.DELIVER_CONTRACT_REJECTED,
+            referenceType = NotificationReferenceType.DELIVER_CONTRACT,
+            referenceId = saved.id,
+            linkUrl = "/deliver-contracts/agency/me",
+        )
+
+        return DeliverContractResult.from(saved)
     }
 
     @Transactional
@@ -156,6 +190,11 @@ class DeliverContractService(
     private fun findDeliver(deliverId: UUID): Deliver {
         return deliverRepository.findById(deliverId)
             ?: throw GlobalException(DeliverContractErrorCode.DELIVER_NOT_FOUND)
+    }
+
+    private fun findAgency(agencyId: UUID): Agency {
+        return agencyRepository.findById(agencyId)
+            ?: throw GlobalException(DeliverContractErrorCode.AGENCY_NOT_FOUND)
     }
 
     private fun findDeliverByUserId(userId: UUID): Deliver {

@@ -1,0 +1,11 @@
+package logisticsking.com.logisticskingbackendspring.infra.persistence.vendor
+
+import org.springframework.data.jpa.repository.JpaRepository
+import java.util.UUID
+
+interface ProductJpaRepository : JpaRepository<ProductJpaEntity, UUID> {
+    fun findByIdAndVendorIdAndDeletedAtIsNull(
+        id: UUID,
+        vendorId: UUID,
+    ): ProductJpaEntity?
+}

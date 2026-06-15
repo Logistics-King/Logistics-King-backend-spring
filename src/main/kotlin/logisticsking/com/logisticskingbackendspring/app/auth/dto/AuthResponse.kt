@@ -33,4 +33,18 @@ sealed interface AuthResponse {
         @field:Schema(description = "로그아웃 여부", example = "true")
         val loggedOut: Boolean,
     ) : AuthResponse
+
+    @Schema(description = "계정 복구 요청 응답")
+    data class AccountRecoveryRequest(
+        @field:Schema(description = "요청 접수 여부", example = "true")
+        val accepted: Boolean,
+        @field:Schema(description = "사용자 안내 문구", example = "입력한 정보가 일치하면 이메일을 발송합니다.")
+        val message: String,
+    ) : AuthResponse
+
+    @Schema(description = "비밀번호 재설정 응답")
+    data class ResetPassword(
+        @field:Schema(description = "비밀번호 재설정 여부", example = "true")
+        val reset: Boolean,
+    ) : AuthResponse
 }

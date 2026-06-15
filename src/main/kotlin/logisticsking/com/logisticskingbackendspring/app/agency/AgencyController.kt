@@ -6,19 +6,29 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import logisticsking.com.logisticskingbackendspring.app.agency.dto.AgencyRequest
 import logisticsking.com.logisticskingbackendspring.app.agency.dto.AgencyResponse
 import logisticsking.com.logisticskingbackendspring.app.agency.usecase.CreateAgencyUseCase
+import logisticsking.com.logisticskingbackendspring.app.agency.usecase.GetAgenciesUseCase
+import logisticsking.com.logisticskingbackendspring.app.agency.usecase.GetAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.app.agency.usecase.GetMyAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.app.agency.usecase.UpdateAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
+import logisticsking.com.logisticskingbackendspring.domain.agency.AgencySearchCondition
+import logisticsking.com.logisticskingbackendspring.domain.agency.Carrier
+import logisticsking.com.logisticskingbackendspring.domain.common.ListViewScope
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @Tag(name = "Agency", description = "대리점 API")
 @SecurityRequirement(name = "accessTokenCookie")
@@ -28,6 +38,8 @@ import org.springframework.web.bind.annotation.RestController
 class AgencyController(
     private val createAgencyUseCase: CreateAgencyUseCase,
     private val getMyAgencyUseCase: GetMyAgencyUseCase,
+    private val getAgenciesUseCase: GetAgenciesUseCase,
+    private val getAgencyUseCase: GetAgencyUseCase,
     private val updateAgencyUseCase: UpdateAgencyUseCase,
 ) {
 
@@ -50,6 +62,54 @@ class AgencyController(
         @AuthenticationPrincipal user: AuthenticatedUser,
     ): ApiResponse<AgencyResponse.Detail> {
         val result = getMyAgencyUseCase.getMyAgency(user.userId)
+
+        return ApiResponse.success(
+            response = AgencyResponse.Detail.from(result),
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.VENDOR])
+    @Operation(summary = "근방 대리점 목록 조회", description = "화주가 계약 요청을 보낼 수 있는 근방 대리점 목록을 조회합니다.")
+    @GetMapping
+    fun getAgencies(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @RequestParam(required = false) agencyName: String?,
+        @RequestParam(required = false) region: String?,
+        @RequestParam(required = false) carrier: Carrier?,
+        @RequestParam(required = false) saturdayDeliveryAvailable: Boolean?,
+        @RequestParam(required = false) returnAvailable: Boolean?,
+        @RequestParam(required = false, defaultValue = "ALL") scope: ListViewScope,
+        @PageableDefault(size = 20) pageable: Pageable,
+    ): ApiResponse<AgencyResponse.List> {
+        val results = getAgenciesUseCase.getAgencies(
+            userId = user.userId,
+            condition = AgencySearchCondition(
+                agencyName = agencyName,
+                region = region,
+                carrier = carrier,
+                saturdayDeliveryAvailable = saturdayDeliveryAvailable,
+                returnAvailable = returnAvailable,
+                scope = scope,
+            ),
+            pageable = pageable,
+        )
+
+        return ApiResponse.success(
+            response = AgencyResponse.List.from(results),
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.VENDOR])
+    @Operation(summary = "대리점 상세 조회", description = "화주가 계약 요청을 보낼 대리점 상세 정보를 조회합니다.")
+    @GetMapping("/{agencyId}")
+    fun getAgency(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable agencyId: UUID,
+    ): ApiResponse<AgencyResponse.Detail> {
+        val result = getAgencyUseCase.getAgency(
+            userId = user.userId,
+            agencyId = agencyId,
+        )
 
         return ApiResponse.success(
             response = AgencyResponse.Detail.from(result),

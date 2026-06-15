@@ -7,7 +7,7 @@ ALTER TABLE users
 ALTER TABLE vendors
     ADD COLUMN deleted_at DATETIME(6) NULL;
 
-ALTER TABLE vendor_products
+ALTER TABLE products
     ADD COLUMN deleted_at DATETIME(6) NULL;
 
 ALTER TABLE agencies

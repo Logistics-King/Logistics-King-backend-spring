@@ -38,4 +38,14 @@ enum class AuthErrorCode(
         message = "Refresh Token을 찾을 수 없습니다.",
         status = HttpStatus.UNAUTHORIZED,
     ),
+    RESET_TOKEN_INVALID(
+        code = "RESET_TOKEN_INVALID",
+        message = "비밀번호 재설정 토큰이 올바르지 않습니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
+    RESET_TOKEN_EXPIRED(
+        code = "RESET_TOKEN_EXPIRED",
+        message = "비밀번호 재설정 토큰이 만료되었습니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
 }

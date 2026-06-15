@@ -18,6 +18,11 @@ enum class AgencyErrorCode(
         message = "대리점 권한 사용자만 사용할 수 있습니다.",
         status = HttpStatus.FORBIDDEN,
     ),
+    USER_IS_NOT_VENDOR(
+        code = "AGENCY_USER_IS_NOT_VENDOR",
+        message = "화주 권한 사용자만 대리점 목록을 조회할 수 있습니다.",
+        status = HttpStatus.FORBIDDEN,
+    ),
     AGENCY_ALREADY_EXISTS(
         code = "AGENCY_ALREADY_EXISTS",
         message = "이미 대리점 프로필이 존재합니다.",
@@ -26,6 +31,11 @@ enum class AgencyErrorCode(
     AGENCY_NOT_FOUND(
         code = "AGENCY_NOT_FOUND",
         message = "대리점 프로필을 찾을 수 없습니다.",
+        status = HttpStatus.NOT_FOUND,
+    ),
+    VENDOR_NOT_FOUND(
+        code = "AGENCY_VENDOR_NOT_FOUND",
+        message = "화주 프로필을 찾을 수 없습니다.",
         status = HttpStatus.NOT_FOUND,
     ),
     INVALID_AGENCY_NAME(

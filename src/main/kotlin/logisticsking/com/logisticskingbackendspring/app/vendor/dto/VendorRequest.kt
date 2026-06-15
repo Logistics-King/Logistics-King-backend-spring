@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.app.vendor.dto
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
@@ -92,8 +93,18 @@ sealed interface VendorRequest {
         val averagePrice: BigDecimal?,
         @field:Schema(description = "평균 무게(g)", example = "700")
         val averageWeightGram: Int?,
-        @field:Schema(description = "주요 박스 크기", example = "60")
-        val boxSize: String?,
+        @field:Schema(description = "주요 박스 크기", example = "SIZE_60")
+        val boxSize: BoxSize?,
+        @field:Schema(description = "박스 수량", example = "800")
+        val boxQuantity: Int,
+        @field:Schema(description = "낱개 수량", example = "0")
+        val itemQuantity: Int,
+        @field:Schema(description = "배송 목적지 우편번호", example = "06164")
+        val destinationPostalCode: String?,
+        @field:Schema(description = "배송 목적지 주소", example = "서울특별시 강남구 테헤란로 521")
+        val destinationAddress: String,
+        @field:Schema(description = "배송 목적지 상세 주소", example = "10층")
+        val destinationAddressDetail: String?,
         @field:Schema(description = "파손 주의 여부", example = "false")
         val fragile: Boolean,
         @field:Schema(description = "액체 포함 여부", example = "false")
@@ -112,6 +123,11 @@ sealed interface VendorRequest {
                 averagePrice = averagePrice,
                 averageWeightGram = averageWeightGram,
                 boxSize = boxSize,
+                boxQuantity = boxQuantity,
+                itemQuantity = itemQuantity,
+                destinationPostalCode = destinationPostalCode,
+                destinationAddress = destinationAddress,
+                destinationAddressDetail = destinationAddressDetail,
                 fragile = fragile,
                 liquid = liquid,
                 freshFood = freshFood,
@@ -132,8 +148,18 @@ sealed interface VendorRequest {
         val averagePrice: BigDecimal?,
         @field:Schema(description = "평균 무게(g)", example = "800")
         val averageWeightGram: Int?,
-        @field:Schema(description = "주요 박스 크기", example = "60")
-        val boxSize: String?,
+        @field:Schema(description = "주요 박스 크기", example = "SIZE_60")
+        val boxSize: BoxSize?,
+        @field:Schema(description = "박스 수량", example = "850")
+        val boxQuantity: Int,
+        @field:Schema(description = "낱개 수량", example = "0")
+        val itemQuantity: Int,
+        @field:Schema(description = "배송 목적지 우편번호", example = "06164")
+        val destinationPostalCode: String?,
+        @field:Schema(description = "배송 목적지 주소", example = "서울특별시 강남구 테헤란로 521")
+        val destinationAddress: String,
+        @field:Schema(description = "배송 목적지 상세 주소", example = "11층")
+        val destinationAddressDetail: String?,
         @field:Schema(description = "파손 주의 여부", example = "false")
         val fragile: Boolean,
         @field:Schema(description = "액체 포함 여부", example = "false")
@@ -156,6 +182,11 @@ sealed interface VendorRequest {
                 averagePrice = averagePrice,
                 averageWeightGram = averageWeightGram,
                 boxSize = boxSize,
+                boxQuantity = boxQuantity,
+                itemQuantity = itemQuantity,
+                destinationPostalCode = destinationPostalCode,
+                destinationAddress = destinationAddress,
+                destinationAddressDetail = destinationAddressDetail,
                 fragile = fragile,
                 liquid = liquid,
                 freshFood = freshFood,

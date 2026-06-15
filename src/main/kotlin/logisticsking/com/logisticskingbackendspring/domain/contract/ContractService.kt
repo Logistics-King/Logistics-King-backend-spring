@@ -9,6 +9,10 @@ import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationPublisher
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationReferenceType
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationType
+import logisticsking.com.logisticskingbackendspring.domain.notification.PublishNotificationCommand
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
@@ -28,6 +32,7 @@ class ContractService(
     private val contractRequestRepository: ContractRequestRepository,
     private val proposalRepository: ProposalRepository,
     private val contractRepository: ContractRepository,
+    private val notificationPublisher: NotificationPublisher,
     private val idGenerator: IdGenerator,
 ) : AcceptProposalUseCase,
     GetMyVendorContractsUseCase,
@@ -71,8 +76,17 @@ class ContractService(
 
         proposalRepository.saveAll(proposalResults)
         contractRequestRepository.save(contractRequest.contract())
+        val savedContract = contractRepository.save(contract)
+        publishAcceptedContractNotifications(
+            vendorUserId = command.userId,
+            selectedProposal = selectedProposal,
+            rejectedProposals = proposals.filter { current ->
+                current.id != selectedProposal.id && current.status == ProposalStatus.SUBMITTED
+            },
+            contractId = savedContract.id,
+        )
 
-        return ContractResult.from(contractRepository.save(contract))
+        return ContractResult.from(savedContract)
     }
 
     @Transactional(readOnly = true)
@@ -121,5 +135,56 @@ class ContractService(
     private fun findAgencyByUserId(userId: UUID): Agency {
         return agencyRepository.findByUserId(userId)
             ?: throw GlobalException(ContractErrorCode.AGENCY_NOT_FOUND)
+    }
+
+    private fun publishAcceptedContractNotifications(
+        vendorUserId: UUID,
+        selectedProposal: Proposal,
+        rejectedProposals: List<Proposal>,
+        contractId: UUID,
+    ) {
+        val selectedAgency = agencyRepository.findById(selectedProposal.agencyId)
+            ?: throw GlobalException(ContractErrorCode.AGENCY_NOT_FOUND)
+        val rejectedCommands = rejectedProposals.mapNotNull { proposal ->
+            agencyRepository.findById(proposal.agencyId)?.let { agency ->
+                PublishNotificationCommand(
+                    receiverUserId = agency.userId,
+                    senderUserId = vendorUserId,
+                    type = NotificationType.PROPOSAL_REJECTED,
+                    referenceType = NotificationReferenceType.PROPOSAL,
+                    referenceId = proposal.id,
+                    linkUrl = "/proposals/me",
+                )
+            }
+        }
+
+        notificationPublisher.publishAll(
+            listOf(
+                PublishNotificationCommand(
+                    receiverUserId = selectedAgency.userId,
+                    senderUserId = vendorUserId,
+                    type = NotificationType.PROPOSAL_ACCEPTED,
+                    referenceType = NotificationReferenceType.PROPOSAL,
+                    referenceId = selectedProposal.id,
+                    linkUrl = "/contracts/agency/me",
+                ),
+                PublishNotificationCommand(
+                    receiverUserId = vendorUserId,
+                    senderUserId = selectedAgency.userId,
+                    type = NotificationType.CONTRACT_CREATED,
+                    referenceType = NotificationReferenceType.CONTRACT,
+                    referenceId = contractId,
+                    linkUrl = "/contracts/vendor/me",
+                ),
+                PublishNotificationCommand(
+                    receiverUserId = selectedAgency.userId,
+                    senderUserId = vendorUserId,
+                    type = NotificationType.CONTRACT_CREATED,
+                    referenceType = NotificationReferenceType.CONTRACT,
+                    referenceId = contractId,
+                    linkUrl = "/contracts/agency/me",
+                ),
+            ) + rejectedCommands,
+        )
     }
 }

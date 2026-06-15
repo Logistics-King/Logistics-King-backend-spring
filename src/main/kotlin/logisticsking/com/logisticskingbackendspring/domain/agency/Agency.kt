@@ -22,7 +22,7 @@ class Agency private constructor(
     val saturdayPickupAvailable: Boolean,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainType: ColdChainType,
+    val supportedColdChainTypes: Set<ColdChainType>,
     val maxMonthlyVolume: Int?,
 ) {
 
@@ -42,7 +42,7 @@ class Agency private constructor(
         saturdayPickupAvailable: Boolean,
         saturdayDeliveryAvailable: Boolean,
         returnAvailable: Boolean,
-        coldChainType: ColdChainType,
+        supportedColdChainTypes: Set<ColdChainType>,
         maxMonthlyVolume: Int?,
     ): Agency {
         return create(
@@ -63,7 +63,7 @@ class Agency private constructor(
             saturdayPickupAvailable = saturdayPickupAvailable,
             saturdayDeliveryAvailable = saturdayDeliveryAvailable,
             returnAvailable = returnAvailable,
-            coldChainType = coldChainType,
+            supportedColdChainTypes = supportedColdChainTypes,
             maxMonthlyVolume = maxMonthlyVolume,
         )
     }
@@ -92,7 +92,7 @@ class Agency private constructor(
             saturdayPickupAvailable: Boolean,
             saturdayDeliveryAvailable: Boolean,
             returnAvailable: Boolean,
-            coldChainType: ColdChainType,
+            supportedColdChainTypes: Set<ColdChainType>,
             maxMonthlyVolume: Int?,
         ): Agency {
             requireDomain(agencyName.isNotBlank(), AgencyErrorCode.INVALID_AGENCY_NAME)
@@ -127,7 +127,7 @@ class Agency private constructor(
                 saturdayPickupAvailable = saturdayPickupAvailable,
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
                 returnAvailable = returnAvailable,
-                coldChainType = coldChainType,
+                supportedColdChainTypes = normalizeColdChainTypes(supportedColdChainTypes),
                 maxMonthlyVolume = maxMonthlyVolume,
             )
         }
@@ -150,7 +150,7 @@ class Agency private constructor(
             saturdayPickupAvailable: Boolean,
             saturdayDeliveryAvailable: Boolean,
             returnAvailable: Boolean,
-            coldChainType: ColdChainType,
+            supportedColdChainTypes: Set<ColdChainType>,
             maxMonthlyVolume: Int?,
         ): Agency {
             return Agency(
@@ -171,9 +171,15 @@ class Agency private constructor(
                 saturdayPickupAvailable = saturdayPickupAvailable,
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
                 returnAvailable = returnAvailable,
-                coldChainType = coldChainType,
+                supportedColdChainTypes = normalizeColdChainTypes(supportedColdChainTypes),
                 maxMonthlyVolume = maxMonthlyVolume,
             )
+        }
+
+        private fun normalizeColdChainTypes(supportedColdChainTypes: Set<ColdChainType>): Set<ColdChainType> {
+            return supportedColdChainTypes
+                .ifEmpty { setOf(ColdChainType.NONE) }
+                .toSet()
         }
     }
 }

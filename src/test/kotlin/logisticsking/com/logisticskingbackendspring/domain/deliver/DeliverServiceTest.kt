@@ -5,6 +5,7 @@ import logisticsking.com.logisticskingbackendspring.app.deliver.command.CreateDe
 import logisticsking.com.logisticskingbackendspring.app.deliver.command.UpdateDeliverCommand
 import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
+import logisticsking.com.logisticskingbackendspring.domain.agency.AgencySearchCondition
 import logisticsking.com.logisticskingbackendspring.domain.agency.Carrier
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
@@ -190,7 +191,7 @@ class DeliverServiceTest {
             saturdayPickupAvailable = true,
             saturdayDeliveryAvailable = true,
             returnAvailable = true,
-            coldChainType = ColdChainType.NONE,
+            supportedColdChainTypes = setOf(ColdChainType.NONE),
             maxMonthlyVolume = 10000,
         )
     }
@@ -210,6 +211,20 @@ class DeliverServiceTest {
             return users.values.firstOrNull { it.loginId == loginId }
         }
 
+        override fun findByNameAndEmail(
+            name: String,
+            email: String,
+        ): User? {
+            return users.values.firstOrNull { it.name == name && it.email == email }
+        }
+
+        override fun findByLoginIdAndEmail(
+            loginId: String,
+            email: String,
+        ): User? {
+            return users.values.firstOrNull { it.loginId == loginId && it.email == email }
+        }
+
         override fun existsByLoginId(loginId: String): Boolean {
             return users.values.any { it.loginId == loginId }
         }
@@ -221,6 +236,16 @@ class DeliverServiceTest {
         override fun save(user: User): User {
             users[user.id] = user
             return user
+        }
+
+        override fun updatePassword(
+            id: UUID,
+            encodedPassword: String,
+        ): User? {
+            val user = users[id] ?: return null
+            val changed = user.changePassword(encodedPassword)
+            users[id] = changed
+            return changed
         }
     }
 
@@ -238,6 +263,13 @@ class DeliverServiceTest {
 
         override fun findById(id: UUID): Agency? {
             return agencies[id]
+        }
+
+        override fun findAll(
+            condition: AgencySearchCondition,
+            pageable: Pageable,
+        ): Page<Agency> {
+            return PageImpl(agencies.values.toList(), pageable, agencies.size.toLong())
         }
 
         override fun findByUserId(userId: UUID): Agency? {

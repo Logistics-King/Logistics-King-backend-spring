@@ -11,6 +11,18 @@ class User private constructor(
     val name: String,
     val role: UserRole,
 ) {
+    fun changePassword(encodedPassword: String): User {
+        requireDomain(encodedPassword.isNotBlank(), UserErrorCode.INVALID_PASSWORD)
+
+        return User(
+            id = id,
+            loginId = loginId,
+            email = email,
+            encodedPassword = encodedPassword,
+            name = name,
+            role = role,
+        )
+    }
 
     companion object {
         fun create(

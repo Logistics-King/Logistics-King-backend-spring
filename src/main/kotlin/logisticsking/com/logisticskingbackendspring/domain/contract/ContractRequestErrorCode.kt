@@ -28,10 +28,25 @@ enum class ContractRequestErrorCode(
         message = "화주 배송 품목을 찾을 수 없습니다.",
         status = HttpStatus.NOT_FOUND,
     ),
+    AGENCY_NOT_FOUND(
+        code = "CONTRACT_REQUEST_AGENCY_NOT_FOUND",
+        message = "대리점 프로필을 찾을 수 없습니다.",
+        status = HttpStatus.NOT_FOUND,
+    ),
     NOT_FOUND(
         code = "CONTRACT_REQUEST_NOT_FOUND",
         message = "계약 요청을 찾을 수 없습니다.",
         status = HttpStatus.NOT_FOUND,
+    ),
+    USER_ROLE_NOT_SUPPORTED(
+        code = "CONTRACT_REQUEST_USER_ROLE_NOT_SUPPORTED",
+        message = "계약 요청은 화주 또는 대리점 사용자만 등록할 수 있습니다.",
+        status = HttpStatus.FORBIDDEN,
+    ),
+    INVALID_CONTRACT_PARTY(
+        code = "CONTRACT_REQUEST_INVALID_PARTY",
+        message = "계약 요청의 요청자와 승인자 정보가 올바르지 않습니다.",
+        status = HttpStatus.BAD_REQUEST,
     ),
     INVALID_PICKUP_REGION(
         code = "INVALID_CONTRACT_REQUEST_PICKUP_REGION",
@@ -53,6 +68,21 @@ enum class ContractRequestErrorCode(
         message = "박스 크기는 필수입니다.",
         status = HttpStatus.BAD_REQUEST,
     ),
+    INVALID_ITEMS(
+        code = "INVALID_CONTRACT_REQUEST_ITEMS",
+        message = "계약 요청 배송 물품은 1개 이상이어야 합니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
+    INVALID_ITEM_QUANTITY(
+        code = "INVALID_CONTRACT_REQUEST_ITEM_QUANTITY",
+        message = "배송 물품 라인의 박스 수량 또는 낱개 수량 중 하나는 1 이상이어야 합니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
+    INVALID_AVERAGE_WEIGHT(
+        code = "INVALID_CONTRACT_REQUEST_AVERAGE_WEIGHT",
+        message = "평균 무게는 0 이상이어야 합니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
     INVALID_PICKUP_TIME(
         code = "INVALID_CONTRACT_REQUEST_PICKUP_TIME",
         message = "픽업 희망 시간은 필수입니다.",
@@ -61,6 +91,11 @@ enum class ContractRequestErrorCode(
     INVALID_TARGET_UNIT_PRICE(
         code = "INVALID_CONTRACT_REQUEST_TARGET_UNIT_PRICE",
         message = "희망 단가는 0 이상이어야 합니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
+    TARGET_UNIT_PRICE_REQUIRED(
+        code = "CONTRACT_REQUEST_TARGET_UNIT_PRICE_REQUIRED",
+        message = "계약 요청을 바로 수락하려면 단가가 필요합니다.",
         status = HttpStatus.BAD_REQUEST,
     ),
     CANCELED_REQUEST_CANNOT_BE_UPDATED(
@@ -76,6 +111,21 @@ enum class ContractRequestErrorCode(
     CONTRACTED_REQUEST_CANNOT_BE_CANCELED(
         code = "CONTRACTED_CONTRACT_REQUEST_CANNOT_BE_CANCELED",
         message = "계약이 확정된 계약 요청은 취소할 수 없습니다.",
+        status = HttpStatus.CONFLICT,
+    ),
+    REJECTED_REQUEST_CANNOT_BE_UPDATED(
+        code = "REJECTED_CONTRACT_REQUEST_CANNOT_BE_UPDATED",
+        message = "거절된 계약 요청은 수정할 수 없습니다.",
+        status = HttpStatus.CONFLICT,
+    ),
+    REJECTED_REQUEST_CANNOT_BE_CANCELED(
+        code = "REJECTED_CONTRACT_REQUEST_CANNOT_BE_CANCELED",
+        message = "거절된 계약 요청은 취소할 수 없습니다.",
+        status = HttpStatus.CONFLICT,
+    ),
+    ONLY_OPEN_REQUEST_CAN_BE_REJECTED(
+        code = "ONLY_OPEN_CONTRACT_REQUEST_CAN_BE_REJECTED",
+        message = "OPEN 상태의 계약 요청만 거절할 수 있습니다.",
         status = HttpStatus.CONFLICT,
     ),
     ONLY_OPEN_REQUEST_CAN_BE_CONTRACTED(

@@ -4,13 +4,20 @@ import logisticsking.com.logisticskingbackendspring.app.agency.command.CreateAge
 import logisticsking.com.logisticskingbackendspring.app.agency.command.UpdateAgencyCommand
 import logisticsking.com.logisticskingbackendspring.app.agency.result.AgencyResult
 import logisticsking.com.logisticskingbackendspring.app.agency.usecase.CreateAgencyUseCase
+import logisticsking.com.logisticskingbackendspring.app.agency.usecase.GetAgenciesUseCase
+import logisticsking.com.logisticskingbackendspring.app.agency.usecase.GetAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.app.agency.usecase.GetMyAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.app.agency.usecase.UpdateAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
+import logisticsking.com.logisticskingbackendspring.domain.common.ListViewScope
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
+import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -19,9 +26,12 @@ import java.util.UUID
 class AgencyService(
     private val userRepository: UserRepository,
     private val agencyRepository: AgencyRepository,
+    private val vendorRepository: VendorRepository,
     private val idGenerator: IdGenerator,
 ) : CreateAgencyUseCase,
     GetMyAgencyUseCase,
+    GetAgenciesUseCase,
+    GetAgencyUseCase,
     UpdateAgencyUseCase {
 
     @Transactional
@@ -49,7 +59,7 @@ class AgencyService(
             saturdayPickupAvailable = command.saturdayPickupAvailable,
             saturdayDeliveryAvailable = command.saturdayDeliveryAvailable,
             returnAvailable = command.returnAvailable,
-            coldChainType = command.coldChainType,
+            supportedColdChainTypes = command.supportedColdChainTypes,
             maxMonthlyVolume = command.maxMonthlyVolume,
         )
 
@@ -61,6 +71,35 @@ class AgencyService(
         findAgencyUser(userId)
 
         return AgencyResult.from(findAgencyByUserId(userId))
+    }
+
+    @Transactional(readOnly = true)
+    override fun getAgencies(
+        userId: UUID,
+        condition: AgencySearchCondition,
+        pageable: Pageable,
+    ): Page<AgencyResult> {
+        findVendorUser(userId)
+        val effectiveCondition = when (condition.scope) {
+            ListViewScope.ALL -> condition
+            ListViewScope.NEARBY -> {
+                val vendor = findVendorByUserId(userId)
+                condition.copy(region = vendor.mainRegion)
+            }
+        }
+
+        return agencyRepository.findAll(effectiveCondition, pageable)
+            .map(AgencyResult::from)
+    }
+
+    @Transactional(readOnly = true)
+    override fun getAgency(
+        userId: UUID,
+        agencyId: UUID,
+    ): AgencyResult {
+        findVendorUser(userId)
+
+        return AgencyResult.from(findAgencyById(agencyId))
     }
 
     @Transactional
@@ -83,7 +122,7 @@ class AgencyService(
             saturdayPickupAvailable = command.saturdayPickupAvailable,
             saturdayDeliveryAvailable = command.saturdayDeliveryAvailable,
             returnAvailable = command.returnAvailable,
-            coldChainType = command.coldChainType,
+            supportedColdChainTypes = command.supportedColdChainTypes,
             maxMonthlyVolume = command.maxMonthlyVolume,
         )
 
@@ -100,8 +139,28 @@ class AgencyService(
         return user
     }
 
+    private fun findVendorUser(userId: UUID): User {
+        val user = userRepository.findById(userId)
+            ?: throw GlobalException(AgencyErrorCode.USER_NOT_FOUND)
+        if (user.role != UserRole.VENDOR) {
+            throw GlobalException(AgencyErrorCode.USER_IS_NOT_VENDOR)
+        }
+
+        return user
+    }
+
+    private fun findAgencyById(agencyId: UUID): Agency {
+        return agencyRepository.findById(agencyId)
+            ?: throw GlobalException(AgencyErrorCode.AGENCY_NOT_FOUND)
+    }
+
     private fun findAgencyByUserId(userId: UUID): Agency {
         return agencyRepository.findByUserId(userId)
             ?: throw GlobalException(AgencyErrorCode.AGENCY_NOT_FOUND)
+    }
+
+    private fun findVendorByUserId(userId: UUID): Vendor {
+        return vendorRepository.findByUserId(userId)
+            ?: throw GlobalException(AgencyErrorCode.VENDOR_NOT_FOUND)
     }
 }

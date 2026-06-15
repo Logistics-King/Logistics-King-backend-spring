@@ -10,6 +10,9 @@ import logisticsking.com.logisticskingbackendspring.app.auth.dto.AuthResponse
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.LoginUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.LogoutUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.RefreshTokenUseCase
+import logisticsking.com.logisticskingbackendspring.app.auth.usecase.RequestLoginIdRecoveryUseCase
+import logisticsking.com.logisticskingbackendspring.app.auth.usecase.RequestPasswordResetUseCase
+import logisticsking.com.logisticskingbackendspring.app.auth.usecase.ResetPasswordUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.SignUpUseCase
 import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
 import logisticsking.com.logisticskingbackendspring.domain.auth.AuthErrorCode
@@ -32,6 +35,9 @@ class AuthController(
     private val loginUseCase: LoginUseCase,
     private val refreshTokenUseCase: RefreshTokenUseCase,
     private val logoutUseCase: LogoutUseCase,
+    private val requestLoginIdRecoveryUseCase: RequestLoginIdRecoveryUseCase,
+    private val requestPasswordResetUseCase: RequestPasswordResetUseCase,
+    private val resetPasswordUseCase: ResetPasswordUseCase,
     private val tokenCookieManager: TokenCookieManager,
 ) {
 
@@ -145,5 +151,62 @@ class AuthController(
                 loggedOut = result.loggedOut,
             )
         )
+    }
+
+    @Operation(
+        summary = "아이디 찾기 이메일 발송 요청",
+        description = "이름과 이메일이 일치하면 로그인 ID를 이메일로 발송합니다. 계정 존재 여부는 응답으로 노출하지 않습니다.",
+    )
+    @PostMapping("/recovery/login-id")
+    fun requestLoginIdRecovery(
+        @Valid @RequestBody request: AuthRequest.RequestLoginIdRecovery,
+    ): ApiResponse<AuthResponse.AccountRecoveryRequest> {
+        val result = requestLoginIdRecoveryUseCase.requestLoginIdRecovery(request.toCommand())
+
+        return ApiResponse.success(
+            response = AuthResponse.AccountRecoveryRequest(
+                accepted = result.accepted,
+                message = ACCOUNT_RECOVERY_ACCEPTED_MESSAGE,
+            )
+        )
+    }
+
+    @Operation(
+        summary = "비밀번호 재설정 이메일 인증 요청",
+        description = "로그인 ID와 이메일이 일치하면 1분 동안 유효한 비밀번호 재설정 토큰을 이메일로 발송합니다. 계정 존재 여부는 응답으로 노출하지 않습니다.",
+    )
+    @PostMapping("/password-reset/request")
+    fun requestPasswordReset(
+        @Valid @RequestBody request: AuthRequest.RequestPasswordReset,
+    ): ApiResponse<AuthResponse.AccountRecoveryRequest> {
+        val result = requestPasswordResetUseCase.requestPasswordReset(request.toCommand())
+
+        return ApiResponse.success(
+            response = AuthResponse.AccountRecoveryRequest(
+                accepted = result.accepted,
+                message = ACCOUNT_RECOVERY_ACCEPTED_MESSAGE,
+            )
+        )
+    }
+
+    @Operation(
+        summary = "비밀번호 재설정 확정",
+        description = "이메일로 받은 재설정 토큰을 검증하고 새 비밀번호로 변경합니다.",
+    )
+    @PostMapping("/password-reset/confirm")
+    fun resetPassword(
+        @Valid @RequestBody request: AuthRequest.ResetPassword,
+    ): ApiResponse<AuthResponse.ResetPassword> {
+        val result = resetPasswordUseCase.resetPassword(request.toCommand())
+
+        return ApiResponse.success(
+            response = AuthResponse.ResetPassword(
+                reset = result.reset,
+            )
+        )
+    }
+
+    private companion object {
+        private const val ACCOUNT_RECOVERY_ACCEPTED_MESSAGE = "입력한 정보가 일치하면 이메일을 발송합니다."
     }
 }
