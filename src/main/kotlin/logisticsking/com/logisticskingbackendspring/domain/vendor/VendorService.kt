@@ -12,15 +12,11 @@ import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetMyVend
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetVendorProductsUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorProductUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorUseCase
-import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
-import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
-import logisticsking.com.logisticskingbackendspring.domain.common.ListViewScope
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -30,11 +26,9 @@ import java.util.UUID
 @Service
 class VendorService(
     private val userRepository: UserRepository,
-    private val agencyRepository: AgencyRepository,
     private val vendorRepository: VendorRepository,
     private val vendorProductRepository: VendorProductRepository,
     private val idGenerator: IdGenerator,
-    @Value("\${vendor.product.agency-public-read-enabled:true}") private val agencyPublicReadEnabled: Boolean,
 ) : CreateVendorUseCase,
     GetMyVendorUseCase,
     UpdateVendorUseCase,
@@ -130,48 +124,6 @@ class VendorService(
             .map(VendorProductResult::from)
     }
 
-    @Transactional(readOnly = true)
-    override fun getProductsByVendorIdForAgency(
-        userId: UUID,
-        vendorId: UUID,
-        condition: VendorProductSearchCondition,
-        pageable: Pageable,
-    ): Page<VendorProductResult> {
-        if (!agencyPublicReadEnabled) {
-            throw GlobalException(VendorErrorCode.AGENCY_PRODUCT_PUBLIC_READ_DISABLED)
-        }
-        findAgencyUser(userId)
-        vendorRepository.findById(vendorId)
-            ?: throw GlobalException(VendorErrorCode.VENDOR_NOT_FOUND)
-
-        return vendorProductRepository.findAllByVendorId(vendorId, condition, pageable)
-            .map(VendorProductResult::from)
-    }
-
-    @Transactional(readOnly = true)
-    override fun getPublicProductsForAgency(
-        userId: UUID,
-        condition: VendorProductSearchCondition,
-        pageable: Pageable,
-    ): Page<VendorProductResult> {
-        if (!agencyPublicReadEnabled) {
-            throw GlobalException(VendorErrorCode.AGENCY_PRODUCT_PUBLIC_READ_DISABLED)
-        }
-        val agencyUser = findAgencyUser(userId)
-
-        val products = when (condition.scope) {
-            ListViewScope.ALL -> vendorProductRepository.findAllWithVendor(condition, pageable)
-            ListViewScope.NEARBY -> vendorProductRepository.findNearbyWithVendorForAgency(
-                agency = findAgencyByUserId(agencyUser.id),
-                condition = condition,
-                pageable = pageable,
-            )
-        }
-
-        return products
-            .map(VendorProductResult::from)
-    }
-
     @Transactional
     override fun updateProduct(command: UpdateVendorProductCommand): VendorProductResult {
         findVendorUser(command.userId)
@@ -211,23 +163,8 @@ class VendorService(
         return user
     }
 
-    private fun findAgencyUser(userId: UUID): User {
-        val user = userRepository.findById(userId)
-            ?: throw GlobalException(VendorErrorCode.USER_NOT_FOUND)
-        if (user.role != UserRole.AGENCY) {
-            throw GlobalException(VendorErrorCode.USER_IS_NOT_AGENCY)
-        }
-
-        return user
-    }
-
     private fun findVendorByUserId(userId: UUID): Vendor {
         return vendorRepository.findByUserId(userId)
             ?: throw GlobalException(VendorErrorCode.VENDOR_NOT_FOUND)
-    }
-
-    private fun findAgencyByUserId(userId: UUID): Agency {
-        return agencyRepository.findByUserId(userId)
-            ?: throw GlobalException(VendorErrorCode.AGENCY_NOT_FOUND)
     }
 }

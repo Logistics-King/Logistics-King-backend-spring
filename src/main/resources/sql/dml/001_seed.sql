@@ -9,8 +9,6 @@ VALUES
     ('/api/v1/vendors/me/products', 'POST', '["ADMIN","VENDOR"]', '계약 요청과 단가 산정에 사용할 배송 품목 프로필을 생성합니다.', NOW(6), NOW(6)),
     ('/api/v1/vendors/me/products', 'GET', '["ADMIN","VENDOR"]', '로그인한 화주의 배송 품목 프로필 목록을 조회합니다.', NOW(6), NOW(6)),
     ('/api/v1/vendors/me/products/{productId}', 'PUT', '["ADMIN","VENDOR"]', '로그인한 화주의 배송 품목 프로필을 수정합니다.', NOW(6), NOW(6)),
-    ('/api/v1/vendors/products', 'GET', '["ADMIN","AGENCY"]', '대리점이 일감 조회에서 모든 화주의 배송 품목 프로필 목록을 조회합니다.', NOW(6), NOW(6)),
-    ('/api/v1/vendors/{vendorId}/products', 'GET', '["ADMIN","AGENCY"]', '대리점이 특정 화주의 배송 품목 프로필 목록을 조회합니다.', NOW(6), NOW(6)),
     ('/api/v1/contract-requests', 'POST', '["ADMIN","VENDOR","AGENCY"]', '화주 또는 대리점이 상대방에게 계약 요청을 생성합니다.', NOW(6), NOW(6)),
     ('/api/v1/contract-requests', 'GET', '["ADMIN","VENDOR","AGENCY"]', '로그인한 사용자가 요청자로 생성한 계약 요청 목록을 조회합니다.', NOW(6), NOW(6)),
     ('/api/v1/contract-requests/received', 'GET', '["ADMIN","VENDOR","AGENCY"]', '로그인한 사용자가 승인자로 지정된 계약 요청 목록을 조회합니다.', NOW(6), NOW(6)),

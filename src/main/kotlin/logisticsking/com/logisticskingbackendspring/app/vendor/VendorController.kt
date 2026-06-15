@@ -15,7 +15,6 @@ import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVen
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
-import logisticsking.com.logisticskingbackendspring.domain.common.ListViewScope
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductSearchCondition
@@ -110,64 +109,6 @@ class VendorController(
     ): ApiResponse<VendorResponse.ProductList> {
         val results = getVendorProductsUseCase.getProducts(
             userId = user.userId,
-            condition = VendorProductSearchCondition(
-                name = name,
-                category = category,
-                boxSize = boxSize,
-                coldChainType = coldChainType,
-            ),
-            pageable = pageable,
-        )
-
-        return ApiResponse.success(
-            response = VendorResponse.ProductList.from(results),
-        )
-    }
-
-    @EndpointAccess(roles = [UserRole.AGENCY])
-    @Operation(summary = "화주 배송 품목 전체 공개 목록 조회", description = "대리점이 일감 조회에서 모든 화주의 배송 품목 프로필 목록을 조회합니다. 프로토타입에서는 전체 조회를 허용합니다.")
-    @GetMapping("/products")
-    fun getPublicProductsForAgency(
-        @AuthenticationPrincipal user: AuthenticatedUser,
-        @RequestParam(required = false) name: String?,
-        @RequestParam(required = false) category: ProductCategory?,
-        @RequestParam(required = false) boxSize: BoxSize?,
-        @RequestParam(required = false) coldChainType: ColdChainType?,
-        @RequestParam(required = false, defaultValue = "ALL") scope: ListViewScope,
-        @PageableDefault(size = 20) pageable: Pageable,
-    ): ApiResponse<VendorResponse.ProductList> {
-        val results = getVendorProductsUseCase.getPublicProductsForAgency(
-            userId = user.userId,
-            condition = VendorProductSearchCondition(
-                name = name,
-                category = category,
-                boxSize = boxSize,
-                coldChainType = coldChainType,
-                scope = scope,
-            ),
-            pageable = pageable,
-        )
-
-        return ApiResponse.success(
-            response = VendorResponse.ProductList.from(results),
-        )
-    }
-
-    @EndpointAccess(roles = [UserRole.AGENCY])
-    @Operation(summary = "특정 화주 배송 품목 공개 목록 조회", description = "대리점이 특정 화주의 배송 품목 프로필 목록을 조회합니다. 프로토타입에서는 전체 조회를 허용합니다.")
-    @GetMapping("/{vendorId}/products")
-    fun getVendorProductsForAgency(
-        @AuthenticationPrincipal user: AuthenticatedUser,
-        @PathVariable vendorId: UUID,
-        @RequestParam(required = false) name: String?,
-        @RequestParam(required = false) category: ProductCategory?,
-        @RequestParam(required = false) boxSize: BoxSize?,
-        @RequestParam(required = false) coldChainType: ColdChainType?,
-        @PageableDefault(size = 20) pageable: Pageable,
-    ): ApiResponse<VendorResponse.ProductList> {
-        val results = getVendorProductsUseCase.getProductsByVendorIdForAgency(
-            userId = user.userId,
-            vendorId = vendorId,
             condition = VendorProductSearchCondition(
                 name = name,
                 category = category,

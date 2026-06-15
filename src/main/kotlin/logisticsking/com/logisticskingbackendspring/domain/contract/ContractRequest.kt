@@ -48,6 +48,8 @@ class ContractRequest private constructor(
     val targetUnitPrice: BigDecimal?,
     // 대리점이 제안할 때 참고할 추가 요청 사항.
     val memo: String?,
+    // 같은 배송 조건으로 묶은 배송 물품 라인 목록.
+    val items: List<ContractRequestItem>,
     // 계약 요청 진행 상태.
     val status: ContractRequestStatus,
 ) {
@@ -95,6 +97,7 @@ class ContractRequest private constructor(
         coldChainType: ColdChainType,
         targetUnitPrice: BigDecimal?,
         memo: String?,
+        items: List<ContractRequestItem>,
     ): ContractRequest {
         requireDomain(
             status != ContractRequestStatus.CANCELED,
@@ -128,6 +131,7 @@ class ContractRequest private constructor(
             coldChainType = coldChainType,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
+            items = items,
             status = status,
         )
     }
@@ -163,6 +167,7 @@ class ContractRequest private constructor(
             coldChainType = coldChainType,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
+            items = items,
             status = ContractRequestStatus.CANCELED,
         )
     }
@@ -194,6 +199,7 @@ class ContractRequest private constructor(
             coldChainType = coldChainType,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
+            items = items,
             status = ContractRequestStatus.CONTRACTED,
         )
     }
@@ -225,6 +231,7 @@ class ContractRequest private constructor(
             coldChainType = coldChainType,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
+            items = items,
             status = ContractRequestStatus.REJECTED,
         )
     }
@@ -249,6 +256,7 @@ class ContractRequest private constructor(
             coldChainType: ColdChainType,
             targetUnitPrice: BigDecimal?,
             memo: String?,
+            items: List<ContractRequestItem>,
             status: ContractRequestStatus = ContractRequestStatus.OPEN,
         ): ContractRequest {
             requireDomain(
@@ -258,6 +266,7 @@ class ContractRequest private constructor(
             requireDomain(pickupRegion.isNotBlank(), ContractRequestErrorCode.INVALID_PICKUP_REGION)
             requireDomain(monthlyVolume > 0, ContractRequestErrorCode.INVALID_MONTHLY_VOLUME)
             requireDomain(productName.isNotBlank(), ContractRequestErrorCode.INVALID_PRODUCT_NAME)
+            requireDomain(items.isNotEmpty(), ContractRequestErrorCode.INVALID_ITEMS)
             requireDomain(
                 pickupStartTime.isNotBlank() && pickupEndTime.isNotBlank(),
                 ContractRequestErrorCode.INVALID_PICKUP_TIME,
@@ -266,6 +275,11 @@ class ContractRequest private constructor(
                 targetUnitPrice == null || targetUnitPrice >= BigDecimal.ZERO,
                 ContractRequestErrorCode.INVALID_TARGET_UNIT_PRICE,
             )
+
+            val normalizedItems = items.map {
+                it.copy(productName = it.productName.trim())
+            }
+            val representativeItem = normalizedItems.first()
 
             return ContractRequest(
                 id = id,
@@ -278,16 +292,17 @@ class ContractRequest private constructor(
                 pickupRegion = pickupRegion.trim(),
                 pickupAddress = pickupAddress?.trim()?.takeIf { it.isNotBlank() },
                 monthlyVolume = monthlyVolume,
-                productCategory = productCategory,
-                productName = productName.trim(),
-                boxSize = boxSize,
+                productCategory = representativeItem.productCategory,
+                productName = representativeItem.productName,
+                boxSize = representativeItem.boxSize,
                 pickupStartTime = pickupStartTime.trim(),
                 pickupEndTime = pickupEndTime.trim(),
                 saturdayDeliveryRequired = saturdayDeliveryRequired,
                 returnRequired = returnRequired,
-                coldChainType = coldChainType,
+                coldChainType = representativeItem.coldChainType,
                 targetUnitPrice = targetUnitPrice,
                 memo = memo?.trim()?.takeIf { it.isNotBlank() },
+                items = normalizedItems,
                 status = status,
             )
         }
@@ -313,6 +328,7 @@ class ContractRequest private constructor(
             coldChainType: ColdChainType,
             targetUnitPrice: BigDecimal?,
             memo: String?,
+            items: List<ContractRequestItem>,
             status: ContractRequestStatus,
         ): ContractRequest {
             requireDomain(
@@ -341,6 +357,25 @@ class ContractRequest private constructor(
                 coldChainType = coldChainType,
                 targetUnitPrice = targetUnitPrice,
                 memo = memo,
+                items = items.ifEmpty {
+                    listOf(
+                        ContractRequestItem.create(
+                            id = id,
+                            productId = productId,
+                            productCategory = productCategory,
+                            productName = productName,
+                            boxSize = boxSize,
+                            boxQuantity = monthlyVolume,
+                            itemQuantity = 0,
+                            averageWeightGram = null,
+                            fragile = false,
+                            liquid = false,
+                            freshFood = false,
+                            coldChainType = coldChainType,
+                            targetUnitPrice = targetUnitPrice,
+                        )
+                    )
+                },
                 status = status,
             )
         }

@@ -2,6 +2,7 @@ package logisticsking.com.logisticskingbackendspring.domain.contract
 
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CancelContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.ContractRequestDecisionCommand
+import logisticsking.com.logisticskingbackendspring.app.contract.command.ContractRequestItemCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CreateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.GetContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.GetReceivedContractRequestsCommand
@@ -53,7 +54,10 @@ class ContractRequestService(
     override fun create(command: CreateContractRequestCommand): ContractRequestResult {
         val requester = findRequester(command.userId, command.type)
         validateApprover(command.type, command.approverId)
-        validateProduct(command.productId, vendorIdOf(command.type, requester.id, command.approverId))
+        val vendorId = vendorIdOf(command.type, requester.id, command.approverId)
+        validateProduct(command.productId, vendorId)
+        validateItemProducts(command.items, vendorId)
+        val items = createItems(command.items)
 
         val contractRequest = ContractRequest.create(
             id = idGenerator.generate(),
@@ -74,6 +78,7 @@ class ContractRequestService(
             coldChainType = command.coldChainType,
             targetUnitPrice = command.targetUnitPrice,
             memo = command.memo,
+            items = items,
         )
 
         return ContractRequestResult.from(contractRequestRepository.save(contractRequest))
@@ -121,6 +126,8 @@ class ContractRequestService(
         val party = findParty(command.userId)
         val contractRequest = findContractRequestForUpdate(command.contractRequestId, party)
         validateProduct(command.productId, contractRequest.vendorId)
+        validateItemProducts(command.items, contractRequest.vendorId)
+        val items = createItems(command.items)
 
         val updated = contractRequest.update(
             productId = command.productId,
@@ -137,6 +144,7 @@ class ContractRequestService(
             coldChainType = command.coldChainType,
             targetUnitPrice = command.targetUnitPrice,
             memo = command.memo,
+            items = items,
         )
 
         return ContractRequestResult.from(contractRequestRepository.save(updated))
@@ -267,6 +275,35 @@ class ContractRequestService(
 
         vendorProductRepository.findByIdAndVendorId(productId, vendorId)
             ?: throw GlobalException(ContractRequestErrorCode.PRODUCT_NOT_FOUND)
+    }
+
+    private fun validateItemProducts(
+        items: List<ContractRequestItemCommand>,
+        vendorId: UUID,
+    ) {
+        items.mapNotNull(ContractRequestItemCommand::productId)
+            .distinct()
+            .forEach { validateProduct(it, vendorId) }
+    }
+
+    private fun createItems(items: List<ContractRequestItemCommand>): List<ContractRequestItem> {
+        return items.map { item ->
+            ContractRequestItem.create(
+                id = idGenerator.generate(),
+                productId = item.productId,
+                productCategory = item.productCategory,
+                productName = item.productName,
+                boxSize = item.boxSize,
+                boxQuantity = item.boxQuantity,
+                itemQuantity = item.itemQuantity,
+                averageWeightGram = item.averageWeightGram,
+                fragile = item.fragile,
+                liquid = item.liquid,
+                freshFood = item.freshFood,
+                coldChainType = item.coldChainType,
+                targetUnitPrice = item.targetUnitPrice,
+            )
+        }
     }
 
     private fun findContractRequestForUpdate(

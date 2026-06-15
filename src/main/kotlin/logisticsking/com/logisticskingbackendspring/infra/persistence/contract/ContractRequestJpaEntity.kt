@@ -92,7 +92,7 @@ class ContractRequestJpaEntity(
     val status: ContractRequestStatus,
 ) : BaseJpaEntity() {
 
-    fun toDomain(): ContractRequest {
+    fun toDomain(items: List<ContractRequestItemJpaEntity> = emptyList()): ContractRequest {
         return ContractRequest.restore(
             id = id,
             type = type,
@@ -114,6 +114,7 @@ class ContractRequestJpaEntity(
             coldChainType = coldChainType,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
+            items = items.map(ContractRequestItemJpaEntity::toDomain),
             status = status,
         )
     }

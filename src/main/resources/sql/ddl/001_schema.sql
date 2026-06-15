@@ -115,6 +115,30 @@ CREATE TABLE IF NOT EXISTS contract_requests (
     KEY idx_contract_requests_open_agency (type, status, approver_type, approver_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS contract_request_items (
+    id BINARY(16) NOT NULL,
+    contract_request_id BINARY(16) NOT NULL,
+    product_id BINARY(16) NULL,
+    product_category VARCHAR(30) NOT NULL,
+    product_name VARCHAR(100) NOT NULL,
+    box_size VARCHAR(30) NOT NULL,
+    box_quantity INT NOT NULL,
+    item_quantity INT NOT NULL,
+    average_weight_gram INT NULL,
+    fragile BOOLEAN NOT NULL,
+    liquid BOOLEAN NOT NULL,
+    fresh_food BOOLEAN NOT NULL,
+    cold_chain_type VARCHAR(30) NOT NULL,
+    target_unit_price DECIMAL(15, 2) NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_contract_request_items_request_id (contract_request_id),
+    KEY idx_contract_request_items_product_id (product_id),
+    KEY idx_contract_request_items_cold_chain (cold_chain_type),
+    KEY idx_contract_request_items_box_size (box_size)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS proposals (
     id BINARY(16) NOT NULL,
     contract_request_id BINARY(16) NOT NULL,

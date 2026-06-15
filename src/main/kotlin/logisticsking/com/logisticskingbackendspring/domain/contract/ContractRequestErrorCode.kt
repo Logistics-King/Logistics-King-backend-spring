@@ -68,6 +68,21 @@ enum class ContractRequestErrorCode(
         message = "박스 크기는 필수입니다.",
         status = HttpStatus.BAD_REQUEST,
     ),
+    INVALID_ITEMS(
+        code = "INVALID_CONTRACT_REQUEST_ITEMS",
+        message = "계약 요청 배송 물품은 1개 이상이어야 합니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
+    INVALID_ITEM_QUANTITY(
+        code = "INVALID_CONTRACT_REQUEST_ITEM_QUANTITY",
+        message = "배송 물품 라인의 박스 수량 또는 낱개 수량 중 하나는 1 이상이어야 합니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
+    INVALID_AVERAGE_WEIGHT(
+        code = "INVALID_CONTRACT_REQUEST_AVERAGE_WEIGHT",
+        message = "평균 무게는 0 이상이어야 합니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
     INVALID_PICKUP_TIME(
         code = "INVALID_CONTRACT_REQUEST_PICKUP_TIME",
         message = "픽업 희망 시간은 필수입니다.",

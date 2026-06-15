@@ -18,16 +18,6 @@ enum class VendorErrorCode(
         message = "화주 권한 사용자만 사용할 수 있습니다.",
         status = HttpStatus.FORBIDDEN,
     ),
-    USER_IS_NOT_AGENCY(
-        code = "USER_IS_NOT_AGENCY",
-        message = "대리점 권한 사용자만 사용할 수 있습니다.",
-        status = HttpStatus.FORBIDDEN,
-    ),
-    AGENCY_PRODUCT_PUBLIC_READ_DISABLED(
-        code = "AGENCY_PRODUCT_PUBLIC_READ_DISABLED",
-        message = "대리점의 화주 배송 품목 전체 조회가 비활성화되어 있습니다.",
-        status = HttpStatus.FORBIDDEN,
-    ),
     VENDOR_ALREADY_EXISTS(
         code = "VENDOR_ALREADY_EXISTS",
         message = "이미 화주 프로필이 존재합니다.",
@@ -36,11 +26,6 @@ enum class VendorErrorCode(
     VENDOR_NOT_FOUND(
         code = "VENDOR_NOT_FOUND",
         message = "화주 프로필을 찾을 수 없습니다.",
-        status = HttpStatus.NOT_FOUND,
-    ),
-    AGENCY_NOT_FOUND(
-        code = "VENDOR_AGENCY_NOT_FOUND",
-        message = "대리점 프로필을 찾을 수 없습니다.",
         status = HttpStatus.NOT_FOUND,
     ),
     PRODUCT_NOT_FOUND(

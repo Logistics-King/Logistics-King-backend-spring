@@ -84,6 +84,23 @@ class ContractTest {
             coldChainType = ColdChainType.NONE,
             targetUnitPrice = BigDecimal("2000"),
             memo = "의류 중심",
+            items = listOf(
+                ContractRequestItem.create(
+                    id = UUID.randomUUID(),
+                    productId = null,
+                    productCategory = ProductCategory.CLOTHING,
+                    productName = "일반 의류",
+                    boxSize = BoxSize.SIZE_60,
+                    boxQuantity = 800,
+                    itemQuantity = 0,
+                    averageWeightGram = null,
+                    fragile = false,
+                    liquid = false,
+                    freshFood = false,
+                    coldChainType = ColdChainType.NONE,
+                    targetUnitPrice = BigDecimal("2000"),
+                )
+            ),
         )
     }
 

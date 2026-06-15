@@ -42,6 +42,73 @@ class ContractRequestTest {
     }
 
     @Test
+    fun `create 성공 시 여러 배송 물품 라인을 가진 계약 요청을 생성한다`() {
+        val contractRequest = contractRequest(
+            monthlyVolume = 12,
+            boxSize = BoxSize.SIZE_60,
+        )
+
+        val frozenItem = contractRequestItem(
+            productName = "냉동 식품",
+            boxSize = BoxSize.SIZE_100,
+            boxQuantity = 4,
+            coldChainType = ColdChainType.FROZEN,
+        )
+        val updated = contractRequest.update(
+            productId = null,
+            pickupRegion = contractRequest.pickupRegion,
+            pickupAddress = contractRequest.pickupAddress,
+            monthlyVolume = 12,
+            productCategory = ProductCategory.CLOTHING,
+            productName = "대표 품목",
+            boxSize = BoxSize.SIZE_60,
+            pickupStartTime = contractRequest.pickupStartTime,
+            pickupEndTime = contractRequest.pickupEndTime,
+            saturdayDeliveryRequired = contractRequest.saturdayDeliveryRequired,
+            returnRequired = contractRequest.returnRequired,
+            coldChainType = ColdChainType.NONE,
+            targetUnitPrice = contractRequest.targetUnitPrice,
+            memo = contractRequest.memo,
+            items = listOf(contractRequestItem(boxQuantity = 8), frozenItem),
+        )
+
+        assertEquals(2, updated.items.size)
+        assertEquals(BoxSize.SIZE_60, updated.items[0].boxSize)
+        assertEquals(8, updated.items[0].boxQuantity)
+        assertEquals(ColdChainType.FROZEN, updated.items[1].coldChainType)
+        assertEquals(BoxSize.SIZE_60, updated.boxSize)
+    }
+
+    @Test
+    fun `create 시 배송 물품 라인이 비어 있으면 예외가 발생한다`() {
+        val exception = assertThrows(GlobalException::class.java) {
+            ContractRequest.create(
+                id = UUID.randomUUID(),
+                type = ContractRequestType.VENDOR_OFFER,
+                requesterId = UUID.randomUUID(),
+                approverId = null,
+                productId = null,
+                pickupRegion = "경기도 안산시 일동",
+                pickupAddress = null,
+                monthlyVolume = 1,
+                productCategory = ProductCategory.CLOTHING,
+                productName = "일반 의류",
+                boxSize = BoxSize.SIZE_60,
+                pickupStartTime = "09:00",
+                pickupEndTime = "18:00",
+                saturdayDeliveryRequired = true,
+                returnRequired = true,
+                coldChainType = ColdChainType.NONE,
+                targetUnitPrice = null,
+                memo = null,
+                items = emptyList(),
+            )
+        }
+
+        assertEquals(ContractRequestErrorCode.INVALID_ITEMS, exception.errorCode)
+    }
+
+    @Test
     fun `update 성공 시 기존 식별자를 유지하고 정보를 변경한다`() {
         val contractRequest = contractRequest()
         val productId = UUID.randomUUID()
@@ -61,6 +128,7 @@ class ContractRequestTest {
             coldChainType = ColdChainType.NONE,
             targetUnitPrice = BigDecimal("2100"),
             memo = "반품 회수 필요",
+            items = listOf(contractRequestItem(productId = productId, boxSize = BoxSize.SIZE_80)),
         )
 
         assertEquals(contractRequest.id, updated.id)
@@ -139,6 +207,7 @@ class ContractRequestTest {
                 coldChainType = ColdChainType.NONE,
                 targetUnitPrice = BigDecimal("2100"),
                 memo = null,
+                items = listOf(contractRequestItem(boxSize = BoxSize.SIZE_80)),
             )
         }
 
@@ -165,6 +234,7 @@ class ContractRequestTest {
                 coldChainType = ColdChainType.NONE,
                 targetUnitPrice = BigDecimal("2100"),
                 memo = null,
+                items = listOf(contractRequestItem(boxSize = BoxSize.SIZE_80)),
             )
         }
 
@@ -191,6 +261,7 @@ class ContractRequestTest {
                 coldChainType = ColdChainType.NONE,
                 targetUnitPrice = BigDecimal("2100"),
                 memo = null,
+                items = listOf(contractRequestItem(boxSize = BoxSize.SIZE_80)),
             )
         }
 
@@ -250,6 +321,41 @@ class ContractRequestTest {
             coldChainType = ColdChainType.NONE,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
+            items = listOf(
+                contractRequestItem(
+                    productId = productId,
+                    productName = productName,
+                    boxSize = boxSize,
+                    boxQuantity = monthlyVolume.takeIf { it > 0 } ?: 1,
+                    targetUnitPrice = targetUnitPrice,
+                )
+            ),
+        )
+    }
+
+    private fun contractRequestItem(
+        productId: UUID? = null,
+        productName: String = "일반 의류",
+        boxSize: BoxSize = BoxSize.SIZE_60,
+        boxQuantity: Int = 800,
+        itemQuantity: Int = 0,
+        coldChainType: ColdChainType = ColdChainType.NONE,
+        targetUnitPrice: BigDecimal? = BigDecimal("2000"),
+    ): ContractRequestItem {
+        return ContractRequestItem.create(
+            id = UUID.randomUUID(),
+            productId = productId,
+            productCategory = ProductCategory.CLOTHING,
+            productName = productName,
+            boxSize = boxSize,
+            boxQuantity = boxQuantity,
+            itemQuantity = itemQuantity,
+            averageWeightGram = null,
+            fragile = false,
+            liquid = false,
+            freshFood = false,
+            coldChainType = coldChainType,
+            targetUnitPrice = targetUnitPrice,
         )
     }
 }

@@ -25,6 +25,7 @@ data class CreateContractRequestCommand(
     val coldChainType: ColdChainType,
     val targetUnitPrice: BigDecimal?,
     val memo: String?,
+    val items: List<ContractRequestItemCommand>,
 )
 
 data class UpdateContractRequestCommand(
@@ -44,6 +45,22 @@ data class UpdateContractRequestCommand(
     val coldChainType: ColdChainType,
     val targetUnitPrice: BigDecimal?,
     val memo: String?,
+    val items: List<ContractRequestItemCommand>,
+)
+
+data class ContractRequestItemCommand(
+    val productId: UUID?,
+    val productCategory: ProductCategory,
+    val productName: String,
+    val boxSize: BoxSize,
+    val boxQuantity: Int,
+    val itemQuantity: Int,
+    val averageWeightGram: Int?,
+    val fragile: Boolean,
+    val liquid: Boolean,
+    val freshFood: Boolean,
+    val coldChainType: ColdChainType,
+    val targetUnitPrice: BigDecimal?,
 )
 
 data class GetContractRequestCommand(

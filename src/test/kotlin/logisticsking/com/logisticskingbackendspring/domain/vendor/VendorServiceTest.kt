@@ -2,10 +2,6 @@ package logisticsking.com.logisticskingbackendspring.domain.vendor
 
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorProductCommand
-import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
-import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
-import logisticsking.com.logisticskingbackendspring.domain.agency.AgencySearchCondition
-import logisticsking.com.logisticskingbackendspring.domain.agency.Carrier
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
@@ -74,7 +70,7 @@ class VendorServiceTest {
     fun `createProduct 성공 시 화주 배송 품목을 저장한다`() {
         val user = user(role = UserRole.VENDOR)
         val vendorRepository = FakeVendorRepository()
-        val productRepository = FakeVendorProductRepository(vendorRepository)
+        val productRepository = FakeVendorProductRepository()
         val service = vendorService(
             userRepository = FakeUserRepository(user),
             vendorRepository = vendorRepository,
@@ -131,112 +127,6 @@ class VendorServiceTest {
     }
 
     @Test
-    fun `대리점은 프로토타입 정책상 특정 화주의 배송 품목을 조회할 수 있다`() {
-        val vendorUser = user(role = UserRole.VENDOR)
-        val agencyUser = user(role = UserRole.AGENCY)
-        val vendorRepository = FakeVendorRepository()
-        val productRepository = FakeVendorProductRepository()
-        val service = vendorService(
-            userRepository = FakeUserRepository(vendorUser, agencyUser),
-            vendorRepository = vendorRepository,
-            vendorProductRepository = productRepository,
-            idGenerator = QueueIdGenerator(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()),
-        )
-        val vendor = service.create(createVendorCommand(vendorUser.id))
-        service.createProduct(createVendorProductCommand(vendorUser.id))
-        service.createProduct(
-            createVendorProductCommand(
-                userId = vendorUser.id,
-                category = ProductCategory.ELECTRONICS,
-                name = "노트북",
-                boxSize = BoxSize.SIZE_100,
-            )
-        )
-
-        val result = service.getProductsByVendorIdForAgency(
-            userId = agencyUser.id,
-            vendorId = vendor.vendorId,
-            condition = VendorProductSearchCondition(
-                name = "의류",
-                category = ProductCategory.CLOTHING,
-                boxSize = BoxSize.SIZE_60,
-                coldChainType = null,
-            ),
-            pageable = PageRequest.of(0, 20),
-        )
-
-        assertEquals(1, result.totalElements)
-        assertEquals("여성 의류", result.content.first().name)
-    }
-
-    @Test
-    fun `대리점은 일감 조회에서 모든 화주의 배송 품목을 조회할 수 있다`() {
-        val vendorUser = user(role = UserRole.VENDOR)
-        val anotherVendorUser = user(role = UserRole.VENDOR)
-        val agencyUser = user(role = UserRole.AGENCY)
-        val vendorRepository = FakeVendorRepository()
-        val productRepository = FakeVendorProductRepository(vendorRepository)
-        val service = vendorService(
-            userRepository = FakeUserRepository(vendorUser, anotherVendorUser, agencyUser),
-            vendorRepository = vendorRepository,
-            vendorProductRepository = productRepository,
-            idGenerator = QueueIdGenerator(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-            ),
-        )
-        service.create(createVendorCommand(vendorUser.id))
-        service.create(createVendorCommand(anotherVendorUser.id))
-        service.createProduct(createVendorProductCommand(vendorUser.id, name = "여성 의류"))
-        service.createProduct(createVendorProductCommand(anotherVendorUser.id, name = "남성 의류"))
-
-        val result = service.getPublicProductsForAgency(
-            userId = agencyUser.id,
-            condition = VendorProductSearchCondition(
-                name = "의류",
-                category = ProductCategory.CLOTHING,
-                boxSize = BoxSize.SIZE_60,
-                coldChainType = null,
-            ),
-            pageable = PageRequest.of(0, 20),
-        )
-
-        assertEquals(2, result.totalElements)
-        assertEquals("안산 옷가게", result.content.first().vendor?.businessName)
-    }
-
-    @Test
-    fun `대리점 배송 품목 전체 조회 토글이 꺼져 있으면 예외가 발생한다`() {
-        val vendorUser = user(role = UserRole.VENDOR)
-        val agencyUser = user(role = UserRole.AGENCY)
-        val vendorRepository = FakeVendorRepository()
-        val service = vendorService(
-            userRepository = FakeUserRepository(vendorUser, agencyUser),
-            vendorRepository = vendorRepository,
-            agencyPublicReadEnabled = false,
-        )
-        val vendor = service.create(createVendorCommand(vendorUser.id))
-
-        val exception = assertThrows(GlobalException::class.java) {
-            service.getProductsByVendorIdForAgency(
-                userId = agencyUser.id,
-                vendorId = vendor.vendorId,
-                condition = VendorProductSearchCondition(
-                    name = null,
-                    category = null,
-                    boxSize = null,
-                    coldChainType = null,
-                ),
-                pageable = PageRequest.of(0, 20),
-            )
-        }
-
-        assertEquals(VendorErrorCode.AGENCY_PRODUCT_PUBLIC_READ_DISABLED, exception.errorCode)
-    }
-
-    @Test
     fun `createProduct 시 화주 프로필이 없으면 예외가 발생한다`() {
         val user = user(role = UserRole.VENDOR)
         val service = vendorService(userRepository = FakeUserRepository(user))
@@ -250,19 +140,15 @@ class VendorServiceTest {
 
     private fun vendorService(
         userRepository: FakeUserRepository = FakeUserRepository(user(role = UserRole.VENDOR)),
-        agencyRepository: FakeAgencyRepository = FakeAgencyRepository(),
         vendorRepository: FakeVendorRepository = FakeVendorRepository(),
         vendorProductRepository: FakeVendorProductRepository = FakeVendorProductRepository(),
         idGenerator: IdGenerator = FakeIdGenerator(UUID.randomUUID()),
-        agencyPublicReadEnabled: Boolean = true,
     ): VendorService {
         return VendorService(
             userRepository = userRepository,
-            agencyRepository = agencyRepository,
             vendorRepository = vendorRepository,
             vendorProductRepository = vendorProductRepository,
             idGenerator = idGenerator,
-            agencyPublicReadEnabled = agencyPublicReadEnabled,
         )
     }
 
@@ -391,9 +277,7 @@ class VendorServiceTest {
         }
     }
 
-    private class FakeVendorProductRepository(
-        private val vendorRepository: FakeVendorRepository? = null,
-    ) : VendorProductRepository {
+    private class FakeVendorProductRepository : VendorProductRepository {
         private val products = mutableMapOf<UUID, VendorProduct>()
 
         override fun save(product: VendorProduct): VendorProduct {
@@ -418,44 +302,6 @@ class VendorServiceTest {
             return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
         }
 
-        override fun findAll(
-            condition: VendorProductSearchCondition,
-            pageable: Pageable,
-        ): Page<VendorProduct> {
-            val filteredProducts = filterProducts(condition)
-
-            return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
-        }
-
-        override fun findAllWithVendor(
-            condition: VendorProductSearchCondition,
-            pageable: Pageable,
-        ): Page<VendorProductWithVendor> {
-            val filteredProducts = filterProducts(condition).map(::withVendor)
-
-            return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
-        }
-
-        override fun findNearbyForAgency(
-            agency: Agency,
-            condition: VendorProductSearchCondition,
-            pageable: Pageable,
-        ): Page<VendorProduct> {
-            val filteredProducts = filterProducts(condition)
-
-            return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
-        }
-
-        override fun findNearbyWithVendorForAgency(
-            agency: Agency,
-            condition: VendorProductSearchCondition,
-            pageable: Pageable,
-        ): Page<VendorProductWithVendor> {
-            val filteredProducts = filterProducts(condition).map(::withVendor)
-
-            return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
-        }
-
         private fun filterProducts(
             condition: VendorProductSearchCondition,
             extraPredicate: (VendorProduct) -> Boolean = { true },
@@ -467,56 +313,6 @@ class VendorServiceTest {
                     (condition.boxSize == null || it.boxSize == condition.boxSize) &&
                     (condition.coldChainType == null || it.coldChainType == condition.coldChainType)
             }
-        }
-
-        private fun withVendor(product: VendorProduct): VendorProductWithVendor {
-            return VendorProductWithVendor(
-                product = product,
-                vendor = vendorRepository?.findById(product.vendorId) ?: Vendor.restore(
-                    id = product.vendorId,
-                    userId = UUID.randomUUID(),
-                    businessName = "화주",
-                    businessRegistrationNumber = null,
-                    representativeName = "대표자",
-                    phoneNumber = "010-0000-0000",
-                    postalCode = null,
-                    address = "주소",
-                    addressDetail = null,
-                    mainRegion = "지역",
-                ),
-            )
-        }
-    }
-
-    private class FakeAgencyRepository(
-        agency: Agency? = null,
-    ) : AgencyRepository {
-        private val agencies = agency
-            ?.let { mutableMapOf(it.id to it) }
-            ?: mutableMapOf()
-
-        override fun save(agency: Agency): Agency {
-            agencies[agency.id] = agency
-            return agency
-        }
-
-        override fun findById(id: UUID): Agency? {
-            return agencies[id]
-        }
-
-        override fun findAll(
-            condition: AgencySearchCondition,
-            pageable: Pageable,
-        ): Page<Agency> {
-            return PageImpl(agencies.values.toList(), pageable, agencies.size.toLong())
-        }
-
-        override fun findByUserId(userId: UUID): Agency? {
-            return agencies.values.firstOrNull { it.userId == userId }
-        }
-
-        override fun existsByUserId(userId: UUID): Boolean {
-            return agencies.values.any { it.userId == userId }
         }
     }
 
