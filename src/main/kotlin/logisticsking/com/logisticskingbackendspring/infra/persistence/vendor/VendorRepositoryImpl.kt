@@ -18,6 +18,15 @@ class VendorRepositoryImpl(
         return jpaRepository.findByIdAndDeletedAtIsNull(id)?.toDomain()
     }
 
+    override fun findAllByIds(ids: Collection<UUID>): List<Vendor> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+
+        return jpaRepository.findAllByIdInAndDeletedAtIsNull(ids)
+            .map(VendorJpaEntity::toDomain)
+    }
+
     override fun findByUserId(userId: UUID): Vendor? {
         return jpaRepository.findByUserIdAndDeletedAtIsNull(userId)?.toDomain()
     }

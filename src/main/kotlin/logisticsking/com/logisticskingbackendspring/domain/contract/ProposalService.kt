@@ -90,7 +90,11 @@ class ProposalService(
             linkUrl = "/contract-requests/${contractRequest.id}/proposals",
         )
 
-        return ProposalResult.from(saved)
+        return ProposalResult.from(
+            proposal = saved,
+            agency = agency,
+            vendor = findVendorById(saved.vendorId),
+        )
     }
 
     @Transactional(readOnly = true)
@@ -122,8 +126,17 @@ class ProposalService(
         findAgencyUser(userId)
         val agency = findAgencyByUserId(userId)
 
-        return proposalRepository.findAllByAgencyId(agency.id, pageable)
-            .map { proposal -> ProposalResult.from(proposal, agency) }
+        val proposals = proposalRepository.findAllByAgencyId(agency.id, pageable)
+        val vendorsById = vendorRepository.findAllByIds(proposals.content.map(Proposal::vendorId).distinct())
+            .associateBy(Vendor::id)
+
+        return proposals.map { proposal ->
+            ProposalResult.from(
+                proposal = proposal,
+                agency = agency,
+                vendor = vendorsById[proposal.vendorId],
+            )
+        }
     }
 
     @Transactional
@@ -151,7 +164,11 @@ class ProposalService(
             linkUrl = "/contract-requests/${saved.contractRequestId}/proposals",
         )
 
-        return ProposalResult.from(saved)
+        return ProposalResult.from(
+            proposal = saved,
+            agency = agency,
+            vendor = findVendorById(saved.vendorId),
+        )
     }
 
     @Transactional
@@ -170,7 +187,11 @@ class ProposalService(
             linkUrl = "/contract-requests/${saved.contractRequestId}/proposals",
         )
 
-        return ProposalResult.from(saved)
+        return ProposalResult.from(
+            proposal = saved,
+            agency = agency,
+            vendor = findVendorById(saved.vendorId),
+        )
     }
 
     private fun findAgencyUser(userId: UUID): User {

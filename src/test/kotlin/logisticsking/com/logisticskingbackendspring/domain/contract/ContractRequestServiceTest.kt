@@ -311,6 +311,7 @@ class ContractRequestServiceTest {
             return vendor
         }
         override fun findById(id: UUID): Vendor? = vendors[id]
+        override fun findAllByIds(ids: Collection<UUID>): List<Vendor> = vendors.values.filter { it.id in ids }
         override fun findByUserId(userId: UUID): Vendor? = vendors.values.firstOrNull { it.userId == userId }
         override fun existsByUserId(userId: UUID): Boolean = vendors.values.any { it.userId == userId }
     }

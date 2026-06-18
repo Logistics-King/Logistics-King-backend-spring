@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.agency.dto.AgencyResponse
 import logisticsking.com.logisticskingbackendspring.app.common.PageResponse
 import logisticsking.com.logisticskingbackendspring.app.proposal.result.ProposalResult
+import logisticsking.com.logisticskingbackendspring.app.vendor.dto.VendorResponse
 import org.springframework.data.domain.Page
 import java.math.BigDecimal
 
@@ -38,6 +39,8 @@ sealed interface ProposalResponse {
         val status: String,
         @field:Schema(description = "제안 대리점 요약 정보")
         val agency: AgencyResponse.Summary?,
+        @field:Schema(description = "제안 대상 화주 요약 정보")
+        val vendor: VendorResponse.Summary?,
     ) : ProposalResponse {
         companion object {
             fun from(result: ProposalResult): Detail {
@@ -55,6 +58,7 @@ sealed interface ProposalResponse {
                     memo = result.memo,
                     status = result.status.name,
                     agency = result.agency?.let(AgencyResponse.Summary::from),
+                    vendor = result.vendor?.let(VendorResponse.Summary::from),
                 )
             }
         }

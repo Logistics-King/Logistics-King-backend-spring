@@ -268,6 +268,10 @@ class VendorServiceTest {
             return vendors[id]
         }
 
+        override fun findAllByIds(ids: Collection<UUID>): List<Vendor> {
+            return vendors.values.filter { it.id in ids }
+        }
+
         override fun findByUserId(userId: UUID): Vendor? {
             return vendors.values.firstOrNull { it.userId == userId }
         }
