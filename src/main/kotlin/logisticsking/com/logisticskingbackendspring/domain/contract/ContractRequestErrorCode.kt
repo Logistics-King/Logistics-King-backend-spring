@@ -28,6 +28,11 @@ enum class ContractRequestErrorCode(
         message = "화주 배송 품목을 찾을 수 없습니다.",
         status = HttpStatus.NOT_FOUND,
     ),
+    PRODUCT_ALREADY_LOCKED(
+        code = "CONTRACT_REQUEST_PRODUCT_ALREADY_LOCKED",
+        message = "이미 다른 계약 요청에 묶인 배송 품목은 선택할 수 없습니다.",
+        status = HttpStatus.CONFLICT,
+    ),
     AGENCY_NOT_FOUND(
         code = "CONTRACT_REQUEST_AGENCY_NOT_FOUND",
         message = "대리점 프로필을 찾을 수 없습니다.",

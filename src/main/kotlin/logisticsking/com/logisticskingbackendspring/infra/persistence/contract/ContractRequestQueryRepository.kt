@@ -16,6 +16,7 @@ class ContractRequestQueryRepository(
     private val queryFactory: JPAQueryFactory,
 ) {
     private val contractRequest = QContractRequestJpaEntity.contractRequestJpaEntity
+    private val contractRequestItem = QContractRequestItemJpaEntity.contractRequestItemJpaEntity
 
     fun findByIdForUpdate(id: UUID): ContractRequestJpaEntity? {
         return queryFactory
@@ -102,5 +103,44 @@ class ContractRequestQueryRepository(
             .fetchOne() ?: 0L
 
         return PageImpl(content, pageable, total)
+    }
+
+    fun existsActiveByVendorIdAndProductIds(
+        vendorId: UUID,
+        productIds: Collection<UUID>,
+        excludedContractRequestId: UUID?,
+    ): Boolean {
+        if (productIds.isEmpty()) {
+            return false
+        }
+
+        val id = queryFactory
+            .select(contractRequest.id)
+            .from(contractRequest)
+            .leftJoin(contractRequestItem)
+            .on(contractRequest.id.eq(contractRequestItem.contractRequestId))
+            .where(
+                excludedContractRequestId?.let { contractRequest.id.ne(it) },
+                contractRequest.status.`in`(ACTIVE_PRODUCT_LOCK_STATUSES),
+                contractRequest.requesterType.eq(ContractPartyType.VENDOR)
+                    .and(contractRequest.requesterId.eq(vendorId))
+                    .or(
+                        contractRequest.approverType.eq(ContractPartyType.VENDOR)
+                            .and(contractRequest.approverId.eq(vendorId))
+                    ),
+                contractRequest.productId.`in`(productIds)
+                    .or(contractRequestItem.productId.`in`(productIds)),
+            )
+            .limit(1)
+            .fetchFirst()
+
+        return id != null
+    }
+
+    companion object {
+        private val ACTIVE_PRODUCT_LOCK_STATUSES = listOf(
+            ContractRequestStatus.OPEN,
+            ContractRequestStatus.CONTRACTED,
+        )
     }
 }

@@ -7,6 +7,7 @@ import java.util.UUID
 interface AgencyRepository {
     fun save(agency: Agency): Agency
     fun findById(id: UUID): Agency?
+    fun findAllByIds(ids: Collection<UUID>): List<Agency>
     fun findAll(
         condition: AgencySearchCondition,
         pageable: Pageable,

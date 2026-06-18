@@ -1,6 +1,8 @@
 package logisticsking.com.logisticskingbackendspring.app.proposal.result
 
+import logisticsking.com.logisticskingbackendspring.app.agency.result.AgencyResult
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
+import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.contract.Proposal
 import logisticsking.com.logisticskingbackendspring.domain.contract.ProposalStatus
 import java.math.BigDecimal
@@ -19,9 +21,13 @@ data class ProposalResult(
     val coldChainType: ColdChainType,
     val memo: String?,
     val status: ProposalStatus,
+    val agency: AgencyResult?,
 ) {
     companion object {
-        fun from(proposal: Proposal): ProposalResult {
+        fun from(
+            proposal: Proposal,
+            agency: Agency? = null,
+        ): ProposalResult {
             return ProposalResult(
                 proposalId = proposal.id,
                 contractRequestId = proposal.contractRequestId,
@@ -35,6 +41,7 @@ data class ProposalResult(
                 coldChainType = proposal.coldChainType,
                 memo = proposal.memo,
                 status = proposal.status,
+                agency = agency?.let(AgencyResult::from),
             )
         }
     }

@@ -121,6 +121,18 @@ class ContractRequestRepositoryImpl(
         ).toDomainPageWithItems()
     }
 
+    override fun existsActiveByVendorIdAndProductIds(
+        vendorId: UUID,
+        productIds: Collection<UUID>,
+        excludedContractRequestId: UUID?,
+    ): Boolean {
+        return contractRequestQueryRepository.existsActiveByVendorIdAndProductIds(
+            vendorId = vendorId,
+            productIds = productIds,
+            excludedContractRequestId = excludedContractRequestId,
+        )
+    }
+
     private fun ContractRequestJpaEntity.toDomainWithItems(): ContractRequest {
         return toDomain(contractRequestItemJpaRepository.findAllByContractRequestIdOrderByCreatedAtAsc(id))
     }

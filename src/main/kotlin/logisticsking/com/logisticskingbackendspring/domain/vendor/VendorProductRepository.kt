@@ -15,4 +15,8 @@ interface VendorProductRepository {
         condition: VendorProductSearchCondition,
         pageable: Pageable,
     ): Page<VendorProduct>
+    fun findAllByIdsAndVendorIdForUpdate(
+        ids: Collection<UUID>,
+        vendorId: UUID,
+    ): List<VendorProduct>
 }

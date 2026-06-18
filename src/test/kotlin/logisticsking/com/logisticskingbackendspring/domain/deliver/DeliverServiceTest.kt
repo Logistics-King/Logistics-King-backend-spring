@@ -265,6 +265,10 @@ class DeliverServiceTest {
             return agencies[id]
         }
 
+        override fun findAllByIds(ids: Collection<UUID>): List<Agency> {
+            return agencies.values.filter { it.id in ids }
+        }
+
         override fun findAll(
             condition: AgencySearchCondition,
             pageable: Pageable,

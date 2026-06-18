@@ -2,6 +2,7 @@ package logisticsking.com.logisticskingbackendspring.app.proposal.dto
 
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
+import logisticsking.com.logisticskingbackendspring.app.agency.dto.AgencyResponse
 import logisticsking.com.logisticskingbackendspring.app.common.PageResponse
 import logisticsking.com.logisticskingbackendspring.app.proposal.result.ProposalResult
 import org.springframework.data.domain.Page
@@ -35,6 +36,8 @@ sealed interface ProposalResponse {
         val memo: String?,
         @field:Schema(description = "제안 상태", example = "SUBMITTED")
         val status: String,
+        @field:Schema(description = "제안 대리점 요약 정보")
+        val agency: AgencyResponse.Summary?,
     ) : ProposalResponse {
         companion object {
             fun from(result: ProposalResult): Detail {
@@ -51,6 +54,7 @@ sealed interface ProposalResponse {
                     coldChainType = result.coldChainType,
                     memo = result.memo,
                     status = result.status.name,
+                    agency = result.agency?.let(AgencyResponse.Summary::from),
                 )
             }
         }

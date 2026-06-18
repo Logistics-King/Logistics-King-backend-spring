@@ -55,8 +55,8 @@ class ContractRequestService(
         val requester = findRequester(command.userId, command.type)
         validateApprover(command.type, command.approverId)
         val vendorId = vendorIdOf(command.type, requester.id, command.approverId)
-        validateProduct(command.productId, vendorId)
-        validateItemProducts(command.items, vendorId)
+        validateAndLockProducts(command.productIds(), vendorId)
+        validateUnlockedProducts(command.productIds(), vendorId)
         val items = createItems(command.items)
 
         val contractRequest = ContractRequest.create(
@@ -125,8 +125,12 @@ class ContractRequestService(
     override fun update(command: UpdateContractRequestCommand): ContractRequestResult {
         val party = findParty(command.userId)
         val contractRequest = findContractRequestForUpdate(command.contractRequestId, party)
-        validateProduct(command.productId, contractRequest.vendorId)
-        validateItemProducts(command.items, contractRequest.vendorId)
+        validateAndLockProducts(command.productIds(), contractRequest.vendorId)
+        validateUnlockedProducts(
+            productIds = command.productIds(),
+            vendorId = contractRequest.vendorId,
+            excludedContractRequestId = contractRequest.id,
+        )
         val items = createItems(command.items)
 
         val updated = contractRequest.update(
@@ -265,25 +269,54 @@ class ContractRequestService(
         }
     }
 
-    private fun validateProduct(
-        productId: UUID?,
+    private fun validateAndLockProducts(
+        productIds: Set<UUID>,
         vendorId: UUID,
     ) {
-        if (productId == null) {
+        if (productIds.isEmpty()) {
             return
         }
 
-        vendorProductRepository.findByIdAndVendorId(productId, vendorId)
-            ?: throw GlobalException(ContractRequestErrorCode.PRODUCT_NOT_FOUND)
+        val lockedProductIds = vendorProductRepository.findAllByIdsAndVendorIdForUpdate(productIds, vendorId)
+            .map { it.id }
+            .toSet()
+        if (lockedProductIds.size != productIds.size) {
+            throw GlobalException(ContractRequestErrorCode.PRODUCT_NOT_FOUND)
+        }
     }
 
-    private fun validateItemProducts(
-        items: List<ContractRequestItemCommand>,
+    private fun validateUnlockedProducts(
+        productIds: Set<UUID>,
         vendorId: UUID,
+        excludedContractRequestId: UUID? = null,
     ) {
-        items.mapNotNull(ContractRequestItemCommand::productId)
-            .distinct()
-            .forEach { validateProduct(it, vendorId) }
+        if (productIds.isEmpty()) {
+            return
+        }
+
+        if (
+            contractRequestRepository.existsActiveByVendorIdAndProductIds(
+                vendorId = vendorId,
+                productIds = productIds,
+                excludedContractRequestId = excludedContractRequestId,
+            )
+        ) {
+            throw GlobalException(ContractRequestErrorCode.PRODUCT_ALREADY_LOCKED)
+        }
+    }
+
+    private fun CreateContractRequestCommand.productIds(): Set<UUID> {
+        return buildSet {
+            productId?.let(::add)
+            addAll(items.mapNotNull(ContractRequestItemCommand::productId))
+        }
+    }
+
+    private fun UpdateContractRequestCommand.productIds(): Set<UUID> {
+        return buildSet {
+            productId?.let(::add)
+            addAll(items.mapNotNull(ContractRequestItemCommand::productId))
+        }
     }
 
     private fun createItems(items: List<ContractRequestItemCommand>): List<ContractRequestItem> {

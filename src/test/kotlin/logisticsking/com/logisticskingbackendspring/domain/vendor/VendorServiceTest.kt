@@ -302,6 +302,13 @@ class VendorServiceTest {
             return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
         }
 
+        override fun findAllByIdsAndVendorIdForUpdate(
+            ids: Collection<UUID>,
+            vendorId: UUID,
+        ): List<VendorProduct> {
+            return products.values.filter { it.id in ids && it.vendorId == vendorId }
+        }
+
         private fun filterProducts(
             condition: VendorProductSearchCondition,
             extraPredicate: (VendorProduct) -> Boolean = { true },

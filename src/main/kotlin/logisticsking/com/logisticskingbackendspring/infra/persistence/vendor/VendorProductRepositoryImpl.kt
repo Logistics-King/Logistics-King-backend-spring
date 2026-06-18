@@ -1,6 +1,7 @@
 package logisticsking.com.logisticskingbackendspring.infra.persistence.vendor
 
 import com.querydsl.jpa.impl.JPAQueryFactory
+import jakarta.persistence.LockModeType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductRepository
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductSearchCondition
@@ -38,6 +39,27 @@ class VendorProductRepositoryImpl(
             pageable = pageable,
             vendorId = vendorId,
         )
+    }
+
+    override fun findAllByIdsAndVendorIdForUpdate(
+        ids: Collection<UUID>,
+        vendorId: UUID,
+    ): List<VendorProduct> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+
+        return queryFactory
+            .selectFrom(vendorProduct)
+            .where(
+                vendorProduct.id.`in`(ids),
+                vendorProduct.vendorId.eq(vendorId),
+                vendorProduct.deletedAt.isNull,
+            )
+            .orderBy(vendorProduct.id.asc())
+            .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+            .fetch()
+            .map(ProductJpaEntity::toDomain)
     }
 
     private fun findAllByCondition(

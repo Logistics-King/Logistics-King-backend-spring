@@ -105,8 +105,16 @@ class ProposalService(
             vendorId = vendor.id,
         ) ?: throw GlobalException(ProposalErrorCode.CONTRACT_REQUEST_NOT_FOUND)
 
-        return proposalRepository.findAllByContractRequestId(contractRequest.id, pageable)
-            .map(ProposalResult::from)
+        val proposals = proposalRepository.findAllByContractRequestId(contractRequest.id, pageable)
+        val agenciesById = agencyRepository.findAllByIds(proposals.content.map(Proposal::agencyId).distinct())
+            .associateBy(Agency::id)
+
+        return proposals.map { proposal ->
+            ProposalResult.from(
+                proposal = proposal,
+                agency = agenciesById[proposal.agencyId],
+            )
+        }
     }
 
     @Transactional(readOnly = true)
@@ -115,7 +123,7 @@ class ProposalService(
         val agency = findAgencyByUserId(userId)
 
         return proposalRepository.findAllByAgencyId(agency.id, pageable)
-            .map(ProposalResult::from)
+            .map { proposal -> ProposalResult.from(proposal, agency) }
     }
 
     @Transactional

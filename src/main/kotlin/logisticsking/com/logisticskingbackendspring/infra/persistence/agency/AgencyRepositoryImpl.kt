@@ -26,6 +26,21 @@ class AgencyRepositoryImpl(
         return jpaRepository.findByIdAndDeletedAtIsNull(id)?.toDomain()
     }
 
+    override fun findAllByIds(ids: Collection<UUID>): List<Agency> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+
+        return queryFactory
+            .selectFrom(agency)
+            .where(
+                agency.id.`in`(ids),
+                agency.deletedAt.isNull,
+            )
+            .fetch()
+            .map(AgencyJpaEntity::toDomain)
+    }
+
     override fun findAll(
         condition: AgencySearchCondition,
         pageable: Pageable,
