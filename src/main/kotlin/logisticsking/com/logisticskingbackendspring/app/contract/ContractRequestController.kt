@@ -5,13 +5,19 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CancelContractRequestCommand
+import logisticsking.com.logisticskingbackendspring.app.contract.command.ContractRequestDecisionCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.GetContractRequestCommand
+import logisticsking.com.logisticskingbackendspring.app.contract.command.GetReceivedContractRequestsCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.dto.ContractRequestRequest
 import logisticsking.com.logisticskingbackendspring.app.contract.dto.ContractRequestResponse
+import logisticsking.com.logisticskingbackendspring.app.contract.dto.ContractResponse
+import logisticsking.com.logisticskingbackendspring.app.contract.usecase.AcceptContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.CancelContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.CreateContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.GetContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.GetMyContractRequestsUseCase
+import logisticsking.com.logisticskingbackendspring.app.contract.usecase.GetReceivedContractRequestsUseCase
+import logisticsking.com.logisticskingbackendspring.app.contract.usecase.RejectContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.UpdateContractRequestUseCase
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetContractRequestProposalsCommand
@@ -36,21 +42,24 @@ import java.util.UUID
 
 @Tag(name = "ContractRequest", description = "계약 요청 API")
 @SecurityRequirement(name = "accessTokenCookie")
-@EndpointAccess(roles = [UserRole.VENDOR])
+@EndpointAccess(roles = [UserRole.ADMIN, UserRole.VENDOR, UserRole.AGENCY])
 @RestController
 @RequestMapping("/api/v1/contract-requests")
 class ContractRequestController(
     private val createContractRequestUseCase: CreateContractRequestUseCase,
     private val getMyContractRequestsUseCase: GetMyContractRequestsUseCase,
+    private val getReceivedContractRequestsUseCase: GetReceivedContractRequestsUseCase,
     private val getContractRequestUseCase: GetContractRequestUseCase,
     private val updateContractRequestUseCase: UpdateContractRequestUseCase,
     private val cancelContractRequestUseCase: CancelContractRequestUseCase,
+    private val acceptContractRequestUseCase: AcceptContractRequestUseCase,
+    private val rejectContractRequestUseCase: RejectContractRequestUseCase,
     private val getOpenContractRequestsUseCase: GetOpenContractRequestsUseCase,
     private val submitProposalUseCase: SubmitProposalUseCase,
     private val getContractRequestProposalsUseCase: GetContractRequestProposalsUseCase,
 ) {
 
-    @Operation(summary = "계약 요청 생성", description = "로그인한 화주가 대리점 제안을 받기 위한 계약 요청을 생성합니다.")
+    @Operation(summary = "계약 요청 생성", description = "화주 또는 대리점이 상대방에게 계약 요청을 생성합니다.")
     @PostMapping
     fun create(
         @AuthenticationPrincipal user: AuthenticatedUser,
@@ -63,7 +72,7 @@ class ContractRequestController(
         )
     }
 
-    @Operation(summary = "내 계약 요청 목록 조회", description = "로그인한 화주의 계약 요청 목록을 조회합니다.")
+    @Operation(summary = "내 계약 요청 목록 조회", description = "로그인한 사용자가 요청자로 생성한 계약 요청 목록을 조회합니다.")
     @GetMapping
     fun getMyContractRequests(
         @AuthenticationPrincipal user: AuthenticatedUser,
@@ -76,7 +85,23 @@ class ContractRequestController(
         )
     }
 
-    @Operation(summary = "계약 요청 상세 조회", description = "로그인한 화주의 계약 요청 상세 정보를 조회합니다.")
+    @Operation(summary = "받은 계약 요청 목록 조회", description = "로그인한 사용자가 승인자로 지정된 계약 요청 목록을 조회합니다.")
+    @GetMapping("/received")
+    fun getReceivedContractRequests(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PageableDefault(size = 20) pageable: Pageable,
+    ): ApiResponse<ContractRequestResponse.List> {
+        val results = getReceivedContractRequestsUseCase.getReceivedContractRequests(
+            GetReceivedContractRequestsCommand(userId = user.userId),
+            pageable,
+        )
+
+        return ApiResponse.success(
+            response = ContractRequestResponse.List.from(results),
+        )
+    }
+
+    @Operation(summary = "계약 요청 상세 조회", description = "로그인한 사용자가 참여자인 계약 요청 상세 정보를 조회합니다.")
     @GetMapping("/{contractRequestId}")
     fun get(
         @AuthenticationPrincipal user: AuthenticatedUser,
@@ -123,6 +148,7 @@ class ContractRequestController(
         )
     }
 
+    @EndpointAccess(roles = [UserRole.VENDOR])
     @Operation(summary = "계약 요청 제안 목록 조회", description = "화주가 자신의 계약 요청에 제출된 제안 목록을 조회합니다.")
     @GetMapping("/{contractRequestId}/proposals")
     fun getProposals(
@@ -165,6 +191,42 @@ class ContractRequestController(
     ): ApiResponse<ContractRequestResponse.Detail> {
         val result = cancelContractRequestUseCase.cancel(
             CancelContractRequestCommand(
+                userId = user.userId,
+                contractRequestId = contractRequestId,
+            )
+        )
+
+        return ApiResponse.success(
+            response = ContractRequestResponse.Detail.from(result),
+        )
+    }
+
+    @Operation(summary = "계약 요청 수락", description = "승인자로 지정된 사용자가 계약 요청을 수락하고 최종 계약을 생성합니다.")
+    @PostMapping("/{contractRequestId}/accept")
+    fun accept(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable contractRequestId: UUID,
+    ): ApiResponse<ContractResponse.Detail> {
+        val result = acceptContractRequestUseCase.accept(
+            ContractRequestDecisionCommand(
+                userId = user.userId,
+                contractRequestId = contractRequestId,
+            )
+        )
+
+        return ApiResponse.success(
+            response = ContractResponse.Detail.from(result),
+        )
+    }
+
+    @Operation(summary = "계약 요청 거절", description = "승인자로 지정된 사용자가 계약 요청을 거절합니다.")
+    @PostMapping("/{contractRequestId}/reject")
+    fun reject(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable contractRequestId: UUID,
+    ): ApiResponse<ContractRequestResponse.Detail> {
+        val result = rejectContractRequestUseCase.reject(
+            ContractRequestDecisionCommand(
                 userId = user.userId,
                 contractRequestId = contractRequestId,
             )

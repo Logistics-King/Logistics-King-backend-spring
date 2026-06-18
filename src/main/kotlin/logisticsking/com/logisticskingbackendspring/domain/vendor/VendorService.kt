@@ -97,6 +97,11 @@ class VendorService(
             averagePrice = command.averagePrice,
             averageWeightGram = command.averageWeightGram,
             boxSize = command.boxSize,
+            boxQuantity = command.boxQuantity,
+            itemQuantity = command.itemQuantity,
+            destinationPostalCode = command.destinationPostalCode,
+            destinationAddress = command.destinationAddress,
+            destinationAddressDetail = command.destinationAddressDetail,
             fragile = command.fragile,
             liquid = command.liquid,
             freshFood = command.freshFood,
@@ -107,11 +112,15 @@ class VendorService(
     }
 
     @Transactional(readOnly = true)
-    override fun getProducts(userId: UUID, pageable: Pageable): Page<VendorProductResult> {
+    override fun getProducts(
+        userId: UUID,
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+    ): Page<VendorProductResult> {
         findVendorUser(userId)
         val vendor = findVendorByUserId(userId)
 
-        return vendorProductRepository.findAllByVendorId(vendor.id, pageable)
+        return vendorProductRepository.findAllByVendorId(vendor.id, condition, pageable)
             .map(VendorProductResult::from)
     }
 
@@ -130,6 +139,11 @@ class VendorService(
             averagePrice = command.averagePrice,
             averageWeightGram = command.averageWeightGram,
             boxSize = command.boxSize,
+            boxQuantity = command.boxQuantity,
+            itemQuantity = command.itemQuantity,
+            destinationPostalCode = command.destinationPostalCode,
+            destinationAddress = command.destinationAddress,
+            destinationAddressDetail = command.destinationAddressDetail,
             fragile = command.fragile,
             liquid = command.liquid,
             freshFood = command.freshFood,

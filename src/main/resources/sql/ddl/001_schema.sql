@@ -25,6 +25,21 @@ CREATE TABLE IF NOT EXISTS end_points (
     UNIQUE KEY uk_end_points_url_method (url, method)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS account_recovery_tokens (
+    id BINARY(16) NOT NULL,
+    user_id BINARY(16) NOT NULL,
+    purpose VARCHAR(30) NOT NULL,
+    token_hash VARCHAR(64) NOT NULL,
+    expires_at DATETIME(6) NOT NULL,
+    used_at DATETIME(6) NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_account_recovery_tokens_token_hash (token_hash),
+    KEY idx_account_recovery_tokens_user_purpose (user_id, purpose),
+    KEY idx_account_recovery_tokens_expires_at (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS vendors (
     id BINARY(16) NOT NULL,
     user_id BINARY(16) NOT NULL,
@@ -43,7 +58,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     UNIQUE KEY uk_vendors_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS vendor_products (
+CREATE TABLE IF NOT EXISTS products (
     id BINARY(16) NOT NULL,
     vendor_id BINARY(16) NOT NULL,
     category VARCHAR(30) NOT NULL,
@@ -52,6 +67,11 @@ CREATE TABLE IF NOT EXISTS vendor_products (
     average_price DECIMAL(15, 2) NULL,
     average_weight_gram INT NULL,
     box_size VARCHAR(30) NULL,
+    box_quantity INT NOT NULL,
+    item_quantity INT NOT NULL,
+    destination_postal_code VARCHAR(20) NULL,
+    destination_address VARCHAR(255) NOT NULL,
+    destination_address_detail VARCHAR(255) NULL,
     fragile BOOLEAN NOT NULL,
     liquid BOOLEAN NOT NULL,
     fresh_food BOOLEAN NOT NULL,
@@ -60,12 +80,16 @@ CREATE TABLE IF NOT EXISTS vendor_products (
     updated_at DATETIME(6) NOT NULL,
     deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
-    KEY idx_vendor_products_vendor_id (vendor_id)
+    KEY idx_products_vendor_id (vendor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS contract_requests (
     id BINARY(16) NOT NULL,
-    vendor_id BINARY(16) NOT NULL,
+    type VARCHAR(30) NOT NULL,
+    requester_type VARCHAR(30) NOT NULL,
+    requester_id BINARY(16) NOT NULL,
+    approver_type VARCHAR(30) NOT NULL,
+    approver_id BINARY(16) NULL,
     product_id BINARY(16) NULL,
     pickup_region VARCHAR(100) NOT NULL,
     pickup_address VARCHAR(255) NULL,
@@ -84,9 +108,35 @@ CREATE TABLE IF NOT EXISTS contract_requests (
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
     PRIMARY KEY (id),
-    KEY idx_contract_requests_vendor_id (vendor_id),
+    KEY idx_contract_requests_requester (requester_type, requester_id),
+    KEY idx_contract_requests_approver (approver_type, approver_id),
     KEY idx_contract_requests_product_id (product_id),
-    KEY idx_contract_requests_status (status)
+    KEY idx_contract_requests_status (status),
+    KEY idx_contract_requests_open_agency (type, status, approver_type, approver_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS contract_request_items (
+    id BINARY(16) NOT NULL,
+    contract_request_id BINARY(16) NOT NULL,
+    product_id BINARY(16) NULL,
+    product_category VARCHAR(30) NOT NULL,
+    product_name VARCHAR(100) NOT NULL,
+    box_size VARCHAR(30) NOT NULL,
+    box_quantity INT NOT NULL,
+    item_quantity INT NOT NULL,
+    average_weight_gram INT NULL,
+    fragile BOOLEAN NOT NULL,
+    liquid BOOLEAN NOT NULL,
+    fresh_food BOOLEAN NOT NULL,
+    cold_chain_type VARCHAR(30) NOT NULL,
+    target_unit_price DECIMAL(15, 2) NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_contract_request_items_request_id (contract_request_id),
+    KEY idx_contract_request_items_product_id (product_id),
+    KEY idx_contract_request_items_cold_chain (cold_chain_type),
+    KEY idx_contract_request_items_box_size (box_size)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS proposals (
@@ -160,7 +210,7 @@ CREATE TABLE IF NOT EXISTS agencies (
     saturday_pickup_available BOOLEAN NOT NULL,
     saturday_delivery_available BOOLEAN NOT NULL,
     return_available BOOLEAN NOT NULL,
-    cold_chain_type VARCHAR(30) NOT NULL,
+    supported_cold_chain_types JSON NOT NULL,
     max_monthly_volume INT NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
@@ -205,4 +255,23 @@ CREATE TABLE IF NOT EXISTS deliver_contracts (
     KEY idx_deliver_contracts_deliver_id (deliver_id),
     KEY idx_deliver_contracts_agency_deliver_status (agency_id, deliver_id, status),
     KEY idx_deliver_contracts_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id BINARY(16) NOT NULL,
+    receiver_user_id BINARY(16) NOT NULL,
+    sender_user_id BINARY(16) NULL,
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    message VARCHAR(500) NOT NULL,
+    link_url VARCHAR(255) NULL,
+    reference_type VARCHAR(50) NULL,
+    reference_id BINARY(16) NULL,
+    read_at DATETIME(6) NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_notifications_receiver_created_at (receiver_user_id, created_at),
+    KEY idx_notifications_receiver_read_at_created_at (receiver_user_id, read_at, created_at),
+    KEY idx_notifications_reference (reference_type, reference_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

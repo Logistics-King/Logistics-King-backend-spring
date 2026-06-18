@@ -60,7 +60,7 @@ class AgencyTest {
             saturdayPickupAvailable = false,
             saturdayDeliveryAvailable = false,
             returnAvailable = true,
-            coldChainType = ColdChainType.NONE,
+            supportedColdChainTypes = setOf(ColdChainType.NONE),
             maxMonthlyVolume = 5000,
         )
 
@@ -125,7 +125,7 @@ class AgencyTest {
             saturdayPickupAvailable = true,
             saturdayDeliveryAvailable = true,
             returnAvailable = true,
-            coldChainType = ColdChainType.NONE,
+            supportedColdChainTypes = setOf(ColdChainType.NONE),
             maxMonthlyVolume = maxMonthlyVolume,
         )
     }

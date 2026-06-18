@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
@@ -66,14 +67,16 @@ class ContractTest {
     ): ContractRequest {
         return ContractRequest.create(
             id = id,
-            vendorId = vendorId,
+            type = ContractRequestType.VENDOR_OFFER,
+            requesterId = vendorId,
+            approverId = null,
             productId = null,
             pickupRegion = "경기도 안산시 일동",
             pickupAddress = "경기도 안산시 상록구 일동 101호",
             monthlyVolume = 800,
             productCategory = ProductCategory.CLOTHING,
             productName = "일반 의류",
-            boxSize = "60",
+            boxSize = BoxSize.SIZE_60,
             pickupStartTime = "09:00",
             pickupEndTime = "18:00",
             saturdayDeliveryRequired = true,
@@ -81,6 +84,23 @@ class ContractTest {
             coldChainType = ColdChainType.NONE,
             targetUnitPrice = BigDecimal("2000"),
             memo = "의류 중심",
+            items = listOf(
+                ContractRequestItem.create(
+                    id = UUID.randomUUID(),
+                    productId = null,
+                    productCategory = ProductCategory.CLOTHING,
+                    productName = "일반 의류",
+                    boxSize = BoxSize.SIZE_60,
+                    boxQuantity = 800,
+                    itemQuantity = 0,
+                    averageWeightGram = null,
+                    fragile = false,
+                    liquid = false,
+                    freshFood = false,
+                    coldChainType = ColdChainType.NONE,
+                    targetUnitPrice = BigDecimal("2000"),
+                )
+            ),
         )
     }
 

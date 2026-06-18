@@ -16,6 +16,9 @@ import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationPublisher
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationReferenceType
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationType
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
@@ -34,6 +37,7 @@ class ProposalService(
     private val agencyRepository: AgencyRepository,
     private val contractRequestRepository: ContractRequestRepository,
     private val proposalRepository: ProposalRepository,
+    private val notificationPublisher: NotificationPublisher,
     private val idGenerator: IdGenerator,
 ) : GetOpenContractRequestsUseCase,
     SubmitProposalUseCase,
@@ -45,9 +49,9 @@ class ProposalService(
     @Transactional(readOnly = true)
     override fun getOpenContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult> {
         findAgencyUser(userId)
-        findAgencyByUserId(userId)
+        val agency = findAgencyByUserId(userId)
 
-        return contractRequestRepository.findAllByStatus(ContractRequestStatus.OPEN, pageable)
+        return contractRequestRepository.findOpenVendorOffersForAgency(agency.id, pageable)
             .map(ContractRequestResult::from)
     }
 
@@ -57,6 +61,7 @@ class ProposalService(
         val agency = findAgencyByUserId(command.userId)
         val contractRequest = findContractRequestForUpdate(command.contractRequestId)
         validateOpen(contractRequest)
+        validateAgencyCanPropose(contractRequest, agency.id)
         if (proposalRepository.existsByContractRequestIdAndAgencyId(contractRequest.id, agency.id)) {
             throw GlobalException(ProposalErrorCode.ALREADY_EXISTS)
         }
@@ -75,7 +80,17 @@ class ProposalService(
             memo = command.memo,
         )
 
-        return ProposalResult.from(proposalRepository.save(proposal))
+        val saved = proposalRepository.save(proposal)
+        notificationPublisher.publish(
+            receiverUserId = findVendorById(contractRequest.vendorId).userId,
+            senderUserId = agency.userId,
+            type = NotificationType.PROPOSAL_SUBMITTED,
+            referenceType = NotificationReferenceType.PROPOSAL,
+            referenceId = saved.id,
+            linkUrl = "/contract-requests/${contractRequest.id}/proposals",
+        )
+
+        return ProposalResult.from(saved)
     }
 
     @Transactional(readOnly = true)
@@ -90,8 +105,16 @@ class ProposalService(
             vendorId = vendor.id,
         ) ?: throw GlobalException(ProposalErrorCode.CONTRACT_REQUEST_NOT_FOUND)
 
-        return proposalRepository.findAllByContractRequestId(contractRequest.id, pageable)
-            .map(ProposalResult::from)
+        val proposals = proposalRepository.findAllByContractRequestId(contractRequest.id, pageable)
+        val agenciesById = agencyRepository.findAllByIds(proposals.content.map(Proposal::agencyId).distinct())
+            .associateBy(Agency::id)
+
+        return proposals.map { proposal ->
+            ProposalResult.from(
+                proposal = proposal,
+                agency = agenciesById[proposal.agencyId],
+            )
+        }
     }
 
     @Transactional(readOnly = true)
@@ -100,7 +123,7 @@ class ProposalService(
         val agency = findAgencyByUserId(userId)
 
         return proposalRepository.findAllByAgencyId(agency.id, pageable)
-            .map(ProposalResult::from)
+            .map { proposal -> ProposalResult.from(proposal, agency) }
     }
 
     @Transactional
@@ -118,7 +141,17 @@ class ProposalService(
             memo = command.memo,
         )
 
-        return ProposalResult.from(proposalRepository.save(updated))
+        val saved = proposalRepository.save(updated)
+        notificationPublisher.publish(
+            receiverUserId = findVendorById(saved.vendorId).userId,
+            senderUserId = agency.userId,
+            type = NotificationType.PROPOSAL_UPDATED,
+            referenceType = NotificationReferenceType.PROPOSAL,
+            referenceId = saved.id,
+            linkUrl = "/contract-requests/${saved.contractRequestId}/proposals",
+        )
+
+        return ProposalResult.from(saved)
     }
 
     @Transactional
@@ -127,7 +160,17 @@ class ProposalService(
         val agency = findAgencyByUserId(command.userId)
         val proposal = findProposal(command.proposalId, agency.id)
 
-        return ProposalResult.from(proposalRepository.save(proposal.withdraw()))
+        val saved = proposalRepository.save(proposal.withdraw())
+        notificationPublisher.publish(
+            receiverUserId = findVendorById(saved.vendorId).userId,
+            senderUserId = agency.userId,
+            type = NotificationType.PROPOSAL_WITHDRAWN,
+            referenceType = NotificationReferenceType.PROPOSAL,
+            referenceId = saved.id,
+            linkUrl = "/contract-requests/${saved.contractRequestId}/proposals",
+        )
+
+        return ProposalResult.from(saved)
     }
 
     private fun findAgencyUser(userId: UUID): User {
@@ -160,6 +203,11 @@ class ProposalService(
             ?: throw GlobalException(ProposalErrorCode.VENDOR_NOT_FOUND)
     }
 
+    private fun findVendorById(vendorId: UUID): Vendor {
+        return vendorRepository.findById(vendorId)
+            ?: throw GlobalException(ProposalErrorCode.VENDOR_NOT_FOUND)
+    }
+
     private fun findContractRequestForUpdate(contractRequestId: UUID): ContractRequest {
         return contractRequestRepository.findByIdForUpdate(contractRequestId)
             ?: throw GlobalException(ProposalErrorCode.CONTRACT_REQUEST_NOT_FOUND)
@@ -168,6 +216,19 @@ class ProposalService(
     private fun validateOpen(contractRequest: ContractRequest) {
         if (contractRequest.status != ContractRequestStatus.OPEN) {
             throw GlobalException(ProposalErrorCode.CONTRACT_REQUEST_IS_NOT_OPEN)
+        }
+    }
+
+    private fun validateAgencyCanPropose(
+        contractRequest: ContractRequest,
+        agencyId: UUID,
+    ) {
+        if (
+            contractRequest.type != ContractRequestType.VENDOR_OFFER ||
+            contractRequest.approverType != ContractPartyType.AGENCY ||
+            (contractRequest.approverId != null && contractRequest.approverId != agencyId)
+        ) {
+            throw GlobalException(ProposalErrorCode.CONTRACT_REQUEST_NOT_FOUND)
         }
     }
 

@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
@@ -14,8 +15,8 @@ import java.math.BigDecimal
 import java.util.UUID
 
 @Entity
-@Table(name = "vendor_products")
-class VendorProductJpaEntity(
+@Table(name = "products")
+class ProductJpaEntity(
     @Id
     @Column(name = "id", columnDefinition = "BINARY(16)", nullable = false, updatable = false)
     val id: UUID,
@@ -39,8 +40,24 @@ class VendorProductJpaEntity(
     @Column(name = "average_weight_gram")
     val averageWeightGram: Int?,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "box_size", length = 30)
-    val boxSize: String?,
+    val boxSize: BoxSize?,
+
+    @Column(name = "box_quantity", nullable = false)
+    val boxQuantity: Int,
+
+    @Column(name = "item_quantity", nullable = false)
+    val itemQuantity: Int,
+
+    @Column(name = "destination_postal_code", length = 20)
+    val destinationPostalCode: String?,
+
+    @Column(name = "destination_address", nullable = false, length = 255)
+    val destinationAddress: String,
+
+    @Column(name = "destination_address_detail", length = 255)
+    val destinationAddressDetail: String?,
 
     @Column(name = "fragile", nullable = false)
     val fragile: Boolean,
@@ -66,6 +83,11 @@ class VendorProductJpaEntity(
             averagePrice = averagePrice,
             averageWeightGram = averageWeightGram,
             boxSize = boxSize,
+            boxQuantity = boxQuantity,
+            itemQuantity = itemQuantity,
+            destinationPostalCode = destinationPostalCode,
+            destinationAddress = destinationAddress,
+            destinationAddressDetail = destinationAddressDetail,
             fragile = fragile,
             liquid = liquid,
             freshFood = freshFood,
@@ -74,8 +96,8 @@ class VendorProductJpaEntity(
     }
 
     companion object {
-        fun from(product: VendorProduct): VendorProductJpaEntity {
-            return VendorProductJpaEntity(
+        fun from(product: VendorProduct): ProductJpaEntity {
+            return ProductJpaEntity(
                 id = product.id,
                 vendorId = product.vendorId,
                 category = product.category,
@@ -84,6 +106,11 @@ class VendorProductJpaEntity(
                 averagePrice = product.averagePrice,
                 averageWeightGram = product.averageWeightGram,
                 boxSize = product.boxSize,
+                boxQuantity = product.boxQuantity,
+                itemQuantity = product.itemQuantity,
+                destinationPostalCode = product.destinationPostalCode,
+                destinationAddress = product.destinationAddress,
+                destinationAddressDetail = product.destinationAddressDetail,
                 fragile = product.fragile,
                 liquid = product.liquid,
                 freshFood = product.freshFood,

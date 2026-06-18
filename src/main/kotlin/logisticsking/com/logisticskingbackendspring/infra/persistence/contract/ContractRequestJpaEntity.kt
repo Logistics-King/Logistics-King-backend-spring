@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.infra.persistence.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -7,8 +8,10 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractPartyType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequest
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.infra.persistence.common.BaseJpaEntity
 import java.math.BigDecimal
@@ -21,8 +24,23 @@ class ContractRequestJpaEntity(
     @Column(name = "id", columnDefinition = "BINARY(16)", nullable = false, updatable = false)
     val id: UUID,
 
-    @Column(name = "vendor_id", columnDefinition = "BINARY(16)", nullable = false)
-    val vendorId: UUID,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 30)
+    val type: ContractRequestType,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "requester_type", nullable = false, length = 30)
+    val requesterType: ContractPartyType,
+
+    @Column(name = "requester_id", columnDefinition = "BINARY(16)", nullable = false)
+    val requesterId: UUID,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "approver_type", nullable = false, length = 30)
+    val approverType: ContractPartyType,
+
+    @Column(name = "approver_id", columnDefinition = "BINARY(16)")
+    val approverId: UUID?,
 
     @Column(name = "product_id", columnDefinition = "BINARY(16)")
     val productId: UUID?,
@@ -43,8 +61,9 @@ class ContractRequestJpaEntity(
     @Column(name = "product_name", nullable = false, length = 100)
     val productName: String,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "box_size", nullable = false, length = 30)
-    val boxSize: String,
+    val boxSize: BoxSize,
 
     @Column(name = "pickup_start_time", nullable = false, length = 10)
     val pickupStartTime: String,
@@ -73,10 +92,14 @@ class ContractRequestJpaEntity(
     val status: ContractRequestStatus,
 ) : BaseJpaEntity() {
 
-    fun toDomain(): ContractRequest {
+    fun toDomain(items: List<ContractRequestItemJpaEntity> = emptyList()): ContractRequest {
         return ContractRequest.restore(
             id = id,
-            vendorId = vendorId,
+            type = type,
+            requesterType = requesterType,
+            requesterId = requesterId,
+            approverType = approverType,
+            approverId = approverId,
             productId = productId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,
@@ -91,6 +114,7 @@ class ContractRequestJpaEntity(
             coldChainType = coldChainType,
             targetUnitPrice = targetUnitPrice,
             memo = memo,
+            items = items.map(ContractRequestItemJpaEntity::toDomain),
             status = status,
         )
     }
@@ -99,7 +123,11 @@ class ContractRequestJpaEntity(
         fun from(contractRequest: ContractRequest): ContractRequestJpaEntity {
             return ContractRequestJpaEntity(
                 id = contractRequest.id,
-                vendorId = contractRequest.vendorId,
+                type = contractRequest.type,
+                requesterType = contractRequest.requesterType,
+                requesterId = contractRequest.requesterId,
+                approverType = contractRequest.approverType,
+                approverId = contractRequest.approverId,
                 productId = contractRequest.productId,
                 pickupRegion = contractRequest.pickupRegion,
                 pickupAddress = contractRequest.pickupAddress,

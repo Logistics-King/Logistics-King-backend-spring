@@ -25,3 +25,11 @@ data class RefreshTokenResult(
 data class LogoutResult(
     val loggedOut: Boolean,
 )
+
+data class AccountRecoveryRequestResult(
+    val accepted: Boolean,
+)
+
+data class ResetPasswordResult(
+    val reset: Boolean,
+)

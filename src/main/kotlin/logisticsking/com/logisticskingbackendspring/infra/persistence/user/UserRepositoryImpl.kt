@@ -18,6 +18,20 @@ class UserRepositoryImpl(
         return userJpaRepository.findByLoginIdAndDeletedAtIsNull(loginId)?.toDomain()
     }
 
+    override fun findByNameAndEmail(
+        name: String,
+        email: String,
+    ): User? {
+        return userJpaRepository.findByNameAndEmailAndDeletedAtIsNull(name, email)?.toDomain()
+    }
+
+    override fun findByLoginIdAndEmail(
+        loginId: String,
+        email: String,
+    ): User? {
+        return userJpaRepository.findByLoginIdAndEmailAndDeletedAtIsNull(loginId, email)?.toDomain()
+    }
+
     override fun existsByLoginId(loginId: String): Boolean {
         return userJpaRepository.existsByLoginId(loginId)
     }
@@ -28,5 +42,17 @@ class UserRepositoryImpl(
 
     override fun save(user: User): User {
         return userJpaRepository.save(UserJpaEntity.from(user)).toDomain()
+    }
+
+    override fun updatePassword(
+        id: UUID,
+        encodedPassword: String,
+    ): User? {
+        val updatedCount = userJpaRepository.updatePassword(id, encodedPassword)
+        if (updatedCount == 0) {
+            return null
+        }
+
+        return findById(id)
     }
 }

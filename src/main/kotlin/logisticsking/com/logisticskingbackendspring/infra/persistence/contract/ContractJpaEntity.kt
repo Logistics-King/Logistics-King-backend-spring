@@ -1,5 +1,6 @@
 package logisticsking.com.logisticskingbackendspring.infra.persistence.contract
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -56,8 +57,9 @@ class ContractJpaEntity(
     @Column(name = "product_name", nullable = false, length = 100)
     val productName: String,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "box_size", nullable = false, length = 30)
-    val boxSize: String,
+    val boxSize: BoxSize,
 
     @Column(name = "unit_price", nullable = false, precision = 15, scale = 2)
     val unitPrice: BigDecimal,

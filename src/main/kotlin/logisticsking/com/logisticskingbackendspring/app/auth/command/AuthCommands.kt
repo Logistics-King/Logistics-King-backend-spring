@@ -16,6 +16,22 @@ data class LoginCommand(
     val password: String,
 )
 
+data class RequestLoginIdRecoveryCommand(
+    val name: String,
+    val email: String,
+)
+
+data class RequestPasswordResetCommand(
+    val loginId: String,
+    val email: String,
+)
+
+data class ResetPasswordCommand(
+    val token: String,
+    val newPassword: String,
+    val newPasswordConfirm: String,
+)
+
 data class RefreshTokenCommand(
     val refreshToken: String,
 )

@@ -23,7 +23,7 @@ data class AgencyResult(
     val saturdayPickupAvailable: Boolean,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
-    val coldChainType: ColdChainType,
+    val supportedColdChainTypes: Set<ColdChainType>,
     val maxMonthlyVolume: Int?,
 ) {
     companion object {
@@ -46,7 +46,7 @@ data class AgencyResult(
                 saturdayPickupAvailable = agency.saturdayPickupAvailable,
                 saturdayDeliveryAvailable = agency.saturdayDeliveryAvailable,
                 returnAvailable = agency.returnAvailable,
-                coldChainType = agency.coldChainType,
+                supportedColdChainTypes = agency.supportedColdChainTypes,
                 maxMonthlyVolume = agency.maxMonthlyVolume,
             )
         }

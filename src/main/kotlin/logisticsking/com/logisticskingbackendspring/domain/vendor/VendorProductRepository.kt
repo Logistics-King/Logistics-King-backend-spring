@@ -10,5 +10,13 @@ interface VendorProductRepository {
         id: UUID,
         vendorId: UUID,
     ): VendorProduct?
-    fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<VendorProduct>
+    fun findAllByVendorId(
+        vendorId: UUID,
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+    ): Page<VendorProduct>
+    fun findAllByIdsAndVendorIdForUpdate(
+        ids: Collection<UUID>,
+        vendorId: UUID,
+    ): List<VendorProduct>
 }

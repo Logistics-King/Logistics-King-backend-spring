@@ -1,19 +1,25 @@
 package logisticsking.com.logisticskingbackendspring.infra.persistence.vendor
 
+import com.querydsl.jpa.impl.JPAQueryFactory
+import jakarta.persistence.LockModeType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductRepository
+import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductSearchCondition
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.util.UUID
 
 @Repository
 class VendorProductRepositoryImpl(
-    private val jpaRepository: VendorProductJpaRepository,
+    private val jpaRepository: ProductJpaRepository,
+    private val queryFactory: JPAQueryFactory,
 ) : VendorProductRepository {
+    private val vendorProduct = QProductJpaEntity.productJpaEntity
 
     override fun save(product: VendorProduct): VendorProduct {
-        return jpaRepository.save(VendorProductJpaEntity.from(product)).toDomain()
+        return jpaRepository.save(ProductJpaEntity.from(product)).toDomain()
     }
 
     override fun findByIdAndVendorId(
@@ -23,8 +29,73 @@ class VendorProductRepositoryImpl(
         return jpaRepository.findByIdAndVendorIdAndDeletedAtIsNull(id, vendorId)?.toDomain()
     }
 
-    override fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<VendorProduct> {
-        return jpaRepository.findAllByVendorIdAndDeletedAtIsNullOrderByCreatedAtDesc(vendorId, pageable)
-            .map(VendorProductJpaEntity::toDomain)
+    override fun findAllByVendorId(
+        vendorId: UUID,
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+    ): Page<VendorProduct> {
+        return findAllByCondition(
+            condition = condition,
+            pageable = pageable,
+            vendorId = vendorId,
+        )
+    }
+
+    override fun findAllByIdsAndVendorIdForUpdate(
+        ids: Collection<UUID>,
+        vendorId: UUID,
+    ): List<VendorProduct> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+
+        return queryFactory
+            .selectFrom(vendorProduct)
+            .where(
+                vendorProduct.id.`in`(ids),
+                vendorProduct.vendorId.eq(vendorId),
+                vendorProduct.deletedAt.isNull,
+            )
+            .orderBy(vendorProduct.id.asc())
+            .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+            .fetch()
+            .map(ProductJpaEntity::toDomain)
+    }
+
+    private fun findAllByCondition(
+        condition: VendorProductSearchCondition,
+        pageable: Pageable,
+        vendorId: UUID?,
+    ): Page<VendorProduct> {
+        val content = queryFactory
+            .selectFrom(vendorProduct)
+            .where(
+                vendorId?.let { vendorProduct.vendorId.eq(it) },
+                vendorProduct.deletedAt.isNull,
+                condition.normalizedName?.let { vendorProduct.name.containsIgnoreCase(it) },
+                condition.category?.let { vendorProduct.category.eq(it) },
+                condition.boxSize?.let { vendorProduct.boxSize.eq(it) },
+                condition.coldChainType?.let { vendorProduct.coldChainType.eq(it) },
+            )
+            .orderBy(vendorProduct.createdAt.desc())
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .fetch()
+            .map(ProductJpaEntity::toDomain)
+
+        val total = queryFactory
+            .select(vendorProduct.count())
+            .from(vendorProduct)
+            .where(
+                vendorId?.let { vendorProduct.vendorId.eq(it) },
+                vendorProduct.deletedAt.isNull,
+                condition.normalizedName?.let { vendorProduct.name.containsIgnoreCase(it) },
+                condition.category?.let { vendorProduct.category.eq(it) },
+                condition.boxSize?.let { vendorProduct.boxSize.eq(it) },
+                condition.coldChainType?.let { vendorProduct.coldChainType.eq(it) },
+            )
+            .fetchOne() ?: 0L
+
+        return PageImpl(content, pageable, total)
     }
 }
