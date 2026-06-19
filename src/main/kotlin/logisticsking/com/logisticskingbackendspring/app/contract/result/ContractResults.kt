@@ -1,10 +1,14 @@
 package logisticsking.com.logisticskingbackendspring.app.contract.result
 
+import logisticsking.com.logisticskingbackendspring.app.agency.result.AgencyResult
+import logisticsking.com.logisticskingbackendspring.app.vendor.result.VendorResult
+import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.Contract
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractStatus
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
+import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -28,9 +32,15 @@ data class ContractResult(
     val coldChainType: ColdChainType,
     val memo: String?,
     val status: ContractStatus,
+    val vendor: VendorResult?,
+    val agency: AgencyResult?,
 ) {
     companion object {
-        fun from(contract: Contract): ContractResult {
+        fun from(
+            contract: Contract,
+            vendor: Vendor? = null,
+            agency: Agency? = null,
+        ): ContractResult {
             return ContractResult(
                 contractId = contract.id,
                 contractRequestId = contract.contractRequestId,
@@ -51,6 +61,8 @@ data class ContractResult(
                 coldChainType = contract.coldChainType,
                 memo = contract.memo,
                 status = contract.status,
+                vendor = vendor?.let(VendorResult::from),
+                agency = agency?.let(AgencyResult::from),
             )
         }
     }

@@ -86,7 +86,11 @@ class ContractService(
             contractId = savedContract.id,
         )
 
-        return ContractResult.from(savedContract)
+        return ContractResult.from(
+            contract = savedContract,
+            vendor = vendor,
+            agency = findAgencyById(savedContract.agencyId),
+        )
     }
 
     @Transactional(readOnly = true)
@@ -94,8 +98,17 @@ class ContractService(
         findVendorUser(userId)
         val vendor = findVendorByUserId(userId)
 
-        return contractRepository.findAllByVendorId(vendor.id, pageable)
-            .map(ContractResult::from)
+        val contracts = contractRepository.findAllByVendorId(vendor.id, pageable)
+        val agenciesById = agencyRepository.findAllByIds(contracts.content.map(Contract::agencyId).distinct())
+            .associateBy(Agency::id)
+
+        return contracts.map { contract ->
+            ContractResult.from(
+                contract = contract,
+                vendor = vendor,
+                agency = agenciesById[contract.agencyId],
+            )
+        }
     }
 
     @Transactional(readOnly = true)
@@ -103,8 +116,17 @@ class ContractService(
         findAgencyUser(userId)
         val agency = findAgencyByUserId(userId)
 
-        return contractRepository.findAllByAgencyId(agency.id, pageable)
-            .map(ContractResult::from)
+        val contracts = contractRepository.findAllByAgencyId(agency.id, pageable)
+        val vendorsById = vendorRepository.findAllByIds(contracts.content.map(Contract::vendorId).distinct())
+            .associateBy(Vendor::id)
+
+        return contracts.map { contract ->
+            ContractResult.from(
+                contract = contract,
+                vendor = vendorsById[contract.vendorId],
+                agency = agency,
+            )
+        }
     }
 
     private fun findVendorUser(userId: UUID): User {
@@ -134,6 +156,11 @@ class ContractService(
 
     private fun findAgencyByUserId(userId: UUID): Agency {
         return agencyRepository.findByUserId(userId)
+            ?: throw GlobalException(ContractErrorCode.AGENCY_NOT_FOUND)
+    }
+
+    private fun findAgencyById(agencyId: UUID): Agency {
+        return agencyRepository.findById(agencyId)
             ?: throw GlobalException(ContractErrorCode.AGENCY_NOT_FOUND)
     }
 

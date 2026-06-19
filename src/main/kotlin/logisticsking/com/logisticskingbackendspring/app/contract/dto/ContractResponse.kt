@@ -3,8 +3,10 @@ package logisticsking.com.logisticskingbackendspring.app.contract.dto
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
+import logisticsking.com.logisticskingbackendspring.app.agency.dto.AgencyResponse
 import logisticsking.com.logisticskingbackendspring.app.common.PageResponse
 import logisticsking.com.logisticskingbackendspring.app.contract.result.ContractResult
+import logisticsking.com.logisticskingbackendspring.app.vendor.dto.VendorResponse
 import org.springframework.data.domain.Page
 import java.math.BigDecimal
 
@@ -50,6 +52,10 @@ sealed interface ContractResponse {
         val memo: String?,
         @field:Schema(description = "계약 상태", example = "ACTIVE")
         val status: String,
+        @field:Schema(description = "계약 화주 요약 정보")
+        val vendor: VendorResponse.Summary?,
+        @field:Schema(description = "계약 대리점 요약 정보")
+        val agency: AgencyResponse.Summary?,
     ) : ContractResponse {
         companion object {
             fun from(result: ContractResult): Detail {
@@ -73,6 +79,8 @@ sealed interface ContractResponse {
                     coldChainType = result.coldChainType,
                     memo = result.memo,
                     status = result.status.name,
+                    vendor = result.vendor?.let(VendorResponse.Summary::from),
+                    agency = result.agency?.let(AgencyResponse.Summary::from),
                 )
             }
         }
