@@ -20,11 +20,13 @@ class ContractTest {
         val agencyId = UUID.randomUUID()
         val request = contractRequest(id = requestId, vendorId = vendorId)
         val proposal = proposal(contractRequestId = requestId, vendorId = vendorId, agencyId = agencyId)
+        val items = contractItems(request, proposal)
 
         val contract = Contract.create(
             id = contractId,
             contractRequest = request,
             proposal = proposal,
+            items = items,
         )
 
         assertEquals(contractId, contract.id)
@@ -39,6 +41,7 @@ class ContractTest {
         assertEquals(proposal.unitPrice, contract.unitPrice)
         assertEquals(proposal.pickupStartTime, contract.pickupStartTime)
         assertEquals(proposal.saturdayDeliveryAvailable, contract.saturdayDeliveryAvailable)
+        assertEquals(items, contract.items)
         assertEquals(ContractStatus.ACTIVE, contract.status)
     }
 
@@ -55,6 +58,7 @@ class ContractTest {
                 id = UUID.randomUUID(),
                 contractRequest = request,
                 proposal = proposal,
+                items = contractItems(request, proposal),
             )
         }
 
@@ -123,5 +127,18 @@ class ContractTest {
             coldChainType = ColdChainType.NONE,
             memo = "의류 800박스 기준 집하 가능",
         )
+    }
+
+    private fun contractItems(
+        request: ContractRequest,
+        proposal: Proposal,
+    ): List<ContractItem> {
+        return request.items.map {
+            ContractItem.fromRequestItem(
+                id = UUID.randomUUID(),
+                item = it,
+                unitPrice = proposal.unitPrice,
+            )
+        }
     }
 }

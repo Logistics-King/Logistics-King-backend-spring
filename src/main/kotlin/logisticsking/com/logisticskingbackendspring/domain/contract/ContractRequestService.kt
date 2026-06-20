@@ -189,10 +189,18 @@ class ContractRequestService(
         )
         val savedProposal = proposalRepository.save(proposal)
         val savedRequest = contractRequestRepository.save(contractRequest.contract())
+        val contractItems = savedRequest.items.map { item ->
+            ContractItem.fromRequestItem(
+                id = idGenerator.generate(),
+                item = item,
+                unitPrice = savedProposal.unitPrice,
+            )
+        }
         val contract = Contract.create(
             id = idGenerator.generate(),
             contractRequest = savedRequest,
             proposal = savedProposal,
+            items = contractItems,
         )
 
         return ContractResult.from(contractRepository.save(contract))

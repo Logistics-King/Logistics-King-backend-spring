@@ -6,6 +6,7 @@ import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.Contract
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractItem
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractStatus
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
@@ -31,6 +32,7 @@ data class ContractResult(
     val returnAvailable: Boolean,
     val coldChainType: ColdChainType,
     val memo: String?,
+    val items: List<ContractItemResult>,
     val status: ContractStatus,
     val vendor: VendorResult?,
     val agency: AgencyResult?,
@@ -60,9 +62,46 @@ data class ContractResult(
                 returnAvailable = contract.returnAvailable,
                 coldChainType = contract.coldChainType,
                 memo = contract.memo,
+                items = contract.items.map(ContractItemResult::from),
                 status = contract.status,
                 vendor = vendor?.let(VendorResult::from),
                 agency = agency?.let(AgencyResult::from),
+            )
+        }
+    }
+}
+
+data class ContractItemResult(
+    val itemId: UUID,
+    val productId: UUID?,
+    val productCategory: ProductCategory,
+    val productName: String,
+    val boxSize: BoxSize,
+    val boxQuantity: Int,
+    val itemQuantity: Int,
+    val averageWeightGram: Int?,
+    val fragile: Boolean,
+    val liquid: Boolean,
+    val freshFood: Boolean,
+    val coldChainType: ColdChainType,
+    val unitPrice: BigDecimal,
+) {
+    companion object {
+        fun from(item: ContractItem): ContractItemResult {
+            return ContractItemResult(
+                itemId = item.id,
+                productId = item.productId,
+                productCategory = item.productCategory,
+                productName = item.productName,
+                boxSize = item.boxSize,
+                boxQuantity = item.boxQuantity,
+                itemQuantity = item.itemQuantity,
+                averageWeightGram = item.averageWeightGram,
+                fragile = item.fragile,
+                liquid = item.liquid,
+                freshFood = item.freshFood,
+                coldChainType = item.coldChainType,
+                unitPrice = item.unitPrice,
             )
         }
     }

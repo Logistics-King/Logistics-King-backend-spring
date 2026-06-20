@@ -26,6 +26,7 @@ class Contract private constructor(
     val returnAvailable: Boolean,
     val coldChainType: ColdChainType,
     val memo: String?,
+    val items: List<ContractItem>,
     val status: ContractStatus,
 ) {
     companion object {
@@ -33,12 +34,14 @@ class Contract private constructor(
             id: UUID,
             contractRequest: ContractRequest,
             proposal: Proposal,
+            items: List<ContractItem>,
         ): Contract {
             requireDomain(
                 contractRequest.id == proposal.contractRequestId &&
                     contractRequest.vendorId == proposal.vendorId,
                 ContractErrorCode.INVALID_CONTRACT_REQUEST_PROPOSAL,
             )
+            requireDomain(items.isNotEmpty(), ContractRequestErrorCode.INVALID_ITEMS)
 
             return Contract(
                 id = id,
@@ -59,6 +62,7 @@ class Contract private constructor(
                 returnAvailable = proposal.returnAvailable,
                 coldChainType = proposal.coldChainType,
                 memo = proposal.memo,
+                items = items,
                 status = ContractStatus.ACTIVE,
             )
         }
@@ -82,6 +86,7 @@ class Contract private constructor(
             returnAvailable: Boolean,
             coldChainType: ColdChainType,
             memo: String?,
+            items: List<ContractItem>,
             status: ContractStatus,
         ): Contract {
             return Contract(
@@ -103,6 +108,7 @@ class Contract private constructor(
                 returnAvailable = returnAvailable,
                 coldChainType = coldChainType,
                 memo = memo,
+                items = items,
                 status = status,
             )
         }

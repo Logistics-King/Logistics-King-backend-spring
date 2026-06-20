@@ -5,6 +5,7 @@ import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.agency.dto.AgencyResponse
 import logisticsking.com.logisticskingbackendspring.app.common.PageResponse
+import logisticsking.com.logisticskingbackendspring.app.contract.result.ContractItemResult
 import logisticsking.com.logisticskingbackendspring.app.contract.result.ContractResult
 import logisticsking.com.logisticskingbackendspring.app.vendor.dto.VendorResponse
 import org.springframework.data.domain.Page
@@ -50,6 +51,8 @@ sealed interface ContractResponse {
         val coldChainType: ColdChainType,
         @field:Schema(description = "계약 메모", example = "의류 800박스 기준 집하 가능")
         val memo: String?,
+        @field:Schema(description = "계약 당시 배송 물품 라인 스냅샷")
+        val items: kotlin.collections.List<Item>,
         @field:Schema(description = "계약 상태", example = "ACTIVE")
         val status: String,
         @field:Schema(description = "계약 화주 요약 정보")
@@ -78,9 +81,60 @@ sealed interface ContractResponse {
                     returnAvailable = result.returnAvailable,
                     coldChainType = result.coldChainType,
                     memo = result.memo,
+                    items = result.items.map(Item::from),
                     status = result.status.name,
                     vendor = result.vendor?.let(VendorResponse.Summary::from),
                     agency = result.agency?.let(AgencyResponse.Summary::from),
+                )
+            }
+        }
+    }
+
+    @Schema(name = "ContractItemResponse")
+    data class Item(
+        @field:Schema(description = "계약 배송 물품 라인 ID", example = "019b1f44-a741-7000-8000-000000000521")
+        val itemId: String,
+        @field:Schema(description = "원본 화주 배송 품목 ID. 직접 입력 품목이면 null", example = "019b1f44-a741-7000-8000-000000000003")
+        val productId: String?,
+        @field:Schema(description = "품목 카테고리", example = "CLOTHING")
+        val productCategory: String,
+        @field:Schema(description = "품목명", example = "일반 의류")
+        val productName: String,
+        @field:Schema(description = "박스 크기", example = "SIZE_60")
+        val boxSize: BoxSize,
+        @field:Schema(description = "박스 수량", example = "6")
+        val boxQuantity: Int,
+        @field:Schema(description = "낱개 수량", example = "0")
+        val itemQuantity: Int,
+        @field:Schema(description = "평균 무게(g)", example = "700")
+        val averageWeightGram: Int?,
+        @field:Schema(description = "파손 주의 여부", example = "false")
+        val fragile: Boolean,
+        @field:Schema(description = "액체 포함 여부", example = "false")
+        val liquid: Boolean,
+        @field:Schema(description = "신선식품 여부", example = "false")
+        val freshFood: Boolean,
+        @field:Schema(description = "콜드체인 필요 타입", example = "NONE")
+        val coldChainType: ColdChainType,
+        @field:Schema(description = "계약 당시 확정 단가", example = "2050")
+        val unitPrice: BigDecimal,
+    ) : ContractResponse {
+        companion object {
+            fun from(result: ContractItemResult): Item {
+                return Item(
+                    itemId = result.itemId.toString(),
+                    productId = result.productId?.toString(),
+                    productCategory = result.productCategory.name,
+                    productName = result.productName,
+                    boxSize = result.boxSize,
+                    boxQuantity = result.boxQuantity,
+                    itemQuantity = result.itemQuantity,
+                    averageWeightGram = result.averageWeightGram,
+                    fragile = result.fragile,
+                    liquid = result.liquid,
+                    freshFood = result.freshFood,
+                    coldChainType = result.coldChainType,
+                    unitPrice = result.unitPrice,
                 )
             }
         }

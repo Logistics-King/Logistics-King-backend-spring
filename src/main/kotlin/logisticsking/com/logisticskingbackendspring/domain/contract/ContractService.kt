@@ -61,10 +61,18 @@ class ContractService(
             current.id == command.proposalId && current.vendorId == vendor.id
         } ?: throw GlobalException(ContractErrorCode.PROPOSAL_NOT_FOUND)
 
+        val contractItems = contractRequest.items.map { item ->
+            ContractItem.fromRequestItem(
+                id = idGenerator.generate(),
+                item = item,
+                unitPrice = selectedProposal.unitPrice,
+            )
+        }
         val contract = Contract.create(
             id = idGenerator.generate(),
             contractRequest = contractRequest,
             proposal = selectedProposal,
+            items = contractItems,
         )
         val proposalResults = proposals.map { current ->
             when {
