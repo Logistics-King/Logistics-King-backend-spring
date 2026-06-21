@@ -37,3 +37,22 @@ data class GetContractRequestProposalsCommand(
     val userId: UUID,
     val contractRequestId: UUID,
 )
+
+data class GetProposalNegotiationsCommand(
+    val userId: UUID,
+    val proposalId: UUID,
+)
+
+data class CreateProposalPriceOfferCommand(
+    val userId: UUID,
+    val proposalId: UUID,
+    val unitPrice: BigDecimal,
+    val memo: String?,
+)
+
+data class DecideProposalNegotiationCommand(
+    val userId: UUID,
+    val proposalId: UUID,
+    val eventId: UUID,
+    val memo: String?,
+)

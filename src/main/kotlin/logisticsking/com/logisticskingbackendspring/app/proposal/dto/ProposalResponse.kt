@@ -23,6 +23,14 @@ sealed interface ProposalResponse {
         val agencyId: String,
         @field:Schema(description = "건당 제안 단가", example = "2050")
         val unitPrice: BigDecimal,
+        @field:Schema(description = "최초 제안 단가", example = "2050")
+        val initialUnitPrice: BigDecimal,
+        @field:Schema(description = "최종 합의 단가. 협상 수락 전에는 null입니다.", example = "1980")
+        val finalUnitPrice: BigDecimal?,
+        @field:Schema(description = "응답 대기 중인 협상 이벤트 ID. 없으면 null입니다.")
+        val pendingNegotiationId: String?,
+        @field:Schema(description = "다음 협상 이벤트 순번", example = "3")
+        val nextSequence: Long,
         @field:Schema(description = "제안 픽업 시작 시간", example = "10:00")
         val pickupStartTime: String,
         @field:Schema(description = "제안 픽업 종료 시간", example = "17:00")
@@ -50,6 +58,10 @@ sealed interface ProposalResponse {
                     vendorId = result.vendorId.toString(),
                     agencyId = result.agencyId.toString(),
                     unitPrice = result.unitPrice,
+                    initialUnitPrice = result.initialUnitPrice,
+                    finalUnitPrice = result.finalUnitPrice,
+                    pendingNegotiationId = result.pendingNegotiationId?.toString(),
+                    nextSequence = result.nextSequence,
                     pickupStartTime = result.pickupStartTime,
                     pickupEndTime = result.pickupEndTime,
                     saturdayDeliveryAvailable = result.saturdayDeliveryAvailable,

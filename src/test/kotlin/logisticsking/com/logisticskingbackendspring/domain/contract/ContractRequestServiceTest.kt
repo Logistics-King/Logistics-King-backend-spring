@@ -380,6 +380,8 @@ class ContractRequestServiceTest {
 
     private class FakeProposalRepository : ProposalRepository {
         override fun save(proposal: Proposal): Proposal = proposal
+        override fun findById(id: UUID): Proposal? = null
+        override fun findByIdForUpdate(id: UUID): Proposal? = null
         override fun findByIdAndAgencyId(id: UUID, agencyId: UUID): Proposal? = null
         override fun findByIdAndAgencyIdForUpdate(id: UUID, agencyId: UUID): Proposal? = null
         override fun findByIdAndVendorId(id: UUID, vendorId: UUID): Proposal? = null

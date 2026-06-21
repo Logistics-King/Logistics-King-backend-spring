@@ -1,9 +1,8 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
-enum class ProposalStatus {
-    SUBMITTED,
-    NEGOTIATING,
-    WITHDRAWN,
+enum class ProposalNegotiationEventStatus {
+    PENDING,
     ACCEPTED,
     REJECTED,
+    RECORDED,
 }

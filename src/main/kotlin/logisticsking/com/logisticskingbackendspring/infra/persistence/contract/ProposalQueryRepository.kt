@@ -11,6 +11,14 @@ class ProposalQueryRepository(
 ) {
     private val proposal = QProposalJpaEntity.proposalJpaEntity
 
+    fun findByIdForUpdate(id: UUID): ProposalJpaEntity? {
+        return queryFactory
+            .selectFrom(proposal)
+            .where(proposal.id.eq(id))
+            .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+            .fetchOne()
+    }
+
     fun findByIdAndAgencyIdForUpdate(
         id: UUID,
         agencyId: UUID,

@@ -41,6 +41,18 @@ class ProposalJpaEntity(
     @Column(name = "unit_price", nullable = false, precision = 15, scale = 2)
     val unitPrice: BigDecimal,
 
+    @Column(name = "initial_unit_price", nullable = false, precision = 15, scale = 2)
+    val initialUnitPrice: BigDecimal,
+
+    @Column(name = "final_unit_price", precision = 15, scale = 2)
+    val finalUnitPrice: BigDecimal?,
+
+    @Column(name = "pending_negotiation_id", columnDefinition = "BINARY(16)")
+    val pendingNegotiationId: UUID?,
+
+    @Column(name = "next_sequence", nullable = false)
+    val nextSequence: Long,
+
     @Column(name = "pickup_start_time", nullable = false, length = 10)
     val pickupStartTime: String,
 
@@ -72,6 +84,10 @@ class ProposalJpaEntity(
             vendorId = vendorId,
             agencyId = agencyId,
             unitPrice = unitPrice,
+            initialUnitPrice = initialUnitPrice,
+            finalUnitPrice = finalUnitPrice,
+            pendingNegotiationId = pendingNegotiationId,
+            nextSequence = nextSequence,
             pickupStartTime = pickupStartTime,
             pickupEndTime = pickupEndTime,
             saturdayDeliveryAvailable = saturdayDeliveryAvailable,
@@ -90,6 +106,10 @@ class ProposalJpaEntity(
                 vendorId = proposal.vendorId,
                 agencyId = proposal.agencyId,
                 unitPrice = proposal.unitPrice,
+                initialUnitPrice = proposal.initialUnitPrice,
+                finalUnitPrice = proposal.finalUnitPrice,
+                pendingNegotiationId = proposal.pendingNegotiationId,
+                nextSequence = proposal.nextSequence,
                 pickupStartTime = proposal.pickupStartTime,
                 pickupEndTime = proposal.pickupEndTime,
                 saturdayDeliveryAvailable = proposal.saturdayDeliveryAvailable,

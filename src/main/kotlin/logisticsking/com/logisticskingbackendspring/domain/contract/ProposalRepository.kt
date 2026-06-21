@@ -6,6 +6,8 @@ import java.util.UUID
 
 interface ProposalRepository {
     fun save(proposal: Proposal): Proposal
+    fun findById(id: UUID): Proposal?
+    fun findByIdForUpdate(id: UUID): Proposal?
     fun findByIdAndAgencyId(
         id: UUID,
         agencyId: UUID,

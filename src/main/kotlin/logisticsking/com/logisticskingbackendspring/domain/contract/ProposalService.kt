@@ -1,14 +1,22 @@
 package logisticsking.com.logisticskingbackendspring.domain.contract
 
 import logisticsking.com.logisticskingbackendspring.app.contract.result.ContractRequestResult
+import logisticsking.com.logisticskingbackendspring.app.proposal.command.CreateProposalPriceOfferCommand
+import logisticsking.com.logisticskingbackendspring.app.proposal.command.DecideProposalNegotiationCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetContractRequestProposalsCommand
+import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetProposalNegotiationsCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.SubmitProposalCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.UpdateProposalCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.WithdrawProposalCommand
+import logisticsking.com.logisticskingbackendspring.app.proposal.result.ProposalNegotiationEventResult
 import logisticsking.com.logisticskingbackendspring.app.proposal.result.ProposalResult
+import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.AcceptProposalNegotiationUseCase
+import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.CreateProposalPriceOfferUseCase
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.GetContractRequestProposalsUseCase
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.GetMyProposalsUseCase
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.GetOpenContractRequestsUseCase
+import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.GetProposalNegotiationsUseCase
+import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.RejectProposalNegotiationUseCase
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.SubmitProposalUseCase
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.UpdateProposalUseCase
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.WithdrawProposalUseCase
@@ -37,6 +45,7 @@ class ProposalService(
     private val agencyRepository: AgencyRepository,
     private val contractRequestRepository: ContractRequestRepository,
     private val proposalRepository: ProposalRepository,
+    private val proposalNegotiationEventRepository: ProposalNegotiationEventRepository,
     private val notificationPublisher: NotificationPublisher,
     private val idGenerator: IdGenerator,
 ) : GetOpenContractRequestsUseCase,
@@ -44,7 +53,11 @@ class ProposalService(
     GetContractRequestProposalsUseCase,
     GetMyProposalsUseCase,
     UpdateProposalUseCase,
-    WithdrawProposalUseCase {
+    WithdrawProposalUseCase,
+    GetProposalNegotiationsUseCase,
+    CreateProposalPriceOfferUseCase,
+    AcceptProposalNegotiationUseCase,
+    RejectProposalNegotiationUseCase {
 
     @Transactional(readOnly = true)
     override fun getOpenContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult> {
@@ -194,6 +207,94 @@ class ProposalService(
         )
     }
 
+    @Transactional(readOnly = true)
+    override fun getNegotiations(command: GetProposalNegotiationsCommand): List<ProposalNegotiationEventResult> {
+        val proposal = proposalRepository.findById(command.proposalId)
+            ?: throw GlobalException(ProposalErrorCode.NOT_FOUND)
+        findNegotiationActor(command.userId, proposal)
+
+        return proposalNegotiationEventRepository.findAllByProposalId(proposal.id)
+            .map(ProposalNegotiationEventResult::from)
+    }
+
+    @Transactional
+    override fun createPriceOffer(command: CreateProposalPriceOfferCommand): ProposalNegotiationEventResult {
+        val proposal = proposalRepository.findByIdForUpdate(command.proposalId)
+            ?: throw GlobalException(ProposalErrorCode.NOT_FOUND)
+        val actorType = findNegotiationActor(command.userId, proposal)
+
+        val event = ProposalNegotiationEvent.priceOffer(
+            id = idGenerator.generate(),
+            proposalId = proposal.id,
+            sequence = proposal.nextSequence,
+            actorType = actorType,
+            unitPrice = command.unitPrice,
+            memo = command.memo,
+        )
+        val updatedProposal = proposal.startPriceNegotiation(
+            eventId = event.id,
+            unitPrice = command.unitPrice,
+        )
+
+        val savedEvent = proposalNegotiationEventRepository.save(event)
+        proposalRepository.save(updatedProposal)
+
+        return ProposalNegotiationEventResult.from(savedEvent)
+    }
+
+    @Transactional
+    override fun acceptNegotiation(command: DecideProposalNegotiationCommand): ProposalNegotiationEventResult {
+        val proposal = proposalRepository.findByIdForUpdate(command.proposalId)
+            ?: throw GlobalException(ProposalErrorCode.NOT_FOUND)
+        val actorType = findNegotiationActor(command.userId, proposal)
+        val pendingEvent = findPendingNegotiationEvent(command.eventId, proposal.id)
+        validateNegotiationResponder(actorType, pendingEvent)
+
+        val recordedEvent = ProposalNegotiationEvent.recorded(
+            id = idGenerator.generate(),
+            proposalId = proposal.id,
+            sequence = proposal.nextSequence,
+            actorType = actorType,
+            eventType = ProposalNegotiationEventType.PRICE_ACCEPTED,
+            memo = command.memo,
+        )
+        val updatedProposal = proposal.acceptPendingNegotiation(
+            pendingEventId = pendingEvent.id,
+            unitPrice = pendingEvent.unitPrice ?: throw GlobalException(ProposalErrorCode.INVALID_UNIT_PRICE),
+        )
+
+        proposalNegotiationEventRepository.save(pendingEvent.accept())
+        val savedEvent = proposalNegotiationEventRepository.save(recordedEvent)
+        proposalRepository.save(updatedProposal)
+
+        return ProposalNegotiationEventResult.from(savedEvent)
+    }
+
+    @Transactional
+    override fun rejectNegotiation(command: DecideProposalNegotiationCommand): ProposalNegotiationEventResult {
+        val proposal = proposalRepository.findByIdForUpdate(command.proposalId)
+            ?: throw GlobalException(ProposalErrorCode.NOT_FOUND)
+        val actorType = findNegotiationActor(command.userId, proposal)
+        val pendingEvent = findPendingNegotiationEvent(command.eventId, proposal.id)
+        validateNegotiationResponder(actorType, pendingEvent)
+
+        val recordedEvent = ProposalNegotiationEvent.recorded(
+            id = idGenerator.generate(),
+            proposalId = proposal.id,
+            sequence = proposal.nextSequence,
+            actorType = actorType,
+            eventType = ProposalNegotiationEventType.PRICE_REJECTED,
+            memo = command.memo,
+        )
+        val updatedProposal = proposal.rejectPendingNegotiation(pendingEvent.id)
+
+        proposalNegotiationEventRepository.save(pendingEvent.reject())
+        val savedEvent = proposalNegotiationEventRepository.save(recordedEvent)
+        proposalRepository.save(updatedProposal)
+
+        return ProposalNegotiationEventResult.from(savedEvent)
+    }
+
     private fun findAgencyUser(userId: UUID): User {
         val user = userRepository.findById(userId)
             ?: throw GlobalException(ProposalErrorCode.USER_NOT_FOUND)
@@ -261,5 +362,48 @@ class ProposalService(
             id = proposalId,
             agencyId = agencyId,
         ) ?: throw GlobalException(ProposalErrorCode.NOT_FOUND)
+    }
+
+    private fun findNegotiationActor(
+        userId: UUID,
+        proposal: Proposal,
+    ): ContractPartyType {
+        val user = userRepository.findById(userId)
+            ?: throw GlobalException(ProposalErrorCode.USER_NOT_FOUND)
+
+        return when (user.role) {
+            UserRole.VENDOR -> {
+                val vendor = findVendorByUserId(userId)
+                if (vendor.id != proposal.vendorId) {
+                    throw GlobalException(ProposalErrorCode.INVALID_NEGOTIATION_ACTOR)
+                }
+                ContractPartyType.VENDOR
+            }
+            UserRole.AGENCY -> {
+                val agency = findAgencyByUserId(userId)
+                if (agency.id != proposal.agencyId) {
+                    throw GlobalException(ProposalErrorCode.INVALID_NEGOTIATION_ACTOR)
+                }
+                ContractPartyType.AGENCY
+            }
+            else -> throw GlobalException(ProposalErrorCode.INVALID_NEGOTIATION_ACTOR)
+        }
+    }
+
+    private fun findPendingNegotiationEvent(
+        eventId: UUID,
+        proposalId: UUID,
+    ): ProposalNegotiationEvent {
+        return proposalNegotiationEventRepository.findByIdAndProposalId(eventId, proposalId)
+            ?: throw GlobalException(ProposalErrorCode.NEGOTIATION_EVENT_NOT_FOUND)
+    }
+
+    private fun validateNegotiationResponder(
+        actorType: ContractPartyType,
+        pendingEvent: ProposalNegotiationEvent,
+    ) {
+        if (pendingEvent.actorType == actorType) {
+            throw GlobalException(ProposalErrorCode.INVALID_NEGOTIATION_RESPONDER)
+        }
     }
 }

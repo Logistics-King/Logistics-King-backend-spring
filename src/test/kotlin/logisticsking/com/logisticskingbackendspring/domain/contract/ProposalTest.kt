@@ -91,6 +91,58 @@ class ProposalTest {
     }
 
     @Test
+    fun `가격 협상 시작 시 최신 단가를 바꾸고 pending 이벤트를 기록한다`() {
+        val proposal = proposal()
+        val eventId = UUID.randomUUID()
+
+        val negotiating = proposal.startPriceNegotiation(
+            eventId = eventId,
+            unitPrice = BigDecimal("1980"),
+        )
+
+        assertEquals(ProposalStatus.NEGOTIATING, negotiating.status)
+        assertEquals(BigDecimal("1980"), negotiating.unitPrice)
+        assertEquals(BigDecimal("2050"), negotiating.initialUnitPrice)
+        assertNull(negotiating.finalUnitPrice)
+        assertEquals(eventId, negotiating.pendingNegotiationId)
+        assertEquals(2, negotiating.nextSequence)
+    }
+
+    @Test
+    fun `pending 협상 수락 시 최종 단가를 확정하고 pending을 제거한다`() {
+        val eventId = UUID.randomUUID()
+        val negotiating = proposal().startPriceNegotiation(
+            eventId = eventId,
+            unitPrice = BigDecimal("1980"),
+        )
+
+        val accepted = negotiating.acceptPendingNegotiation(
+            pendingEventId = eventId,
+            unitPrice = BigDecimal("1980"),
+        )
+
+        assertEquals(ProposalStatus.NEGOTIATING, accepted.status)
+        assertEquals(BigDecimal("1980"), accepted.unitPrice)
+        assertEquals(BigDecimal("1980"), accepted.finalUnitPrice)
+        assertNull(accepted.pendingNegotiationId)
+        assertEquals(3, accepted.nextSequence)
+    }
+
+    @Test
+    fun `pending 협상이 있으면 최종 제안 수락을 막는다`() {
+        val negotiating = proposal().startPriceNegotiation(
+            eventId = UUID.randomUUID(),
+            unitPrice = BigDecimal("1980"),
+        )
+
+        val exception = assertThrows(GlobalException::class.java) {
+            negotiating.accept()
+        }
+
+        assertEquals(ProposalErrorCode.PROPOSAL_HAS_PENDING_NEGOTIATION, exception.errorCode)
+    }
+
+    @Test
     fun `create 시 단가가 1보다 작으면 예외가 발생한다`() {
         val exception = assertThrows(GlobalException::class.java) {
             proposal(unitPrice = BigDecimal.ZERO)
@@ -147,6 +199,35 @@ class ProposalTest {
         }
 
         assertEquals(ProposalErrorCode.ONLY_SUBMITTED_PROPOSAL_CAN_BE_WITHDRAWN, exception.errorCode)
+    }
+
+    @Test
+    fun `협상 이벤트는 pending 가격 제안만 수락 또는 거절할 수 있다`() {
+        val event = ProposalNegotiationEvent.priceOffer(
+            id = UUID.randomUUID(),
+            proposalId = UUID.randomUUID(),
+            sequence = 1,
+            actorType = ContractPartyType.AGENCY,
+            unitPrice = BigDecimal("1980"),
+            memo = "조율 제안",
+        )
+
+        assertEquals(ProposalNegotiationEventStatus.ACCEPTED, event.accept().status)
+        assertEquals(ProposalNegotiationEventStatus.REJECTED, event.reject().status)
+
+        val recorded = ProposalNegotiationEvent.recorded(
+            id = UUID.randomUUID(),
+            proposalId = event.proposalId,
+            sequence = 2,
+            actorType = ContractPartyType.VENDOR,
+            eventType = ProposalNegotiationEventType.PRICE_ACCEPTED,
+            memo = null,
+        )
+        val exception = assertThrows(GlobalException::class.java) {
+            recorded.accept()
+        }
+
+        assertEquals(ProposalErrorCode.NEGOTIATION_EVENT_IS_NOT_PENDING, exception.errorCode)
     }
 
     private fun proposal(

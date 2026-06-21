@@ -17,6 +17,14 @@ class ProposalRepositoryImpl(
         return proposalJpaRepository.save(ProposalJpaEntity.from(proposal)).toDomain()
     }
 
+    override fun findById(id: UUID): Proposal? {
+        return proposalJpaRepository.findById(id).orElse(null)?.toDomain()
+    }
+
+    override fun findByIdForUpdate(id: UUID): Proposal? {
+        return proposalQueryRepository.findByIdForUpdate(id)?.toDomain()
+    }
+
     override fun findByIdAndAgencyId(
         id: UUID,
         agencyId: UUID,
