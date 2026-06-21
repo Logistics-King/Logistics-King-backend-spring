@@ -47,6 +47,7 @@ VALUES
     ('/api/v1/deliver-contracts/{deliverContractId}/reject', 'POST', '["ADMIN","DRIVER"]', '배송기사가 자신에게 요청된 배송기사 계약을 거절합니다.', NOW(6), NOW(6)),
     ('/api/v1/deliver-contracts/{deliverContractId}/cancel', 'POST', '["ADMIN","AGENCY"]', '대리점이 요청 상태의 배송기사 계약을 취소합니다.', NOW(6), NOW(6)),
     ('/api/v1/notifications/me', 'GET', '["ADMIN","VENDOR","AGENCY","DRIVER"]', '로그인한 사용자의 최근 30일 알림 목록을 조회합니다.', NOW(6), NOW(6)),
+    ('/api/v1/notifications/stream', 'GET', '["ADMIN","VENDOR","AGENCY","DRIVER"]', '로그인한 사용자의 새 알림을 SSE 스트림으로 구독합니다.', NOW(6), NOW(6)),
     ('/api/v1/notifications/me/unread-count', 'GET', '["ADMIN","VENDOR","AGENCY","DRIVER"]', '로그인한 사용자의 최근 30일 미확인 알림 수를 조회합니다.', NOW(6), NOW(6)),
     ('/api/v1/notifications/{notificationId}/read', 'PUT', '["ADMIN","VENDOR","AGENCY","DRIVER"]', '로그인한 사용자의 특정 알림을 읽음 처리합니다.', NOW(6), NOW(6)),
     ('/api/v1/notifications/me/read-all', 'PUT', '["ADMIN","VENDOR","AGENCY","DRIVER"]', '로그인한 사용자의 읽지 않은 알림을 모두 읽음 처리합니다.', NOW(6), NOW(6))

@@ -9,6 +9,7 @@ import logisticsking.com.logisticskingbackendspring.app.notification.usecase.Get
 import logisticsking.com.logisticskingbackendspring.app.notification.usecase.GetUnreadNotificationCountUseCase
 import logisticsking.com.logisticskingbackendspring.app.notification.usecase.ReadAllNotificationsUseCase
 import logisticsking.com.logisticskingbackendspring.app.notification.usecase.ReadNotificationUseCase
+import logisticsking.com.logisticskingbackendspring.app.notification.usecase.SubscribeNotificationStreamUseCase
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.UUID
 
 @Tag(name = "Notification", description = "알림 API")
@@ -32,7 +34,19 @@ class NotificationController(
     private val getUnreadNotificationCountUseCase: GetUnreadNotificationCountUseCase,
     private val readNotificationUseCase: ReadNotificationUseCase,
     private val readAllNotificationsUseCase: ReadAllNotificationsUseCase,
+    private val subscribeNotificationStreamUseCase: SubscribeNotificationStreamUseCase,
 ) {
+
+    @Operation(
+        summary = "내 알림 SSE 스트림 구독",
+        description = "로그인한 사용자의 새 알림을 Server-Sent Events로 구독합니다. EventSource 사용 시 cookie 인증을 위해 withCredentials를 사용합니다.",
+    )
+    @GetMapping("/stream")
+    fun stream(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+    ): SseEmitter {
+        return subscribeNotificationStreamUseCase.subscribe(user.userId)
+    }
 
     @Operation(summary = "내 알림 목록 조회", description = "로그인한 사용자의 최근 30일 알림 목록을 조회합니다.")
     @GetMapping("/me")
