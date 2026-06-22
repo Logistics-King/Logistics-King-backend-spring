@@ -27,6 +27,11 @@ GET /api/v1/contract-requests?page=0&size=20
 GET /api/v1/contract-requests/{contractRequestId}
 POST /api/v1/contract-requests/{contractRequestId}/proposals
 POST /api/v1/proposals/{proposalId}/accept
+GET /api/v1/proposals/{proposalId}/negotiations
+POST /api/v1/proposals/{proposalId}/negotiations/price-offers
+POST /api/v1/proposals/{proposalId}/negotiations/{eventId}/accept
+POST /api/v1/proposals/{proposalId}/negotiations/{eventId}/reject
+GET /api/v1/notifications/stream
 GET /api/v1/delivers/agency/me?page=0&size=20
 ```
 

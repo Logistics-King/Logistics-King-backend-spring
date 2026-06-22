@@ -145,6 +145,10 @@ CREATE TABLE IF NOT EXISTS proposals (
     vendor_id BINARY(16) NOT NULL,
     agency_id BINARY(16) NOT NULL,
     unit_price DECIMAL(15, 2) NOT NULL,
+    initial_unit_price DECIMAL(15, 2) NOT NULL,
+    final_unit_price DECIMAL(15, 2) NULL,
+    pending_negotiation_id BINARY(16) NULL,
+    next_sequence BIGINT NOT NULL DEFAULT 1,
     pickup_start_time VARCHAR(10) NOT NULL,
     pickup_end_time VARCHAR(10) NOT NULL,
     saturday_delivery_available BOOLEAN NOT NULL,
@@ -160,6 +164,52 @@ CREATE TABLE IF NOT EXISTS proposals (
     KEY idx_proposals_vendor_id (vendor_id),
     KEY idx_proposals_agency_id (agency_id),
     KEY idx_proposals_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS proposal_negotiation_events (
+    id BINARY(16) NOT NULL,
+    proposal_id BINARY(16) NOT NULL,
+    sequence BIGINT NOT NULL,
+    actor_type VARCHAR(30) NOT NULL,
+    event_type VARCHAR(30) NOT NULL,
+    unit_price DECIMAL(15, 2) NULL,
+    memo VARCHAR(255) NULL,
+    status VARCHAR(30) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_proposal_negotiation_events_proposal_sequence (proposal_id, sequence),
+    KEY idx_proposal_negotiation_events_proposal_id (proposal_id),
+    KEY idx_proposal_negotiation_events_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS proposal_negotiation_event_items (
+    id BINARY(16) NOT NULL,
+    proposal_negotiation_event_id BINARY(16) NOT NULL,
+    contract_request_item_id BINARY(16) NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_proposal_negotiation_event_items_event_request_item (
+        proposal_negotiation_event_id,
+        contract_request_item_id
+    ),
+    KEY idx_proposal_negotiation_event_items_event_id (proposal_negotiation_event_id),
+    KEY idx_proposal_negotiation_event_items_request_item_id (contract_request_item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS proposal_items (
+    id BINARY(16) NOT NULL,
+    proposal_id BINARY(16) NOT NULL,
+    contract_request_item_id BINARY(16) NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_proposal_items_proposal_request_item (proposal_id, contract_request_item_id),
+    KEY idx_proposal_items_proposal_id (proposal_id),
+    KEY idx_proposal_items_contract_request_item_id (contract_request_item_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS contracts (
@@ -190,6 +240,30 @@ CREATE TABLE IF NOT EXISTS contracts (
     KEY idx_contracts_vendor_id (vendor_id),
     KEY idx_contracts_agency_id (agency_id),
     KEY idx_contracts_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS contract_items (
+    id BINARY(16) NOT NULL,
+    contract_id BINARY(16) NOT NULL,
+    product_id BINARY(16) NULL,
+    product_category VARCHAR(30) NOT NULL,
+    product_name VARCHAR(100) NOT NULL,
+    box_size VARCHAR(30) NOT NULL,
+    box_quantity INT NOT NULL,
+    item_quantity INT NOT NULL,
+    average_weight_gram INT NULL,
+    fragile BOOLEAN NOT NULL,
+    liquid BOOLEAN NOT NULL,
+    fresh_food BOOLEAN NOT NULL,
+    cold_chain_type VARCHAR(30) NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_contract_items_contract_id (contract_id),
+    KEY idx_contract_items_product_id (product_id),
+    KEY idx_contract_items_cold_chain (cold_chain_type),
+    KEY idx_contract_items_box_size (box_size)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS agencies (

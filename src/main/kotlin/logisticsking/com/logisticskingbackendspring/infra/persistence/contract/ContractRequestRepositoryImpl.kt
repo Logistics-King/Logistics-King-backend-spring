@@ -3,6 +3,7 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.contract
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequest
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractPartyType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestRepository
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestSearchCondition
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -88,11 +89,13 @@ class ContractRequestRepositoryImpl(
     override fun findAllByRequester(
         requesterType: ContractPartyType,
         requesterId: UUID,
+        condition: ContractRequestSearchCondition,
         pageable: Pageable,
     ): Page<ContractRequest> {
-        return contractRequestJpaRepository.findAllByRequesterTypeAndRequesterIdOrderByCreatedAtDesc(
+        return contractRequestQueryRepository.findAllByRequester(
             requesterType = requesterType,
             requesterId = requesterId,
+            condition = condition,
             pageable = pageable,
         ).toDomainPageWithItems()
     }
@@ -114,9 +117,14 @@ class ContractRequestRepositoryImpl(
             .toDomainPageWithItems()
     }
 
-    override fun findOpenVendorOffersForAgency(agencyId: UUID, pageable: Pageable): Page<ContractRequest> {
+    override fun findOpenVendorOffersForAgency(
+        agencyId: UUID,
+        condition: ContractRequestSearchCondition,
+        pageable: Pageable,
+    ): Page<ContractRequest> {
         return contractRequestQueryRepository.findOpenVendorOffersForAgency(
             agencyId = agencyId,
+            condition = condition,
             pageable = pageable,
         ).toDomainPageWithItems()
     }

@@ -4,6 +4,7 @@ import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.agency.dto.AgencyResponse
 import logisticsking.com.logisticskingbackendspring.app.common.PageResponse
+import logisticsking.com.logisticskingbackendspring.app.proposal.result.ProposalItemResult
 import logisticsking.com.logisticskingbackendspring.app.proposal.result.ProposalResult
 import logisticsking.com.logisticskingbackendspring.app.vendor.dto.VendorResponse
 import org.springframework.data.domain.Page
@@ -23,6 +24,14 @@ sealed interface ProposalResponse {
         val agencyId: String,
         @field:Schema(description = "건당 제안 단가", example = "2050")
         val unitPrice: BigDecimal,
+        @field:Schema(description = "최초 제안 단가", example = "2050")
+        val initialUnitPrice: BigDecimal,
+        @field:Schema(description = "최종 합의 단가. 협상 수락 전에는 null입니다.", example = "1980")
+        val finalUnitPrice: BigDecimal?,
+        @field:Schema(description = "응답 대기 중인 협상 이벤트 ID. 없으면 null입니다.")
+        val pendingNegotiationId: String?,
+        @field:Schema(description = "다음 협상 이벤트 순번", example = "3")
+        val nextSequence: Long,
         @field:Schema(description = "제안 픽업 시작 시간", example = "10:00")
         val pickupStartTime: String,
         @field:Schema(description = "제안 픽업 종료 시간", example = "17:00")
@@ -35,6 +44,8 @@ sealed interface ProposalResponse {
         val coldChainType: ColdChainType,
         @field:Schema(description = "제안 메모", example = "의류 800박스 기준 집하 가능합니다.")
         val memo: String?,
+        @field:Schema(description = "계약 요청 배송 품목별 제안 단가")
+        val items: kotlin.collections.List<Item>,
         @field:Schema(description = "제안 상태", example = "SUBMITTED")
         val status: String,
         @field:Schema(description = "제안 대리점 요약 정보")
@@ -50,15 +61,40 @@ sealed interface ProposalResponse {
                     vendorId = result.vendorId.toString(),
                     agencyId = result.agencyId.toString(),
                     unitPrice = result.unitPrice,
+                    initialUnitPrice = result.initialUnitPrice,
+                    finalUnitPrice = result.finalUnitPrice,
+                    pendingNegotiationId = result.pendingNegotiationId?.toString(),
+                    nextSequence = result.nextSequence,
                     pickupStartTime = result.pickupStartTime,
                     pickupEndTime = result.pickupEndTime,
                     saturdayDeliveryAvailable = result.saturdayDeliveryAvailable,
                     returnAvailable = result.returnAvailable,
                     coldChainType = result.coldChainType,
                     memo = result.memo,
+                    items = result.items.map(Item::from),
                     status = result.status.name,
                     agency = result.agency?.let(AgencyResponse.Summary::from),
                     vendor = result.vendor?.let(VendorResponse.Summary::from),
+                )
+            }
+        }
+    }
+
+    @Schema(name = "ProposalItemResponse")
+    data class Item(
+        @field:Schema(description = "제안 품목 단가 라인 ID", example = "019b1f44-a741-7000-8000-000000000611")
+        val itemId: String,
+        @field:Schema(description = "계약 요청 배송 품목 라인 ID", example = "019b1f44-a741-7000-8000-000000000511")
+        val contractRequestItemId: String,
+        @field:Schema(description = "해당 배송 품목 라인의 제안 단가", example = "2050")
+        val unitPrice: BigDecimal,
+    ) : ProposalResponse {
+        companion object {
+            fun from(result: ProposalItemResult): Item {
+                return Item(
+                    itemId = result.itemId.toString(),
+                    contractRequestItemId = result.contractRequestItemId.toString(),
+                    unitPrice = result.unitPrice,
                 )
             }
         }

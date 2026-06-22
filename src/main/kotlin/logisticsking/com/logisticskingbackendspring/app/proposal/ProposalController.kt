@@ -8,10 +8,17 @@ import logisticsking.com.logisticskingbackendspring.app.contract.command.AcceptP
 import logisticsking.com.logisticskingbackendspring.app.contract.dto.ContractResponse
 import logisticsking.com.logisticskingbackendspring.app.contract.usecase.AcceptProposalUseCase
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
+import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetProposalNegotiationsCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.WithdrawProposalCommand
+import logisticsking.com.logisticskingbackendspring.app.proposal.dto.ProposalNegotiationRequest
+import logisticsking.com.logisticskingbackendspring.app.proposal.dto.ProposalNegotiationResponse
 import logisticsking.com.logisticskingbackendspring.app.proposal.dto.ProposalRequest
 import logisticsking.com.logisticskingbackendspring.app.proposal.dto.ProposalResponse
+import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.AcceptProposalNegotiationUseCase
+import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.CreateProposalPriceOfferUseCase
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.GetMyProposalsUseCase
+import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.GetProposalNegotiationsUseCase
+import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.RejectProposalNegotiationUseCase
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.UpdateProposalUseCase
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.WithdrawProposalUseCase
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
@@ -38,6 +45,10 @@ class ProposalController(
     private val updateProposalUseCase: UpdateProposalUseCase,
     private val withdrawProposalUseCase: WithdrawProposalUseCase,
     private val acceptProposalUseCase: AcceptProposalUseCase,
+    private val getProposalNegotiationsUseCase: GetProposalNegotiationsUseCase,
+    private val createProposalPriceOfferUseCase: CreateProposalPriceOfferUseCase,
+    private val acceptProposalNegotiationUseCase: AcceptProposalNegotiationUseCase,
+    private val rejectProposalNegotiationUseCase: RejectProposalNegotiationUseCase,
 ) {
 
     @Operation(summary = "내 제안 목록 조회", description = "로그인한 대리점의 제안 목록을 조회합니다.")
@@ -101,6 +112,84 @@ class ProposalController(
 
         return ApiResponse.success(
             response = ContractResponse.Detail.from(result),
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.VENDOR, UserRole.AGENCY])
+    @Operation(summary = "제안 협상 이벤트 목록 조회", description = "화주 또는 대리점이 제안의 가격 조율 이벤트 목록을 조회합니다.")
+    @GetMapping("/{proposalId}/negotiations")
+    fun getNegotiations(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable proposalId: UUID,
+    ): ApiResponse<ProposalNegotiationResponse.List> {
+        val results = getProposalNegotiationsUseCase.getNegotiations(
+            GetProposalNegotiationsCommand(
+                userId = user.userId,
+                proposalId = proposalId,
+            )
+        )
+
+        return ApiResponse.success(
+            response = ProposalNegotiationResponse.List.from(results),
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.VENDOR, UserRole.AGENCY])
+    @Operation(summary = "제안 가격 조율 등록", description = "화주 또는 대리점이 제안 단가 조율 이벤트를 등록합니다.")
+    @PostMapping("/{proposalId}/negotiations/price-offers")
+    fun createPriceOffer(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable proposalId: UUID,
+        @RequestBody request: ProposalNegotiationRequest.PriceOffer,
+    ): ApiResponse<ProposalNegotiationResponse.Detail> {
+        val result = createProposalPriceOfferUseCase.createPriceOffer(request.toCommand(user.userId, proposalId))
+
+        return ApiResponse.success(
+            response = ProposalNegotiationResponse.Detail.from(result),
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.VENDOR, UserRole.AGENCY])
+    @Operation(summary = "제안 가격 조율 수락", description = "상대방이 제안한 가격 조율 이벤트를 수락합니다.")
+    @PostMapping("/{proposalId}/negotiations/{eventId}/accept")
+    fun acceptNegotiation(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable proposalId: UUID,
+        @PathVariable eventId: UUID,
+        @RequestBody request: ProposalNegotiationRequest.Decision,
+    ): ApiResponse<ProposalNegotiationResponse.Detail> {
+        val result = acceptProposalNegotiationUseCase.acceptNegotiation(
+            request.toCommand(
+                userId = user.userId,
+                proposalId = proposalId,
+                eventId = eventId,
+            )
+        )
+
+        return ApiResponse.success(
+            response = ProposalNegotiationResponse.Detail.from(result),
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.VENDOR, UserRole.AGENCY])
+    @Operation(summary = "제안 가격 조율 거절", description = "상대방이 제안한 가격 조율 이벤트를 거절합니다.")
+    @PostMapping("/{proposalId}/negotiations/{eventId}/reject")
+    fun rejectNegotiation(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @PathVariable proposalId: UUID,
+        @PathVariable eventId: UUID,
+        @RequestBody request: ProposalNegotiationRequest.Decision,
+    ): ApiResponse<ProposalNegotiationResponse.Detail> {
+        val result = rejectProposalNegotiationUseCase.rejectNegotiation(
+            request.toCommand(
+                userId = user.userId,
+                proposalId = proposalId,
+                eventId = eventId,
+            )
+        )
+
+        return ApiResponse.success(
+            response = ProposalNegotiationResponse.Detail.from(result),
         )
     }
 }

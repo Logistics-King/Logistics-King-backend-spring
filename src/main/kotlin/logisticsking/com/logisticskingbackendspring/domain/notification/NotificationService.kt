@@ -13,12 +13,15 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
 class NotificationService(
     private val notificationRepository: NotificationRepository,
+    private val notificationStreamSender: NotificationStreamSender,
     private val idGenerator: IdGenerator,
 ) : NotificationPublisher,
     GetMyNotificationsUseCase,
@@ -48,7 +51,15 @@ class NotificationService(
             referenceId = referenceId,
         )
 
-        return notificationRepository.save(notification)
+        val saved = notificationRepository.save(notification)
+        // 알림의 원천 상태는 RDB다. SSE는 사용자가 화면을 새로고침하지 않아도
+        // 새 알림을 즉시 알 수 있게 하는 전달 채널이다. 트랜잭션 커밋 전송이면
+        // 커밋 실패 시 저장되지 않은 알림이 화면에 먼저 보일 수 있으므로 afterCommit에 태운다.
+        dispatchAfterCommit {
+            notificationStreamSender.send(saved)
+        }
+
+        return saved
     }
 
     @Transactional
@@ -72,7 +83,14 @@ class NotificationService(
             )
         }
 
-        return notificationRepository.saveAll(notifications)
+        val savedNotifications = notificationRepository.saveAll(notifications)
+        // 여러 알림을 한 트랜잭션에서 저장한 뒤 수신자별 SSE 연결로 나눠 보낸다.
+        // 전송 실패는 연결 정리 대상일 뿐, 이미 저장된 알림 이력을 롤백할 이유가 없다.
+        dispatchAfterCommit {
+            notificationStreamSender.sendAll(savedNotifications)
+        }
+
+        return savedNotifications
     }
 
     @Transactional(readOnly = true)
@@ -123,6 +141,21 @@ class NotificationService(
 
     companion object {
         private const val RECENT_DAYS = 30L
+    }
+
+    private fun dispatchAfterCommit(action: () -> Unit) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            action()
+            return
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(
+            object : TransactionSynchronization {
+                override fun afterCommit() {
+                    action()
+                }
+            }
+        )
     }
 }
 

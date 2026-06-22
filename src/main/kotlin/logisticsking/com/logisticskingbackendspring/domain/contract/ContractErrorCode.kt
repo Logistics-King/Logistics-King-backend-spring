@@ -53,4 +53,9 @@ enum class ContractErrorCode(
         message = "계약 요청과 제안 정보가 일치하지 않습니다.",
         status = HttpStatus.BAD_REQUEST,
     ),
+    INVALID_CONTRACT_ITEM_UNIT_PRICE(
+        code = "INVALID_CONTRACT_ITEM_UNIT_PRICE",
+        message = "계약 품목 단가는 1 이상이어야 합니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
 }

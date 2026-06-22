@@ -4,6 +4,7 @@ import logisticsking.com.logisticskingbackendspring.app.contract.command.CancelC
 import logisticsking.com.logisticskingbackendspring.app.contract.command.ContractRequestDecisionCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CreateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.GetContractRequestCommand
+import logisticsking.com.logisticskingbackendspring.app.contract.command.GetMyContractRequestsCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.GetReceivedContractRequestsCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.UpdateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.result.ContractRequestResult
@@ -17,7 +18,7 @@ interface CreateContractRequestUseCase {
 }
 
 interface GetMyContractRequestsUseCase {
-    fun getMyContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult>
+    fun getMyContractRequests(command: GetMyContractRequestsCommand, pageable: Pageable): Page<ContractRequestResult>
 }
 
 interface GetReceivedContractRequestsUseCase {

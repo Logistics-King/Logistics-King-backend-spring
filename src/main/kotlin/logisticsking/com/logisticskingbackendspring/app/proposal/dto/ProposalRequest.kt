@@ -2,6 +2,7 @@ package logisticsking.com.logisticskingbackendspring.app.proposal.dto
 
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
+import logisticsking.com.logisticskingbackendspring.app.proposal.command.ProposalItemCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.SubmitProposalCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.UpdateProposalCommand
 import java.math.BigDecimal
@@ -13,6 +14,8 @@ sealed interface ProposalRequest {
     data class Submit(
         @field:Schema(description = "건당 제안 단가", example = "2050")
         val unitPrice: BigDecimal,
+        @field:Schema(description = "계약 요청 배송 품목별 제안 단가. 비어 있으면 unitPrice를 모든 품목에 적용합니다.")
+        val items: List<Item> = emptyList(),
         @field:Schema(description = "제안 픽업 시작 시간", example = "10:00")
         val pickupStartTime: String,
         @field:Schema(description = "제안 픽업 종료 시간", example = "17:00")
@@ -34,6 +37,7 @@ sealed interface ProposalRequest {
                 userId = userId,
                 contractRequestId = contractRequestId,
                 unitPrice = unitPrice,
+                items = items.map(Item::toCommand),
                 pickupStartTime = pickupStartTime,
                 pickupEndTime = pickupEndTime,
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
@@ -48,6 +52,8 @@ sealed interface ProposalRequest {
     data class Update(
         @field:Schema(description = "건당 제안 단가", example = "1980")
         val unitPrice: BigDecimal,
+        @field:Schema(description = "계약 요청 배송 품목별 제안 단가. 비어 있으면 unitPrice를 모든 품목에 적용합니다.")
+        val items: List<Item> = emptyList(),
         @field:Schema(description = "제안 픽업 시작 시간", example = "09:30")
         val pickupStartTime: String,
         @field:Schema(description = "제안 픽업 종료 시간", example = "16:30")
@@ -69,12 +75,28 @@ sealed interface ProposalRequest {
                 userId = userId,
                 proposalId = proposalId,
                 unitPrice = unitPrice,
+                items = items.map(Item::toCommand),
                 pickupStartTime = pickupStartTime,
                 pickupEndTime = pickupEndTime,
                 saturdayDeliveryAvailable = saturdayDeliveryAvailable,
                 returnAvailable = returnAvailable,
                 coldChainType = coldChainType,
                 memo = memo,
+            )
+        }
+    }
+
+    @Schema(name = "ProposalItemRequest")
+    data class Item(
+        @field:Schema(description = "계약 요청 배송 품목 라인 ID", example = "019b1f44-a741-7000-8000-000000000511")
+        val contractRequestItemId: UUID,
+        @field:Schema(description = "해당 배송 품목 라인의 제안 단가", example = "2050")
+        val unitPrice: BigDecimal,
+    ) : ProposalRequest {
+        fun toCommand(): ProposalItemCommand {
+            return ProposalItemCommand(
+                contractRequestItemId = contractRequestItemId,
+                unitPrice = unitPrice,
             )
         }
     }

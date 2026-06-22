@@ -24,6 +24,10 @@ VALUES
     ('/api/v1/proposals/{proposalId}', 'PUT', '["ADMIN","AGENCY"]', '대리점이 자신이 제출한 제안의 단가와 조건을 수정합니다.', NOW(6), NOW(6)),
     ('/api/v1/proposals/{proposalId}/withdraw', 'POST', '["ADMIN","AGENCY"]', '대리점이 자신이 제출한 제안을 철회합니다.', NOW(6), NOW(6)),
     ('/api/v1/proposals/{proposalId}/accept', 'POST', '["ADMIN","VENDOR"]', '화주가 대리점 제안을 선택해 최종 계약을 생성합니다.', NOW(6), NOW(6)),
+    ('/api/v1/proposals/{proposalId}/negotiations', 'GET', '["ADMIN","VENDOR","AGENCY"]', '화주 또는 대리점이 제안의 가격 조율 이벤트 목록을 조회합니다.', NOW(6), NOW(6)),
+    ('/api/v1/proposals/{proposalId}/negotiations/price-offers', 'POST', '["ADMIN","VENDOR","AGENCY"]', '화주 또는 대리점이 제안 단가 조율 이벤트를 등록합니다.', NOW(6), NOW(6)),
+    ('/api/v1/proposals/{proposalId}/negotiations/{eventId}/accept', 'POST', '["ADMIN","VENDOR","AGENCY"]', '상대방이 제안한 가격 조율 이벤트를 수락합니다.', NOW(6), NOW(6)),
+    ('/api/v1/proposals/{proposalId}/negotiations/{eventId}/reject', 'POST', '["ADMIN","VENDOR","AGENCY"]', '상대방이 제안한 가격 조율 이벤트를 거절합니다.', NOW(6), NOW(6)),
     ('/api/v1/contracts/vendor/me', 'GET', '["ADMIN","VENDOR"]', '로그인한 화주의 최종 계약 목록을 조회합니다.', NOW(6), NOW(6)),
     ('/api/v1/contracts/agency/me', 'GET', '["ADMIN","AGENCY"]', '로그인한 대리점의 최종 계약 목록을 조회합니다.', NOW(6), NOW(6)),
     ('/api/v1/agencies', 'GET', '["ADMIN","VENDOR"]', '화주가 계약 요청을 보낼 수 있는 근방 대리점 목록을 조회합니다.', NOW(6), NOW(6)),
@@ -43,6 +47,7 @@ VALUES
     ('/api/v1/deliver-contracts/{deliverContractId}/reject', 'POST', '["ADMIN","DRIVER"]', '배송기사가 자신에게 요청된 배송기사 계약을 거절합니다.', NOW(6), NOW(6)),
     ('/api/v1/deliver-contracts/{deliverContractId}/cancel', 'POST', '["ADMIN","AGENCY"]', '대리점이 요청 상태의 배송기사 계약을 취소합니다.', NOW(6), NOW(6)),
     ('/api/v1/notifications/me', 'GET', '["ADMIN","VENDOR","AGENCY","DRIVER"]', '로그인한 사용자의 최근 30일 알림 목록을 조회합니다.', NOW(6), NOW(6)),
+    ('/api/v1/notifications/stream', 'GET', '["ADMIN","VENDOR","AGENCY","DRIVER"]', '로그인한 사용자의 새 알림을 SSE 스트림으로 구독합니다.', NOW(6), NOW(6)),
     ('/api/v1/notifications/me/unread-count', 'GET', '["ADMIN","VENDOR","AGENCY","DRIVER"]', '로그인한 사용자의 최근 30일 미확인 알림 수를 조회합니다.', NOW(6), NOW(6)),
     ('/api/v1/notifications/{notificationId}/read', 'PUT', '["ADMIN","VENDOR","AGENCY","DRIVER"]', '로그인한 사용자의 특정 알림을 읽음 처리합니다.', NOW(6), NOW(6)),
     ('/api/v1/notifications/me/read-all', 'PUT', '["ADMIN","VENDOR","AGENCY","DRIVER"]', '로그인한 사용자의 읽지 않은 알림을 모두 읽음 처리합니다.', NOW(6), NOW(6))
