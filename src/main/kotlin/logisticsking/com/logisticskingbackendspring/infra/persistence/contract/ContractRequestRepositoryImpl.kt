@@ -117,9 +117,14 @@ class ContractRequestRepositoryImpl(
             .toDomainPageWithItems()
     }
 
-    override fun findOpenVendorOffersForAgency(agencyId: UUID, pageable: Pageable): Page<ContractRequest> {
+    override fun findOpenVendorOffersForAgency(
+        agencyId: UUID,
+        condition: ContractRequestSearchCondition,
+        pageable: Pageable,
+    ): Page<ContractRequest> {
         return contractRequestQueryRepository.findOpenVendorOffersForAgency(
             agencyId = agencyId,
+            condition = condition,
             pageable = pageable,
         ).toDomainPageWithItems()
     }

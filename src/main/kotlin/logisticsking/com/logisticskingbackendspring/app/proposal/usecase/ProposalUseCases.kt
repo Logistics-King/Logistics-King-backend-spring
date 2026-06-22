@@ -4,6 +4,7 @@ import logisticsking.com.logisticskingbackendspring.app.contract.result.Contract
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetContractRequestProposalsCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.CreateProposalPriceOfferCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.DecideProposalNegotiationCommand
+import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetOpenContractRequestsCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetProposalNegotiationsCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.SubmitProposalCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.UpdateProposalCommand
@@ -15,7 +16,7 @@ import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 interface GetOpenContractRequestsUseCase {
-    fun getOpenContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult>
+    fun getOpenContractRequests(command: GetOpenContractRequestsCommand, pageable: Pageable): Page<ContractRequestResult>
 }
 
 interface SubmitProposalUseCase {

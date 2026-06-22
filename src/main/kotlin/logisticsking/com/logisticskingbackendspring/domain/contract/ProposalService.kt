@@ -4,6 +4,7 @@ import logisticsking.com.logisticskingbackendspring.app.contract.result.Contract
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.CreateProposalPriceOfferCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.DecideProposalNegotiationCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetContractRequestProposalsCommand
+import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetOpenContractRequestsCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetProposalNegotiationsCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.ProposalItemCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.SubmitProposalCommand
@@ -63,11 +64,32 @@ class ProposalService(
     RejectProposalNegotiationUseCase {
 
     @Transactional(readOnly = true)
-    override fun getOpenContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult> {
-        findAgencyUser(userId)
-        val agency = findAgencyByUserId(userId)
+    override fun getOpenContractRequests(
+        command: GetOpenContractRequestsCommand,
+        pageable: Pageable,
+    ): Page<ContractRequestResult> {
+        findAgencyUser(command.userId)
+        val agency = findAgencyByUserId(command.userId)
 
-        return contractRequestRepository.findOpenVendorOffersForAgency(agency.id, pageable)
+        return contractRequestRepository.findOpenVendorOffersForAgency(
+            agencyId = agency.id,
+            condition = ContractRequestSearchCondition(
+                productName = command.productName,
+                productCategory = command.productCategory,
+                boxSize = command.boxSize,
+                coldChainType = command.coldChainType,
+                status = null,
+                pickupRegion = command.pickupRegion,
+                saturdayDeliveryRequired = command.saturdayDeliveryRequired,
+                returnRequired = command.returnRequired,
+                scope = command.scope,
+                nearbyRegions = listOf(agency.mainRegion) + agency.serviceRegions,
+                minTargetUnitPrice = command.minTargetUnitPrice,
+                maxTargetUnitPrice = command.maxTargetUnitPrice,
+                vendorName = command.vendorName,
+            ),
+            pageable = pageable,
+        )
             .map(ContractRequestResult::from)
     }
 

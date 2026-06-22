@@ -1,16 +1,19 @@
 package logisticsking.com.logisticskingbackendspring.infra.persistence.contract
 
 import com.querydsl.core.types.dsl.BooleanExpression
+import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.LockModeType
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
+import logisticsking.com.logisticskingbackendspring.domain.common.ListViewScope
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractPartyType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestSearchCondition
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
+import logisticsking.com.logisticskingbackendspring.infra.persistence.vendor.QVendorJpaEntity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -23,6 +26,7 @@ class ContractRequestQueryRepository(
 ) {
     private val contractRequest = QContractRequestJpaEntity.contractRequestJpaEntity
     private val contractRequestItem = QContractRequestItemJpaEntity.contractRequestItemJpaEntity
+    private val vendor = QVendorJpaEntity.vendorJpaEntity
 
     fun findByIdForUpdate(id: UUID): ContractRequestJpaEntity? {
         return queryFactory
@@ -127,15 +131,19 @@ class ContractRequestQueryRepository(
 
     fun findOpenVendorOffersForAgency(
         agencyId: UUID,
+        condition: ContractRequestSearchCondition,
         pageable: Pageable,
     ): Page<ContractRequestJpaEntity> {
         val content = queryFactory
             .selectFrom(contractRequest)
+            .leftJoin(vendor).on(contractRequest.requesterId.eq(vendor.id))
             .where(
                 contractRequest.type.eq(ContractRequestType.VENDOR_OFFER),
                 contractRequest.status.eq(ContractRequestStatus.OPEN),
                 contractRequest.approverType.eq(ContractPartyType.AGENCY),
                 contractRequest.approverId.isNull.or(contractRequest.approverId.eq(agencyId)),
+                vendor.deletedAt.isNull,
+                *searchPredicates(condition),
             )
             .orderBy(contractRequest.createdAt.desc())
             .offset(pageable.offset)
@@ -145,11 +153,14 @@ class ContractRequestQueryRepository(
         val total = queryFactory
             .select(contractRequest.count())
             .from(contractRequest)
+            .leftJoin(vendor).on(contractRequest.requesterId.eq(vendor.id))
             .where(
                 contractRequest.type.eq(ContractRequestType.VENDOR_OFFER),
                 contractRequest.status.eq(ContractRequestStatus.OPEN),
                 contractRequest.approverType.eq(ContractPartyType.AGENCY),
                 contractRequest.approverId.isNull.or(contractRequest.approverId.eq(agencyId)),
+                vendor.deletedAt.isNull,
+                *searchPredicates(condition),
             )
             .fetchOne() ?: 0L
 
@@ -242,6 +253,64 @@ class ContractRequestQueryRepository(
                     )
                     .exists()
             )
+    }
+
+    private fun searchPredicates(condition: ContractRequestSearchCondition): Array<BooleanExpression?> {
+        return arrayOf(
+            condition.normalizedPickupRegion?.let { contractRequest.pickupRegion.containsIgnoreCase(it) },
+            nearbyRegionMatches(condition),
+            condition.saturdayDeliveryRequired?.let { contractRequest.saturdayDeliveryRequired.eq(it) },
+            condition.returnRequired?.let { contractRequest.returnRequired.eq(it) },
+            condition.normalizedProductName?.let(::productNameMatches),
+            condition.productCategory?.let(::productCategoryMatches),
+            condition.boxSize?.let(::boxSizeMatches),
+            condition.coldChainType?.let(::coldChainTypeMatches),
+            targetUnitPriceRangeMatches(condition),
+            condition.normalizedVendorName?.let { vendor.businessName.containsIgnoreCase(it) },
+        )
+    }
+
+    private fun nearbyRegionMatches(condition: ContractRequestSearchCondition): BooleanExpression? {
+        if (condition.scope != ListViewScope.NEARBY || condition.normalizedNearbyRegions.isEmpty()) {
+            return null
+        }
+
+        return condition.normalizedNearbyRegions
+            .map { contractRequest.pickupRegion.containsIgnoreCase(it) }
+            .reduce(BooleanExpression::or)
+    }
+
+    private fun targetUnitPriceRangeMatches(condition: ContractRequestSearchCondition): BooleanExpression? {
+        val min = condition.minTargetUnitPrice
+        val max = condition.maxTargetUnitPrice
+        if (min == null && max == null) {
+            return null
+        }
+
+        return targetUnitPriceRange(contractRequest.targetUnitPrice, min, max)
+            .or(
+                JPAExpressions
+                    .selectOne()
+                    .from(contractRequestItem)
+                    .where(
+                        contractRequestItem.contractRequestId.eq(contractRequest.id),
+                        targetUnitPriceRange(contractRequestItem.targetUnitPrice, min, max),
+                    )
+                    .exists()
+            )
+    }
+
+    private fun targetUnitPriceRange(
+        path: com.querydsl.core.types.dsl.NumberPath<java.math.BigDecimal>,
+        min: java.math.BigDecimal?,
+        max: java.math.BigDecimal?,
+    ): BooleanExpression {
+        val lowerBound = min?.let { path.goe(it) } ?: Expressions.TRUE
+        val upperBound = max?.let { path.loe(it) } ?: Expressions.TRUE
+
+        return path.isNotNull
+            .and(lowerBound)
+            .and(upperBound)
     }
 
     companion object {

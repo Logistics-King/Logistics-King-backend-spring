@@ -1,8 +1,26 @@
 package logisticsking.com.logisticskingbackendspring.app.proposal.command
 
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
+import logisticsking.com.logisticskingbackendspring.domain.common.ListViewScope
+import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
 import java.util.UUID
+
+data class GetOpenContractRequestsCommand(
+    val userId: UUID,
+    val scope: ListViewScope,
+    val pickupRegion: String?,
+    val productName: String?,
+    val productCategory: ProductCategory?,
+    val boxSize: BoxSize?,
+    val coldChainType: ColdChainType?,
+    val saturdayDeliveryRequired: Boolean?,
+    val returnRequired: Boolean?,
+    val minTargetUnitPrice: BigDecimal?,
+    val maxTargetUnitPrice: BigDecimal?,
+    val vendorName: String?,
+)
 
 data class SubmitProposalCommand(
     val userId: UUID,

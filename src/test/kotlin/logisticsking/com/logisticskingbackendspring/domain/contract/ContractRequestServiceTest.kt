@@ -434,7 +434,11 @@ class ContractRequestServiceTest {
         }
         override fun findAllByApprover(approverType: ContractPartyType, approverId: UUID, pageable: Pageable): Page<ContractRequest> = PageImpl(requests.values.filter { it.approverType == approverType && it.approverId == approverId }, pageable, requests.size.toLong())
         override fun findAllByStatus(status: ContractRequestStatus, pageable: Pageable): Page<ContractRequest> = PageImpl(requests.values.filter { it.status == status }, pageable, requests.size.toLong())
-        override fun findOpenVendorOffersForAgency(agencyId: UUID, pageable: Pageable): Page<ContractRequest> = PageImpl(emptyList(), pageable, 0)
+        override fun findOpenVendorOffersForAgency(
+            agencyId: UUID,
+            condition: ContractRequestSearchCondition,
+            pageable: Pageable,
+        ): Page<ContractRequest> = PageImpl(emptyList(), pageable, 0)
         override fun existsActiveByVendorIdAndProductIds(vendorId: UUID, productIds: Collection<UUID>, excludedContractRequestId: UUID?): Boolean {
             return requests.values.any { request ->
                 request.id != excludedContractRequestId &&

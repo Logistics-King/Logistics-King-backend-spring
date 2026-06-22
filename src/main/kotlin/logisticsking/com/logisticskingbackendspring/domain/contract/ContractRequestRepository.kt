@@ -39,7 +39,11 @@ interface ContractRequestRepository {
         pageable: Pageable,
     ): Page<ContractRequest>
     fun findAllByStatus(status: ContractRequestStatus, pageable: Pageable): Page<ContractRequest>
-    fun findOpenVendorOffersForAgency(agencyId: UUID, pageable: Pageable): Page<ContractRequest>
+    fun findOpenVendorOffersForAgency(
+        agencyId: UUID,
+        condition: ContractRequestSearchCondition,
+        pageable: Pageable,
+    ): Page<ContractRequest>
     fun existsActiveByVendorIdAndProductIds(
         vendorId: UUID,
         productIds: Collection<UUID>,
