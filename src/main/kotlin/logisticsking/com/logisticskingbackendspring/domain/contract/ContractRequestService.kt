@@ -5,6 +5,7 @@ import logisticsking.com.logisticskingbackendspring.app.contract.command.Contrac
 import logisticsking.com.logisticskingbackendspring.app.contract.command.ContractRequestItemCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CreateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.GetContractRequestCommand
+import logisticsking.com.logisticskingbackendspring.app.contract.command.GetMyContractRequestsCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.GetReceivedContractRequestsCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.UpdateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.result.ContractRequestResult
@@ -85,12 +86,25 @@ class ContractRequestService(
     }
 
     @Transactional(readOnly = true)
-    override fun getMyContractRequests(userId: UUID, pageable: Pageable): Page<ContractRequestResult> {
-        val party = findParty(userId)
+    override fun getMyContractRequests(
+        command: GetMyContractRequestsCommand,
+        pageable: Pageable,
+    ): Page<ContractRequestResult> {
+        val party = findParty(command.userId)
 
         return contractRequestRepository.findAllByRequester(
             requesterType = party.type,
             requesterId = party.id,
+            condition = ContractRequestSearchCondition(
+                productName = command.productName,
+                productCategory = command.productCategory,
+                boxSize = command.boxSize,
+                coldChainType = command.coldChainType,
+                status = command.status,
+                pickupRegion = command.pickupRegion,
+                saturdayDeliveryRequired = command.saturdayDeliveryRequired,
+                returnRequired = command.returnRequired,
+            ),
             pageable = pageable,
         ).map(ContractRequestResult::from)
     }

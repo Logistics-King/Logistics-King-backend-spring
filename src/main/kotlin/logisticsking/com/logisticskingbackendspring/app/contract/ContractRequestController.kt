@@ -7,6 +7,7 @@ import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CancelContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.ContractRequestDecisionCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.GetContractRequestCommand
+import logisticsking.com.logisticskingbackendspring.app.contract.command.GetMyContractRequestsCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.GetReceivedContractRequestsCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.dto.ContractRequestRequest
 import logisticsking.com.logisticskingbackendspring.app.contract.dto.ContractRequestResponse
@@ -26,7 +27,11 @@ import logisticsking.com.logisticskingbackendspring.app.proposal.dto.ProposalRes
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.GetContractRequestProposalsUseCase
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.GetOpenContractRequestsUseCase
 import logisticsking.com.logisticskingbackendspring.app.proposal.usecase.SubmitProposalUseCase
+import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -37,6 +42,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -76,9 +82,30 @@ class ContractRequestController(
     @GetMapping
     fun getMyContractRequests(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @RequestParam(required = false) name: String?,
+        @RequestParam(required = false) category: ProductCategory?,
+        @RequestParam(required = false) boxSize: BoxSize?,
+        @RequestParam(required = false) coldChainType: ColdChainType?,
+        @RequestParam(required = false) status: ContractRequestStatus?,
+        @RequestParam(required = false) pickupRegion: String?,
+        @RequestParam(required = false) saturdayDeliveryRequired: Boolean?,
+        @RequestParam(required = false) returnRequired: Boolean?,
         @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<ContractRequestResponse.List> {
-        val results = getMyContractRequestsUseCase.getMyContractRequests(user.userId, pageable)
+        val results = getMyContractRequestsUseCase.getMyContractRequests(
+            GetMyContractRequestsCommand(
+                userId = user.userId,
+                productName = name,
+                productCategory = category,
+                boxSize = boxSize,
+                coldChainType = coldChainType,
+                status = status,
+                pickupRegion = pickupRegion,
+                saturdayDeliveryRequired = saturdayDeliveryRequired,
+                returnRequired = returnRequired,
+            ),
+            pageable,
+        )
 
         return ApiResponse.success(
             response = ContractRequestResponse.List.from(results),

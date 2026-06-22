@@ -30,6 +30,7 @@ interface ContractRequestRepository {
     fun findAllByRequester(
         requesterType: ContractPartyType,
         requesterId: UUID,
+        condition: ContractRequestSearchCondition,
         pageable: Pageable,
     ): Page<ContractRequest>
     fun findAllByApprover(

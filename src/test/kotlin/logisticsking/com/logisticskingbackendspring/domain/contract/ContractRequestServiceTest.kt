@@ -2,6 +2,7 @@ package logisticsking.com.logisticskingbackendspring.domain.contract
 
 import logisticsking.com.logisticskingbackendspring.app.contract.command.ContractRequestItemCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CreateContractRequestCommand
+import logisticsking.com.logisticskingbackendspring.app.contract.command.GetMyContractRequestsCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.UpdateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
@@ -76,6 +77,46 @@ class ContractRequestServiceTest {
 
         assertEquals(contractRequest.id, result.contractRequestId)
         assertEquals(product.id, result.productId)
+    }
+
+    @Test
+    fun `내 계약 요청 목록 조회 시 배송 품목 조건으로 필터링한다`() {
+        val vendorUser = user(role = UserRole.VENDOR)
+        val vendor = vendor(userId = vendorUser.id)
+        val clothingRequest = contractRequest(
+            vendorId = vendor.id,
+            productId = null,
+            productName = "대표 품목",
+            items = listOf(contractRequestItem(productId = null, productName = "냉동 식품", coldChainType = ColdChainType.FROZEN)),
+        )
+        val normalRequest = contractRequest(
+            vendorId = vendor.id,
+            productId = null,
+            productName = "상온 의류",
+        )
+        val service = contractRequestService(
+            userRepository = FakeUserRepository(vendorUser),
+            vendorRepository = FakeVendorRepository(vendor),
+            contractRequestRepository = FakeContractRequestRepository(clothingRequest, normalRequest),
+        )
+
+        val results = service.getMyContractRequests(
+            GetMyContractRequestsCommand(
+                userId = vendorUser.id,
+                productName = "냉동",
+                productCategory = null,
+                boxSize = null,
+                coldChainType = ColdChainType.FROZEN,
+                status = ContractRequestStatus.OPEN,
+                pickupRegion = null,
+                saturdayDeliveryRequired = null,
+                returnRequired = null,
+            ),
+            Pageable.ofSize(20),
+        )
+
+        assertEquals(1, results.totalElements)
+        assertEquals(clothingRequest.id, results.content.first().contractRequestId)
     }
 
     private fun contractRequestService(
@@ -178,6 +219,8 @@ class ContractRequestServiceTest {
         vendorId: UUID,
         productId: UUID?,
         status: ContractRequestStatus = ContractRequestStatus.OPEN,
+        productName: String = "의류",
+        items: List<ContractRequestItem> = listOf(contractRequestItem(productId = productId)),
     ): ContractRequest {
         return ContractRequest.create(
             id = id,
@@ -189,7 +232,7 @@ class ContractRequestServiceTest {
             pickupAddress = "경기도 안산시 상록구 일동 101호",
             monthlyVolume = 10,
             productCategory = ProductCategory.CLOTHING,
-            productName = "의류",
+            productName = productName,
             boxSize = BoxSize.SIZE_60,
             pickupStartTime = "09:00",
             pickupEndTime = "18:00",
@@ -198,25 +241,30 @@ class ContractRequestServiceTest {
             coldChainType = ColdChainType.NONE,
             targetUnitPrice = BigDecimal("2000"),
             memo = null,
-            items = listOf(contractRequestItem(productId = productId)),
+            items = items,
             status = status,
         )
     }
 
-    private fun contractRequestItem(productId: UUID?): ContractRequestItem {
+    private fun contractRequestItem(
+        productId: UUID?,
+        productName: String = "의류",
+        boxSize: BoxSize = BoxSize.SIZE_60,
+        coldChainType: ColdChainType = ColdChainType.NONE,
+    ): ContractRequestItem {
         return ContractRequestItem.create(
             id = UUID.randomUUID(),
             productId = productId,
             productCategory = ProductCategory.CLOTHING,
-            productName = "의류",
-            boxSize = BoxSize.SIZE_60,
+            productName = productName,
+            boxSize = boxSize,
             boxQuantity = 10,
             itemQuantity = 0,
             averageWeightGram = 700,
             fragile = false,
             liquid = false,
             freshFood = false,
-            coldChainType = ColdChainType.NONE,
+            coldChainType = coldChainType,
             targetUnitPrice = BigDecimal("2000"),
         )
     }
@@ -364,7 +412,26 @@ class ContractRequestServiceTest {
         override fun findByIdAndVendorId(id: UUID, vendorId: UUID): ContractRequest? = requests[id]?.takeIf { it.vendorId == vendorId }
         override fun findByIdAndVendorIdForUpdate(id: UUID, vendorId: UUID): ContractRequest? = findByIdAndVendorId(id, vendorId)
         override fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<ContractRequest> = PageImpl(requests.values.filter { it.vendorId == vendorId }, pageable, requests.size.toLong())
-        override fun findAllByRequester(requesterType: ContractPartyType, requesterId: UUID, pageable: Pageable): Page<ContractRequest> = PageImpl(requests.values.filter { it.requesterType == requesterType && it.requesterId == requesterId }, pageable, requests.size.toLong())
+        override fun findAllByRequester(
+            requesterType: ContractPartyType,
+            requesterId: UUID,
+            condition: ContractRequestSearchCondition,
+            pageable: Pageable,
+        ): Page<ContractRequest> {
+            val content = requests.values.filter { request ->
+                request.requesterType == requesterType &&
+                    request.requesterId == requesterId &&
+                    (condition.status == null || request.status == condition.status) &&
+                    (condition.normalizedPickupRegion == null || request.pickupRegion.contains(condition.normalizedPickupRegion, ignoreCase = true)) &&
+                    (condition.saturdayDeliveryRequired == null || request.saturdayDeliveryRequired == condition.saturdayDeliveryRequired) &&
+                    (condition.returnRequired == null || request.returnRequired == condition.returnRequired) &&
+                    (condition.normalizedProductName == null || request.productName.contains(condition.normalizedProductName, ignoreCase = true) || request.items.any { it.productName.contains(condition.normalizedProductName, ignoreCase = true) }) &&
+                    (condition.productCategory == null || request.productCategory == condition.productCategory || request.items.any { it.productCategory == condition.productCategory }) &&
+                    (condition.boxSize == null || request.boxSize == condition.boxSize || request.items.any { it.boxSize == condition.boxSize }) &&
+                    (condition.coldChainType == null || request.coldChainType == condition.coldChainType || request.items.any { it.coldChainType == condition.coldChainType })
+            }
+            return PageImpl(content, pageable, content.size.toLong())
+        }
         override fun findAllByApprover(approverType: ContractPartyType, approverId: UUID, pageable: Pageable): Page<ContractRequest> = PageImpl(requests.values.filter { it.approverType == approverType && it.approverId == approverId }, pageable, requests.size.toLong())
         override fun findAllByStatus(status: ContractRequestStatus, pageable: Pageable): Page<ContractRequest> = PageImpl(requests.values.filter { it.status == status }, pageable, requests.size.toLong())
         override fun findOpenVendorOffersForAgency(agencyId: UUID, pageable: Pageable): Page<ContractRequest> = PageImpl(emptyList(), pageable, 0)
