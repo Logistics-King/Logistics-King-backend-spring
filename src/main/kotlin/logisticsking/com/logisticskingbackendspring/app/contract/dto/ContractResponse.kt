@@ -10,6 +10,8 @@ import logisticsking.com.logisticskingbackendspring.app.contract.result.Contract
 import logisticsking.com.logisticskingbackendspring.app.vendor.dto.VendorResponse
 import org.springframework.data.domain.Page
 import java.math.BigDecimal
+import java.time.DayOfWeek
+import java.time.LocalDate
 
 @Schema(description = "최종 계약 응답")
 sealed interface ContractResponse {
@@ -29,6 +31,22 @@ sealed interface ContractResponse {
         val pickupRegion: String,
         @field:Schema(description = "픽업 상세 주소", example = "경기도 안산시 상록구 일동 101호")
         val pickupAddress: String?,
+        @field:Schema(description = "계약 방식 (SINGLE, RECURRING)", example = "SINGLE")
+        val contractType: String,
+        @field:Schema(description = "단건 회수 희망 시작일", example = "2026-06-22")
+        val pickupDateFrom: LocalDate?,
+        @field:Schema(description = "단건 회수 희망 종료일", example = "2026-06-26")
+        val pickupDateTo: LocalDate?,
+        @field:Schema(description = "배송 희망 시작일", example = "2026-06-24")
+        val deliveryDateFrom: LocalDate?,
+        @field:Schema(description = "배송 희망 종료일", example = "2026-06-30")
+        val deliveryDateTo: LocalDate?,
+        @field:Schema(description = "정기 회수 주기 (WEEKLY, MONTHLY)", example = "WEEKLY")
+        val recurringPickupCycle: String?,
+        @field:Schema(description = "매주 정기 회수 요일 목록", example = "[\"MONDAY\", \"WEDNESDAY\"]")
+        val recurringPickupDaysOfWeek: kotlin.collections.List<DayOfWeek>,
+        @field:Schema(description = "매월 정기 회수 일자", example = "10")
+        val recurringPickupDayOfMonth: Int?,
         @field:Schema(description = "월 예상 물량", example = "800")
         val monthlyVolume: Int,
         @field:Schema(description = "품목 카테고리", example = "CLOTHING")
@@ -70,6 +88,14 @@ sealed interface ContractResponse {
                     agencyId = result.agencyId.toString(),
                     pickupRegion = result.pickupRegion,
                     pickupAddress = result.pickupAddress,
+                    contractType = result.contractType.name,
+                    pickupDateFrom = result.pickupDateFrom,
+                    pickupDateTo = result.pickupDateTo,
+                    deliveryDateFrom = result.deliveryDateFrom,
+                    deliveryDateTo = result.deliveryDateTo,
+                    recurringPickupCycle = result.recurringPickupCycle?.name,
+                    recurringPickupDaysOfWeek = result.recurringPickupDaysOfWeek,
+                    recurringPickupDayOfMonth = result.recurringPickupDayOfMonth,
                     monthlyVolume = result.monthlyVolume,
                     productCategory = result.productCategory.name,
                     productName = result.productName,

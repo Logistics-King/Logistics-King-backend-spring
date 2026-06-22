@@ -6,9 +6,13 @@ import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.contract.command.CreateContractRequestCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.ContractRequestItemCommand
 import logisticsking.com.logisticskingbackendspring.app.contract.command.UpdateContractRequestCommand
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestContractType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestType
+import logisticsking.com.logisticskingbackendspring.domain.contract.RecurringPickupCycle
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.util.UUID
 
 @Schema(description = "계약 요청")
@@ -25,6 +29,22 @@ sealed interface ContractRequestRequest {
         val pickupRegion: String,
         @field:Schema(description = "픽업 상세 주소", example = "경기도 안산시 상록구 일동 101호")
         val pickupAddress: String?,
+        @field:Schema(description = "계약 방식 (SINGLE, RECURRING)", example = "SINGLE")
+        val contractType: ContractRequestContractType = ContractRequestContractType.SINGLE,
+        @field:Schema(description = "단건 회수 희망 시작일", example = "2026-06-22")
+        val pickupDateFrom: LocalDate? = null,
+        @field:Schema(description = "단건 회수 희망 종료일", example = "2026-06-26")
+        val pickupDateTo: LocalDate? = null,
+        @field:Schema(description = "배송 희망 시작일", example = "2026-06-24")
+        val deliveryDateFrom: LocalDate? = null,
+        @field:Schema(description = "배송 희망 종료일", example = "2026-06-30")
+        val deliveryDateTo: LocalDate? = null,
+        @field:Schema(description = "정기 회수 주기 (WEEKLY, MONTHLY)", example = "WEEKLY")
+        val recurringPickupCycle: RecurringPickupCycle? = null,
+        @field:Schema(description = "매주 정기 회수 요일 목록", example = "[\"MONDAY\", \"WEDNESDAY\"]")
+        val recurringPickupDaysOfWeek: List<DayOfWeek> = emptyList(),
+        @field:Schema(description = "매월 정기 회수 일자", example = "10")
+        val recurringPickupDayOfMonth: Int? = null,
         @field:Schema(description = "월 예상 물량", example = "800")
         val monthlyVolume: Int,
         @field:Schema(description = "품목 카테고리", example = "CLOTHING")
@@ -61,6 +81,14 @@ sealed interface ContractRequestRequest {
                 productId = productId,
                 pickupRegion = pickupRegion,
                 pickupAddress = pickupAddress,
+                contractType = contractType,
+                pickupDateFrom = pickupDateFrom,
+                pickupDateTo = pickupDateTo,
+                deliveryDateFrom = deliveryDateFrom,
+                deliveryDateTo = deliveryDateTo,
+                recurringPickupCycle = recurringPickupCycle,
+                recurringPickupDaysOfWeek = recurringPickupDaysOfWeek,
+                recurringPickupDayOfMonth = recurringPickupDayOfMonth,
                 monthlyVolume = monthlyVolume,
                 productCategory = productCategory,
                 productName = productName,
@@ -102,6 +130,22 @@ sealed interface ContractRequestRequest {
         val pickupRegion: String,
         @field:Schema(description = "픽업 상세 주소", example = "경기도 안산시 상록구 본오동 202호")
         val pickupAddress: String?,
+        @field:Schema(description = "계약 방식 (SINGLE, RECURRING)", example = "SINGLE")
+        val contractType: ContractRequestContractType = ContractRequestContractType.SINGLE,
+        @field:Schema(description = "단건 회수 희망 시작일", example = "2026-06-22")
+        val pickupDateFrom: LocalDate? = null,
+        @field:Schema(description = "단건 회수 희망 종료일", example = "2026-06-26")
+        val pickupDateTo: LocalDate? = null,
+        @field:Schema(description = "배송 희망 시작일", example = "2026-06-24")
+        val deliveryDateFrom: LocalDate? = null,
+        @field:Schema(description = "배송 희망 종료일", example = "2026-06-30")
+        val deliveryDateTo: LocalDate? = null,
+        @field:Schema(description = "정기 회수 주기 (WEEKLY, MONTHLY)", example = "WEEKLY")
+        val recurringPickupCycle: RecurringPickupCycle? = null,
+        @field:Schema(description = "매주 정기 회수 요일 목록", example = "[\"MONDAY\", \"WEDNESDAY\"]")
+        val recurringPickupDaysOfWeek: List<DayOfWeek> = emptyList(),
+        @field:Schema(description = "매월 정기 회수 일자", example = "10")
+        val recurringPickupDayOfMonth: Int? = null,
         @field:Schema(description = "월 예상 물량", example = "1000")
         val monthlyVolume: Int,
         @field:Schema(description = "품목 카테고리", example = "CLOTHING")
@@ -140,6 +184,14 @@ sealed interface ContractRequestRequest {
                 productId = productId,
                 pickupRegion = pickupRegion,
                 pickupAddress = pickupAddress,
+                contractType = contractType,
+                pickupDateFrom = pickupDateFrom,
+                pickupDateTo = pickupDateTo,
+                deliveryDateFrom = deliveryDateFrom,
+                deliveryDateTo = deliveryDateTo,
+                recurringPickupCycle = recurringPickupCycle,
+                recurringPickupDaysOfWeek = recurringPickupDaysOfWeek,
+                recurringPickupDayOfMonth = recurringPickupDayOfMonth,
                 monthlyVolume = monthlyVolume,
                 productCategory = productCategory,
                 productName = productName,

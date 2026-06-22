@@ -5,6 +5,8 @@ import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.error.requireDomain
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.util.UUID
 
 class ContractRequest private constructor(
@@ -26,6 +28,22 @@ class ContractRequest private constructor(
     val pickupRegion: String,
     // 실제 집하가 필요한 상세 주소.
     val pickupAddress: String?,
+    // 단건/정기 계약 요청 구분.
+    val contractType: ContractRequestContractType,
+    // 단건 계약 요청의 회수 희망 시작일.
+    val pickupDateFrom: LocalDate?,
+    // 단건 계약 요청의 회수 희망 종료일.
+    val pickupDateTo: LocalDate?,
+    // 단건 계약 요청의 배송 희망 시작일.
+    val deliveryDateFrom: LocalDate?,
+    // 단건 계약 요청의 배송 희망 종료일.
+    val deliveryDateTo: LocalDate?,
+    // 정기 계약 요청의 반복 회수 주기.
+    val recurringPickupCycle: RecurringPickupCycle?,
+    // 매주 반복 회수 요일 목록.
+    val recurringPickupDaysOfWeek: List<DayOfWeek>,
+    // 매월 반복 회수 일자.
+    val recurringPickupDayOfMonth: Int?,
     // 화주가 한 달에 보낼 것으로 예상하는 박스 수.
     val monthlyVolume: Int,
     // 대리점이 배송 조건과 단가를 판단할 품목 카테고리.
@@ -86,6 +104,14 @@ class ContractRequest private constructor(
         productId: UUID?,
         pickupRegion: String,
         pickupAddress: String?,
+        contractType: ContractRequestContractType = this.contractType,
+        pickupDateFrom: LocalDate? = this.pickupDateFrom,
+        pickupDateTo: LocalDate? = this.pickupDateTo,
+        deliveryDateFrom: LocalDate? = this.deliveryDateFrom,
+        deliveryDateTo: LocalDate? = this.deliveryDateTo,
+        recurringPickupCycle: RecurringPickupCycle? = this.recurringPickupCycle,
+        recurringPickupDaysOfWeek: List<DayOfWeek> = this.recurringPickupDaysOfWeek,
+        recurringPickupDayOfMonth: Int? = this.recurringPickupDayOfMonth,
         monthlyVolume: Int,
         productCategory: ProductCategory,
         productName: String,
@@ -120,6 +146,14 @@ class ContractRequest private constructor(
             productId = productId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,
+            contractType = contractType,
+            pickupDateFrom = pickupDateFrom,
+            pickupDateTo = pickupDateTo,
+            deliveryDateFrom = deliveryDateFrom,
+            deliveryDateTo = deliveryDateTo,
+            recurringPickupCycle = recurringPickupCycle,
+            recurringPickupDaysOfWeek = recurringPickupDaysOfWeek,
+            recurringPickupDayOfMonth = recurringPickupDayOfMonth,
             monthlyVolume = monthlyVolume,
             productCategory = productCategory,
             productName = productName,
@@ -156,6 +190,14 @@ class ContractRequest private constructor(
             productId = productId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,
+            contractType = contractType,
+            pickupDateFrom = pickupDateFrom,
+            pickupDateTo = pickupDateTo,
+            deliveryDateFrom = deliveryDateFrom,
+            deliveryDateTo = deliveryDateTo,
+            recurringPickupCycle = recurringPickupCycle,
+            recurringPickupDaysOfWeek = recurringPickupDaysOfWeek,
+            recurringPickupDayOfMonth = recurringPickupDayOfMonth,
             monthlyVolume = monthlyVolume,
             productCategory = productCategory,
             productName = productName,
@@ -188,6 +230,14 @@ class ContractRequest private constructor(
             productId = productId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,
+            contractType = contractType,
+            pickupDateFrom = pickupDateFrom,
+            pickupDateTo = pickupDateTo,
+            deliveryDateFrom = deliveryDateFrom,
+            deliveryDateTo = deliveryDateTo,
+            recurringPickupCycle = recurringPickupCycle,
+            recurringPickupDaysOfWeek = recurringPickupDaysOfWeek,
+            recurringPickupDayOfMonth = recurringPickupDayOfMonth,
             monthlyVolume = monthlyVolume,
             productCategory = productCategory,
             productName = productName,
@@ -220,6 +270,14 @@ class ContractRequest private constructor(
             productId = productId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,
+            contractType = contractType,
+            pickupDateFrom = pickupDateFrom,
+            pickupDateTo = pickupDateTo,
+            deliveryDateFrom = deliveryDateFrom,
+            deliveryDateTo = deliveryDateTo,
+            recurringPickupCycle = recurringPickupCycle,
+            recurringPickupDaysOfWeek = recurringPickupDaysOfWeek,
+            recurringPickupDayOfMonth = recurringPickupDayOfMonth,
             monthlyVolume = monthlyVolume,
             productCategory = productCategory,
             productName = productName,
@@ -245,6 +303,14 @@ class ContractRequest private constructor(
             productId: UUID?,
             pickupRegion: String,
             pickupAddress: String?,
+            contractType: ContractRequestContractType = ContractRequestContractType.SINGLE,
+            pickupDateFrom: LocalDate? = null,
+            pickupDateTo: LocalDate? = null,
+            deliveryDateFrom: LocalDate? = null,
+            deliveryDateTo: LocalDate? = null,
+            recurringPickupCycle: RecurringPickupCycle? = null,
+            recurringPickupDaysOfWeek: List<DayOfWeek> = emptyList(),
+            recurringPickupDayOfMonth: Int? = null,
             monthlyVolume: Int,
             productCategory: ProductCategory,
             productName: String,
@@ -272,6 +338,20 @@ class ContractRequest private constructor(
                 ContractRequestErrorCode.INVALID_PICKUP_TIME,
             )
             requireDomain(
+                pickupStartTime.trim() <= pickupEndTime.trim(),
+                ContractRequestErrorCode.INVALID_PICKUP_TIME,
+            )
+            validateSchedule(
+                contractType = contractType,
+                pickupDateFrom = pickupDateFrom,
+                pickupDateTo = pickupDateTo,
+                deliveryDateFrom = deliveryDateFrom,
+                deliveryDateTo = deliveryDateTo,
+                recurringPickupCycle = recurringPickupCycle,
+                recurringPickupDaysOfWeek = recurringPickupDaysOfWeek,
+                recurringPickupDayOfMonth = recurringPickupDayOfMonth,
+            )
+            requireDomain(
                 targetUnitPrice == null || targetUnitPrice >= BigDecimal.ZERO,
                 ContractRequestErrorCode.INVALID_TARGET_UNIT_PRICE,
             )
@@ -291,6 +371,14 @@ class ContractRequest private constructor(
                 productId = productId,
                 pickupRegion = pickupRegion.trim(),
                 pickupAddress = pickupAddress?.trim()?.takeIf { it.isNotBlank() },
+                contractType = contractType,
+                pickupDateFrom = pickupDateFrom,
+                pickupDateTo = pickupDateTo,
+                deliveryDateFrom = deliveryDateFrom,
+                deliveryDateTo = deliveryDateTo,
+                recurringPickupCycle = recurringPickupCycle,
+                recurringPickupDaysOfWeek = recurringPickupDaysOfWeek.distinct(),
+                recurringPickupDayOfMonth = recurringPickupDayOfMonth,
                 monthlyVolume = monthlyVolume,
                 productCategory = representativeItem.productCategory,
                 productName = representativeItem.productName,
@@ -317,6 +405,14 @@ class ContractRequest private constructor(
             productId: UUID?,
             pickupRegion: String,
             pickupAddress: String?,
+            contractType: ContractRequestContractType = ContractRequestContractType.SINGLE,
+            pickupDateFrom: LocalDate? = null,
+            pickupDateTo: LocalDate? = null,
+            deliveryDateFrom: LocalDate? = null,
+            deliveryDateTo: LocalDate? = null,
+            recurringPickupCycle: RecurringPickupCycle? = null,
+            recurringPickupDaysOfWeek: List<DayOfWeek> = emptyList(),
+            recurringPickupDayOfMonth: Int? = null,
             monthlyVolume: Int,
             productCategory: ProductCategory,
             productName: String,
@@ -346,6 +442,14 @@ class ContractRequest private constructor(
                 productId = productId,
                 pickupRegion = pickupRegion,
                 pickupAddress = pickupAddress,
+                contractType = contractType,
+                pickupDateFrom = pickupDateFrom,
+                pickupDateTo = pickupDateTo,
+                deliveryDateFrom = deliveryDateFrom,
+                deliveryDateTo = deliveryDateTo,
+                recurringPickupCycle = recurringPickupCycle,
+                recurringPickupDaysOfWeek = recurringPickupDaysOfWeek,
+                recurringPickupDayOfMonth = recurringPickupDayOfMonth,
                 monthlyVolume = monthlyVolume,
                 productCategory = productCategory,
                 productName = productName,
@@ -378,6 +482,45 @@ class ContractRequest private constructor(
                 },
                 status = status,
             )
+        }
+
+        private fun validateSchedule(
+            contractType: ContractRequestContractType,
+            pickupDateFrom: LocalDate?,
+            pickupDateTo: LocalDate?,
+            deliveryDateFrom: LocalDate?,
+            deliveryDateTo: LocalDate?,
+            recurringPickupCycle: RecurringPickupCycle?,
+            recurringPickupDaysOfWeek: List<DayOfWeek>,
+            recurringPickupDayOfMonth: Int?,
+        ) {
+            requireDomain(
+                pickupDateFrom == null || pickupDateTo == null || !pickupDateFrom.isAfter(pickupDateTo),
+                ContractRequestErrorCode.INVALID_PICKUP_DATE_RANGE,
+            )
+            requireDomain(
+                deliveryDateFrom == null || deliveryDateTo == null || !deliveryDateFrom.isAfter(deliveryDateTo),
+                ContractRequestErrorCode.INVALID_DELIVERY_DATE_RANGE,
+            )
+            requireDomain(
+                pickupDateFrom == null || deliveryDateTo == null || !deliveryDateTo.isBefore(pickupDateFrom),
+                ContractRequestErrorCode.INVALID_DELIVERY_DATE_RANGE,
+            )
+
+            if (contractType == ContractRequestContractType.RECURRING) {
+                requireDomain(recurringPickupCycle != null, ContractRequestErrorCode.INVALID_RECURRING_PICKUP_RULE)
+                when (recurringPickupCycle) {
+                    RecurringPickupCycle.WEEKLY -> requireDomain(
+                        recurringPickupDaysOfWeek.isNotEmpty(),
+                        ContractRequestErrorCode.INVALID_RECURRING_PICKUP_RULE,
+                    )
+                    RecurringPickupCycle.MONTHLY -> requireDomain(
+                        recurringPickupDayOfMonth != null && recurringPickupDayOfMonth in 1..31,
+                        ContractRequestErrorCode.INVALID_RECURRING_PICKUP_RULE,
+                    )
+                    null -> Unit
+                }
+            }
         }
     }
 }
