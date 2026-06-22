@@ -65,7 +65,7 @@ class ContractService(
             ContractItem.fromRequestItem(
                 id = idGenerator.generate(),
                 item = item,
-                unitPrice = selectedProposal.unitPrice,
+                unitPrice = selectedProposal.itemUnitPrice(item.id) ?: selectedProposal.unitPrice,
             )
         }
         val contract = Contract.create(

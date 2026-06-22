@@ -8,6 +8,7 @@ data class SubmitProposalCommand(
     val userId: UUID,
     val contractRequestId: UUID,
     val unitPrice: BigDecimal,
+    val items: List<ProposalItemCommand>,
     val pickupStartTime: String,
     val pickupEndTime: String,
     val saturdayDeliveryAvailable: Boolean,
@@ -20,12 +21,18 @@ data class UpdateProposalCommand(
     val userId: UUID,
     val proposalId: UUID,
     val unitPrice: BigDecimal,
+    val items: List<ProposalItemCommand>,
     val pickupStartTime: String,
     val pickupEndTime: String,
     val saturdayDeliveryAvailable: Boolean,
     val returnAvailable: Boolean,
     val coldChainType: ColdChainType,
     val memo: String?,
+)
+
+data class ProposalItemCommand(
+    val contractRequestItemId: UUID,
+    val unitPrice: BigDecimal,
 )
 
 data class WithdrawProposalCommand(
@@ -47,6 +54,7 @@ data class CreateProposalPriceOfferCommand(
     val userId: UUID,
     val proposalId: UUID,
     val unitPrice: BigDecimal,
+    val items: List<ProposalItemCommand>,
     val memo: String?,
 )
 

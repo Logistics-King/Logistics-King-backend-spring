@@ -50,6 +50,7 @@ class ProposalTest {
             returnAvailable = true,
             coldChainType = ColdChainType.NONE,
             memo = "오전 집하 기준 단가 조정",
+            items = proposal.items.map { it.changeUnitPrice(BigDecimal("1980")) },
         )
 
         assertEquals(proposal.id, updated.id)
@@ -91,17 +92,16 @@ class ProposalTest {
     }
 
     @Test
-    fun `가격 협상 시작 시 최신 단가를 바꾸고 pending 이벤트를 기록한다`() {
+    fun `가격 협상 시작 시 현재 단가는 유지하고 pending 이벤트를 기록한다`() {
         val proposal = proposal()
         val eventId = UUID.randomUUID()
 
         val negotiating = proposal.startPriceNegotiation(
             eventId = eventId,
-            unitPrice = BigDecimal("1980"),
         )
 
         assertEquals(ProposalStatus.NEGOTIATING, negotiating.status)
-        assertEquals(BigDecimal("1980"), negotiating.unitPrice)
+        assertEquals(BigDecimal("2050"), negotiating.unitPrice)
         assertEquals(BigDecimal("2050"), negotiating.initialUnitPrice)
         assertNull(negotiating.finalUnitPrice)
         assertEquals(eventId, negotiating.pendingNegotiationId)
@@ -113,12 +113,18 @@ class ProposalTest {
         val eventId = UUID.randomUUID()
         val negotiating = proposal().startPriceNegotiation(
             eventId = eventId,
-            unitPrice = BigDecimal("1980"),
         )
 
         val accepted = negotiating.acceptPendingNegotiation(
             pendingEventId = eventId,
             unitPrice = BigDecimal("1980"),
+            items = negotiating.items.map {
+                ProposalNegotiationEventItem.create(
+                    id = UUID.randomUUID(),
+                    contractRequestItemId = it.contractRequestItemId,
+                    unitPrice = BigDecimal("1980"),
+                )
+            },
         )
 
         assertEquals(ProposalStatus.NEGOTIATING, accepted.status)
@@ -132,7 +138,6 @@ class ProposalTest {
     fun `pending 협상이 있으면 최종 제안 수락을 막는다`() {
         val negotiating = proposal().startPriceNegotiation(
             eventId = UUID.randomUUID(),
-            unitPrice = BigDecimal("1980"),
         )
 
         val exception = assertThrows(GlobalException::class.java) {
@@ -173,6 +178,7 @@ class ProposalTest {
                 returnAvailable = true,
                 coldChainType = ColdChainType.NONE,
                 memo = null,
+                items = withdrawn.items.map { it.changeUnitPrice(BigDecimal("1980")) },
             )
         }
 
@@ -209,6 +215,7 @@ class ProposalTest {
             sequence = 1,
             actorType = ContractPartyType.AGENCY,
             unitPrice = BigDecimal("1980"),
+            items = emptyList(),
             memo = "조율 제안",
         )
 
@@ -252,6 +259,13 @@ class ProposalTest {
             returnAvailable = true,
             coldChainType = ColdChainType.NONE,
             memo = memo,
+            items = listOf(
+                ProposalItem.create(
+                    id = UUID.randomUUID(),
+                    contractRequestItemId = UUID.randomUUID(),
+                    unitPrice = unitPrice,
+                )
+            ),
         )
     }
 }

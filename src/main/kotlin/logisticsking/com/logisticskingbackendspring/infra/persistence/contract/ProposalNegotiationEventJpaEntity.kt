@@ -60,7 +60,7 @@ class ProposalNegotiationEventJpaEntity(
     val status: ProposalNegotiationEventStatus,
 ) : BaseJpaEntity() {
 
-    fun toDomain(): ProposalNegotiationEvent {
+    fun toDomain(items: List<ProposalNegotiationEventItemJpaEntity> = emptyList()): ProposalNegotiationEvent {
         return ProposalNegotiationEvent.restore(
             id = id,
             proposalId = proposalId,
@@ -68,6 +68,7 @@ class ProposalNegotiationEventJpaEntity(
             actorType = actorType,
             eventType = eventType,
             unitPrice = unitPrice,
+            items = items.map(ProposalNegotiationEventItemJpaEntity::toDomain),
             memo = memo,
             status = status,
         )

@@ -199,6 +199,13 @@ class ContractRequestService(
             returnAvailable = contractRequest.returnRequired,
             coldChainType = contractRequest.coldChainType,
             memo = contractRequest.memo,
+            items = contractRequest.items.map { item ->
+                ProposalItem.create(
+                    id = idGenerator.generate(),
+                    contractRequestItemId = item.id,
+                    unitPrice = item.targetUnitPrice ?: unitPrice,
+                )
+            },
             status = ProposalStatus.ACCEPTED,
         )
         val savedProposal = proposalRepository.save(proposal)
@@ -207,7 +214,7 @@ class ContractRequestService(
             ContractItem.fromRequestItem(
                 id = idGenerator.generate(),
                 item = item,
-                unitPrice = savedProposal.unitPrice,
+                unitPrice = savedProposal.itemUnitPrice(item.id) ?: savedProposal.unitPrice,
             )
         }
         val contract = Contract.create(

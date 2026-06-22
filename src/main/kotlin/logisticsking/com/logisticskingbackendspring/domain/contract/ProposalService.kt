@@ -5,6 +5,7 @@ import logisticsking.com.logisticskingbackendspring.app.proposal.command.CreateP
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.DecideProposalNegotiationCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetContractRequestProposalsCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.GetProposalNegotiationsCommand
+import logisticsking.com.logisticskingbackendspring.app.proposal.command.ProposalItemCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.SubmitProposalCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.UpdateProposalCommand
 import logisticsking.com.logisticskingbackendspring.app.proposal.command.WithdrawProposalCommand
@@ -36,6 +37,8 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.UUID
 
 @Service
@@ -84,13 +87,22 @@ class ProposalService(
             contractRequestId = contractRequest.id,
             vendorId = contractRequest.vendorId,
             agencyId = agency.id,
-            unitPrice = command.unitPrice,
+            unitPrice = representativeUnitPrice(
+                proposalItems = command.items,
+                requestItems = contractRequest.items,
+                fallbackUnitPrice = command.unitPrice,
+            ),
             pickupStartTime = command.pickupStartTime,
             pickupEndTime = command.pickupEndTime,
             saturdayDeliveryAvailable = command.saturdayDeliveryAvailable,
             returnAvailable = command.returnAvailable,
             coldChainType = command.coldChainType,
             memo = command.memo,
+            items = createProposalItems(
+                commands = command.items,
+                requestItems = contractRequest.items,
+                fallbackUnitPrice = command.unitPrice,
+            ),
         )
 
         val saved = proposalRepository.save(proposal)
@@ -157,14 +169,24 @@ class ProposalService(
         findAgencyUser(command.userId)
         val agency = findAgencyByUserId(command.userId)
         val proposal = findProposal(command.proposalId, agency.id)
+        val contractRequest = findContractRequestForUpdate(proposal.contractRequestId)
         val updated = proposal.update(
-            unitPrice = command.unitPrice,
+            unitPrice = representativeUnitPrice(
+                proposalItems = command.items,
+                requestItems = contractRequest.items,
+                fallbackUnitPrice = command.unitPrice,
+            ),
             pickupStartTime = command.pickupStartTime,
             pickupEndTime = command.pickupEndTime,
             saturdayDeliveryAvailable = command.saturdayDeliveryAvailable,
             returnAvailable = command.returnAvailable,
             coldChainType = command.coldChainType,
             memo = command.memo,
+            items = createProposalItems(
+                commands = command.items,
+                requestItems = contractRequest.items,
+                fallbackUnitPrice = command.unitPrice,
+            ),
         )
 
         val saved = proposalRepository.save(updated)
@@ -222,18 +244,28 @@ class ProposalService(
         val proposal = proposalRepository.findByIdForUpdate(command.proposalId)
             ?: throw GlobalException(ProposalErrorCode.NOT_FOUND)
         val actorType = findNegotiationActor(command.userId, proposal)
+        val contractRequest = findContractRequestForUpdate(proposal.contractRequestId)
+        val eventItems = createNegotiationEventItems(
+            commands = command.items,
+            proposal = proposal,
+            fallbackUnitPrice = command.unitPrice,
+        )
 
         val event = ProposalNegotiationEvent.priceOffer(
             id = idGenerator.generate(),
             proposalId = proposal.id,
             sequence = proposal.nextSequence,
             actorType = actorType,
-            unitPrice = command.unitPrice,
+            unitPrice = representativeUnitPrice(
+                proposalItems = command.items,
+                requestItems = contractRequest.items,
+                fallbackUnitPrice = command.unitPrice,
+            ),
+            items = eventItems,
             memo = command.memo,
         )
         val updatedProposal = proposal.startPriceNegotiation(
             eventId = event.id,
-            unitPrice = command.unitPrice,
         )
 
         val savedEvent = proposalNegotiationEventRepository.save(event)
@@ -261,6 +293,7 @@ class ProposalService(
         val updatedProposal = proposal.acceptPendingNegotiation(
             pendingEventId = pendingEvent.id,
             unitPrice = pendingEvent.unitPrice ?: throw GlobalException(ProposalErrorCode.INVALID_UNIT_PRICE),
+            items = pendingEvent.items,
         )
 
         proposalNegotiationEventRepository.save(pendingEvent.accept())
@@ -351,6 +384,126 @@ class ProposalService(
             (contractRequest.approverId != null && contractRequest.approverId != agencyId)
         ) {
             throw GlobalException(ProposalErrorCode.CONTRACT_REQUEST_NOT_FOUND)
+        }
+    }
+
+    private fun createProposalItems(
+        commands: List<ProposalItemCommand>,
+        requestItems: List<ContractRequestItem>,
+        fallbackUnitPrice: BigDecimal,
+    ): List<ProposalItem> {
+        validateProposalItemCommands(commands, requestItems)
+
+        if (commands.isEmpty()) {
+            return requestItems.map { requestItem ->
+                ProposalItem.create(
+                    id = idGenerator.generate(),
+                    contractRequestItemId = requestItem.id,
+                    unitPrice = fallbackUnitPrice,
+                )
+            }
+        }
+
+        val commandByRequestItemId = commands.associateBy(ProposalItemCommand::contractRequestItemId)
+
+        return requestItems.map { requestItem ->
+            val command = commandByRequestItemId[requestItem.id]
+                ?: throw GlobalException(ProposalErrorCode.INVALID_PROPOSAL_ITEM_MATCH)
+
+            ProposalItem.create(
+                id = idGenerator.generate(),
+                contractRequestItemId = requestItem.id,
+                unitPrice = command.unitPrice,
+            )
+        }
+    }
+
+    private fun representativeUnitPrice(
+        proposalItems: List<ProposalItemCommand>,
+        requestItems: List<ContractRequestItem>,
+        fallbackUnitPrice: BigDecimal,
+    ): BigDecimal {
+        if (proposalItems.isEmpty()) {
+            return fallbackUnitPrice
+        }
+
+        validateProposalItemCommands(proposalItems, requestItems)
+        val requestItemById = requestItems.associateBy(ContractRequestItem::id)
+        val weightedTotal = proposalItems.fold(BigDecimal.ZERO) { acc, item ->
+            val requestItem = requestItemById[item.contractRequestItemId]
+                ?: throw GlobalException(ProposalErrorCode.INVALID_PROPOSAL_ITEM_MATCH)
+            acc + item.unitPrice.multiply(BigDecimal.valueOf(requestItem.boxQuantity.toLong()))
+        }
+        val totalBoxQuantity = requestItems.sumOf(ContractRequestItem::boxQuantity)
+
+        if (totalBoxQuantity <= 0) {
+            return proposalItems.first().unitPrice
+        }
+
+        return weightedTotal.divide(BigDecimal.valueOf(totalBoxQuantity.toLong()), 2, RoundingMode.HALF_UP)
+    }
+
+    private fun validateProposalItemCommands(
+        commands: List<ProposalItemCommand>,
+        requestItems: List<ContractRequestItem>,
+    ) {
+        if (commands.isEmpty()) {
+            return
+        }
+
+        val requestItemIds = requestItems.map(ContractRequestItem::id).toSet()
+        val commandItemIds = commands.map(ProposalItemCommand::contractRequestItemId)
+
+        if (commandItemIds.size != commandItemIds.toSet().size) {
+            throw GlobalException(ProposalErrorCode.INVALID_PROPOSAL_ITEM_MATCH)
+        }
+        if (requestItemIds != commandItemIds.toSet()) {
+            throw GlobalException(ProposalErrorCode.INVALID_PROPOSAL_ITEM_MATCH)
+        }
+    }
+
+    private fun createNegotiationEventItems(
+        commands: List<ProposalItemCommand>,
+        proposal: Proposal,
+        fallbackUnitPrice: BigDecimal,
+    ): List<ProposalNegotiationEventItem> {
+        validateNegotiationItemCommands(commands, proposal)
+
+        if (commands.isEmpty()) {
+            return proposal.items.map { item ->
+                ProposalNegotiationEventItem.create(
+                    id = idGenerator.generate(),
+                    contractRequestItemId = item.contractRequestItemId,
+                    unitPrice = fallbackUnitPrice,
+                )
+            }
+        }
+
+        return commands.map { command ->
+            ProposalNegotiationEventItem.create(
+                id = idGenerator.generate(),
+                contractRequestItemId = command.contractRequestItemId,
+                unitPrice = command.unitPrice,
+            )
+        }
+    }
+
+    private fun validateNegotiationItemCommands(
+        commands: List<ProposalItemCommand>,
+        proposal: Proposal,
+    ) {
+        if (commands.isEmpty()) {
+            return
+        }
+
+        val proposalItemIds = proposal.items.map(ProposalItem::contractRequestItemId).toSet()
+        val commandItemIds = commands.map(ProposalItemCommand::contractRequestItemId)
+
+        if (commandItemIds.size != commandItemIds.toSet().size) {
+            throw GlobalException(ProposalErrorCode.INVALID_PROPOSAL_ITEM_MATCH)
+        }
+        if (proposalItemIds != commandItemIds.toSet()) {
+            throw GlobalException(ProposalErrorCode.INVALID_PROPOSAL_ITEM_MATCH)
         }
     }
 

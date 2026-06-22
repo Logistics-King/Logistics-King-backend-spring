@@ -21,6 +21,7 @@ class Proposal private constructor(
     val returnAvailable: Boolean,
     val coldChainType: ColdChainType,
     val memo: String?,
+    val items: List<ProposalItem>,
     val status: ProposalStatus,
 ) {
 
@@ -32,6 +33,7 @@ class Proposal private constructor(
         returnAvailable: Boolean,
         coldChainType: ColdChainType,
         memo: String?,
+        items: List<ProposalItem>,
     ): Proposal {
         requireDomain(
             status == ProposalStatus.SUBMITTED,
@@ -58,6 +60,7 @@ class Proposal private constructor(
             returnAvailable = returnAvailable,
             coldChainType = coldChainType,
             memo = memo,
+            items = items,
             status = status,
         )
     }
@@ -88,6 +91,7 @@ class Proposal private constructor(
             returnAvailable = returnAvailable,
             coldChainType = coldChainType,
             memo = memo,
+            items = items,
             status = ProposalStatus.WITHDRAWN,
         )
     }
@@ -120,7 +124,6 @@ class Proposal private constructor(
 
     fun startPriceNegotiation(
         eventId: UUID,
-        unitPrice: BigDecimal,
     ): Proposal {
         requireDomain(
             status == ProposalStatus.SUBMITTED || status == ProposalStatus.NEGOTIATING,
@@ -130,8 +133,6 @@ class Proposal private constructor(
             pendingNegotiationId == null,
             ProposalErrorCode.PROPOSAL_HAS_PENDING_NEGOTIATION,
         )
-        requireDomain(unitPrice > BigDecimal.ZERO, ProposalErrorCode.INVALID_UNIT_PRICE)
-
         return restore(
             id = id,
             contractRequestId = contractRequestId,
@@ -148,6 +149,7 @@ class Proposal private constructor(
             returnAvailable = returnAvailable,
             coldChainType = coldChainType,
             memo = memo,
+            items = items,
             status = ProposalStatus.NEGOTIATING,
         )
     }
@@ -155,6 +157,7 @@ class Proposal private constructor(
     fun acceptPendingNegotiation(
         pendingEventId: UUID,
         unitPrice: BigDecimal,
+        items: List<ProposalNegotiationEventItem>,
     ): Proposal {
         requireDomain(
             status == ProposalStatus.NEGOTIATING,
@@ -182,6 +185,7 @@ class Proposal private constructor(
             returnAvailable = returnAvailable,
             coldChainType = coldChainType,
             memo = memo,
+            items = applyNegotiationItems(items, unitPrice),
             status = ProposalStatus.NEGOTIATING,
         )
     }
@@ -212,6 +216,7 @@ class Proposal private constructor(
             returnAvailable = returnAvailable,
             coldChainType = coldChainType,
             memo = memo,
+            items = items,
             status = ProposalStatus.NEGOTIATING,
         )
     }
@@ -233,8 +238,31 @@ class Proposal private constructor(
             returnAvailable = returnAvailable,
             coldChainType = coldChainType,
             memo = memo,
+            items = items,
             status = status,
         )
+    }
+
+    fun itemUnitPrice(contractRequestItemId: UUID): BigDecimal? {
+        return items.firstOrNull { it.contractRequestItemId == contractRequestItemId }?.unitPrice
+    }
+
+    private fun applyNegotiationItems(
+        negotiationItems: List<ProposalNegotiationEventItem>,
+        fallbackUnitPrice: BigDecimal,
+    ): List<ProposalItem> {
+        if (negotiationItems.isEmpty()) {
+            return items.map { it.changeUnitPrice(fallbackUnitPrice) }
+        }
+
+        val unitPriceByRequestItemId = negotiationItems.associateBy(
+            keySelector = ProposalNegotiationEventItem::contractRequestItemId,
+            valueTransform = ProposalNegotiationEventItem::unitPrice,
+        )
+
+        return items.map { item ->
+            item.changeUnitPrice(unitPriceByRequestItemId[item.contractRequestItemId] ?: item.unitPrice)
+        }
     }
 
     companion object {
@@ -254,12 +282,14 @@ class Proposal private constructor(
             returnAvailable: Boolean,
             coldChainType: ColdChainType,
             memo: String?,
+            items: List<ProposalItem>,
             status: ProposalStatus = ProposalStatus.SUBMITTED,
         ): Proposal {
             requireDomain(unitPrice > BigDecimal.ZERO, ProposalErrorCode.INVALID_UNIT_PRICE)
             requireDomain(initialUnitPrice > BigDecimal.ZERO, ProposalErrorCode.INVALID_UNIT_PRICE)
             requireDomain(finalUnitPrice == null || finalUnitPrice > BigDecimal.ZERO, ProposalErrorCode.INVALID_UNIT_PRICE)
             requireDomain(nextSequence > 0, ProposalErrorCode.INVALID_NEGOTIATION_SEQUENCE)
+            requireDomain(items.isNotEmpty(), ProposalErrorCode.INVALID_PROPOSAL_ITEMS)
             requireDomain(
                 pickupStartTime.isNotBlank() && pickupEndTime.isNotBlank(),
                 ProposalErrorCode.INVALID_PICKUP_TIME,
@@ -281,6 +311,7 @@ class Proposal private constructor(
                 returnAvailable = returnAvailable,
                 coldChainType = coldChainType,
                 memo = memo?.trim()?.takeIf { it.isNotBlank() },
+                items = items,
                 status = status,
             )
         }
@@ -301,6 +332,7 @@ class Proposal private constructor(
             returnAvailable: Boolean,
             coldChainType: ColdChainType,
             memo: String?,
+            items: List<ProposalItem>,
             status: ProposalStatus,
         ): Proposal {
             return Proposal(
@@ -319,6 +351,7 @@ class Proposal private constructor(
                 returnAvailable = returnAvailable,
                 coldChainType = coldChainType,
                 memo = memo,
+                items = items,
                 status = status,
             )
         }

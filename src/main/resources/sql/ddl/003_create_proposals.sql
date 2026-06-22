@@ -41,3 +41,32 @@ CREATE TABLE IF NOT EXISTS proposal_negotiation_events (
     KEY idx_proposal_negotiation_events_proposal_id (proposal_id),
     KEY idx_proposal_negotiation_events_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS proposal_negotiation_event_items (
+    id BINARY(16) NOT NULL,
+    proposal_negotiation_event_id BINARY(16) NOT NULL,
+    contract_request_item_id BINARY(16) NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_proposal_negotiation_event_items_event_request_item (
+        proposal_negotiation_event_id,
+        contract_request_item_id
+    ),
+    KEY idx_proposal_negotiation_event_items_event_id (proposal_negotiation_event_id),
+    KEY idx_proposal_negotiation_event_items_request_item_id (contract_request_item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS proposal_items (
+    id BINARY(16) NOT NULL,
+    proposal_id BINARY(16) NOT NULL,
+    contract_request_item_id BINARY(16) NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_proposal_items_proposal_request_item (proposal_id, contract_request_item_id),
+    KEY idx_proposal_items_proposal_id (proposal_id),
+    KEY idx_proposal_items_contract_request_item_id (contract_request_item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

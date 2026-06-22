@@ -58,6 +58,16 @@ enum class ProposalErrorCode(
         message = "제안 단가는 1 이상이어야 합니다.",
         status = HttpStatus.BAD_REQUEST,
     ),
+    INVALID_PROPOSAL_ITEMS(
+        code = "INVALID_PROPOSAL_ITEMS",
+        message = "계약 요청 배송 품목별 제안 단가가 필요합니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
+    INVALID_PROPOSAL_ITEM_MATCH(
+        code = "INVALID_PROPOSAL_ITEM_MATCH",
+        message = "계약 요청 배송 품목과 제안 품목 단가가 일치하지 않습니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
     INVALID_PICKUP_TIME(
         code = "INVALID_PROPOSAL_PICKUP_TIME",
         message = "제안 픽업 시간은 필수입니다.",

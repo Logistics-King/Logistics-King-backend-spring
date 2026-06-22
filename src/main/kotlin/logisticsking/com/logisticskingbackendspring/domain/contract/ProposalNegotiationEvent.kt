@@ -11,6 +11,7 @@ class ProposalNegotiationEvent private constructor(
     val actorType: ContractPartyType,
     val eventType: ProposalNegotiationEventType,
     val unitPrice: BigDecimal?,
+    val items: List<ProposalNegotiationEventItem>,
     val memo: String?,
     val status: ProposalNegotiationEventStatus,
 ) {
@@ -29,6 +30,7 @@ class ProposalNegotiationEvent private constructor(
             actorType = actorType,
             eventType = eventType,
             unitPrice = unitPrice,
+            items = items,
             memo = memo,
             status = ProposalNegotiationEventStatus.ACCEPTED,
         )
@@ -48,6 +50,7 @@ class ProposalNegotiationEvent private constructor(
             actorType = actorType,
             eventType = eventType,
             unitPrice = unitPrice,
+            items = items,
             memo = memo,
             status = ProposalNegotiationEventStatus.REJECTED,
         )
@@ -60,6 +63,7 @@ class ProposalNegotiationEvent private constructor(
             sequence: Long,
             actorType: ContractPartyType,
             unitPrice: BigDecimal,
+            items: List<ProposalNegotiationEventItem>,
             memo: String?,
         ): ProposalNegotiationEvent {
             requireDomain(unitPrice > BigDecimal.ZERO, ProposalErrorCode.INVALID_UNIT_PRICE)
@@ -71,6 +75,7 @@ class ProposalNegotiationEvent private constructor(
                 actorType = actorType,
                 eventType = ProposalNegotiationEventType.PRICE_OFFER,
                 unitPrice = unitPrice,
+                items = items,
                 memo = memo?.trim()?.takeIf { it.isNotBlank() },
                 status = ProposalNegotiationEventStatus.PENDING,
             )
@@ -96,6 +101,7 @@ class ProposalNegotiationEvent private constructor(
                 actorType = actorType,
                 eventType = eventType,
                 unitPrice = null,
+                items = emptyList(),
                 memo = memo?.trim()?.takeIf { it.isNotBlank() },
                 status = ProposalNegotiationEventStatus.RECORDED,
             )
@@ -108,6 +114,7 @@ class ProposalNegotiationEvent private constructor(
             actorType: ContractPartyType,
             eventType: ProposalNegotiationEventType,
             unitPrice: BigDecimal?,
+            items: List<ProposalNegotiationEventItem>,
             memo: String?,
             status: ProposalNegotiationEventStatus,
         ): ProposalNegotiationEvent {
@@ -120,6 +127,7 @@ class ProposalNegotiationEvent private constructor(
                 actorType = actorType,
                 eventType = eventType,
                 unitPrice = unitPrice,
+                items = items,
                 memo = memo,
                 status = status,
             )

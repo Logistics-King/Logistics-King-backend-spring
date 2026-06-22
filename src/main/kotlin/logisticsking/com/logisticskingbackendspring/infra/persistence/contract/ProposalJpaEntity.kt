@@ -77,7 +77,7 @@ class ProposalJpaEntity(
     val status: ProposalStatus,
 ) : BaseJpaEntity() {
 
-    fun toDomain(): Proposal {
+    fun toDomain(items: List<ProposalItemJpaEntity> = emptyList()): Proposal {
         return Proposal.restore(
             id = id,
             contractRequestId = contractRequestId,
@@ -94,6 +94,7 @@ class ProposalJpaEntity(
             returnAvailable = returnAvailable,
             coldChainType = coldChainType,
             memo = memo,
+            items = items.map(ProposalItemJpaEntity::toDomain),
             status = status,
         )
     }

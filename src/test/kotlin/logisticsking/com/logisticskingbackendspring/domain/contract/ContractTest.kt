@@ -126,6 +126,13 @@ class ContractTest {
             returnAvailable = true,
             coldChainType = ColdChainType.NONE,
             memo = "의류 800박스 기준 집하 가능",
+            items = listOf(
+                ProposalItem.create(
+                    id = UUID.randomUUID(),
+                    contractRequestItemId = UUID.randomUUID(),
+                    unitPrice = BigDecimal("2050"),
+                )
+            ),
         )
     }
 
