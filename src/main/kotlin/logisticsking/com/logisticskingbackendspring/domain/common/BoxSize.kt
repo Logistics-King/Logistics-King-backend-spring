@@ -2,7 +2,6 @@ package logisticsking.com.logisticskingbackendspring.domain.common
 
 enum class BoxSize(
     val label: String,
-
     val maxTotalLengthCm: Int?,
 ) {
     SIZE_60("60사이즈", 60),

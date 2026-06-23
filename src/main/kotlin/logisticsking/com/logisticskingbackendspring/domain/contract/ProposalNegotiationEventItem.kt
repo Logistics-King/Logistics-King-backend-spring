@@ -6,9 +6,7 @@ import java.util.UUID
 
 data class ProposalNegotiationEventItem(
     val id: UUID,
-
     val contractRequestItemId: UUID,
-
     val unitPrice: BigDecimal,
 ) {
     companion object {

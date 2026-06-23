@@ -9,29 +9,17 @@ import java.util.UUID
 
 data class ContractItem(
     val id: UUID,
-
     val productId: UUID?,
-
     val productCategory: ProductCategory,
-
     val productName: String,
-
     val boxSize: BoxSize,
-
     val boxQuantity: Int,
-
     val itemQuantity: Int,
-
     val averageWeightGram: Int?,
-
     val fragile: Boolean,
-
     val liquid: Boolean,
-
     val freshFood: Boolean,
-
     val coldChainType: ColdChainType,
-
     val unitPrice: BigDecimal,
 ) {
     companion object {
