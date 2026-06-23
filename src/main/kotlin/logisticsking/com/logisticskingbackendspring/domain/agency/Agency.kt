@@ -6,23 +6,41 @@ import java.util.UUID
 
 class Agency private constructor(
     val id: UUID,
+
     val userId: UUID,
+
     val carrier: Carrier,
+
     val agencyName: String,
+
     val businessRegistrationNumber: String?,
+
     val representativeName: String,
+
     val phoneNumber: String,
+
     val postalCode: String?,
+
     val address: String,
+
     val addressDetail: String?,
+
     val mainRegion: String,
+
     val serviceRegions: List<String>,
+
     val weekdayPickupStartTime: String?,
+
     val weekdayPickupEndTime: String?,
+
     val saturdayPickupAvailable: Boolean,
+
     val saturdayDeliveryAvailable: Boolean,
+
     val returnAvailable: Boolean,
+
     val supportedColdChainTypes: Set<ColdChainType>,
+
     val maxMonthlyVolume: Int?,
 ) {
 

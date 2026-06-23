@@ -8,21 +8,37 @@ import java.util.UUID
 
 class Product private constructor(
     val id: UUID,
+
     val vendorId: UUID,
+
     val category: ProductCategory,
+
     val name: String,
+
     val description: String?,
+
     val averagePrice: BigDecimal?,
+
     val averageWeightGram: Int?,
+
     val boxSize: BoxSize?,
+
     val boxQuantity: Int,
+
     val itemQuantity: Int,
+
     val destinationPostalCode: String?,
+
     val destinationAddress: String,
+
     val destinationAddressDetail: String?,
+
     val fragile: Boolean,
+
     val liquid: Boolean,
+
     val freshFood: Boolean,
+
     val coldChainType: ColdChainType,
 ) {
 

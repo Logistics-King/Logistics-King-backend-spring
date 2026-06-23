@@ -11,32 +11,59 @@ import java.util.UUID
 
 class Contract private constructor(
     val id: UUID,
+
     val contractRequestId: UUID,
+
     val proposalId: UUID,
+
     val vendorId: UUID,
+
     val agencyId: UUID,
+
     val pickupRegion: String,
+
     val pickupAddress: String?,
+
     val contractType: ContractRequestContractType,
+
     val pickupDateFrom: LocalDate?,
+
     val pickupDateTo: LocalDate?,
+
     val deliveryDateFrom: LocalDate?,
+
     val deliveryDateTo: LocalDate?,
+
     val recurringPickupCycle: RecurringPickupCycle?,
+
     val recurringPickupDaysOfWeek: List<DayOfWeek>,
+
     val recurringPickupDayOfMonth: Int?,
+
     val monthlyVolume: Int,
+
     val productCategory: ProductCategory,
+
     val productName: String,
+
     val boxSize: BoxSize,
+
     val unitPrice: BigDecimal,
+
     val pickupStartTime: String,
+
     val pickupEndTime: String,
+
     val saturdayDeliveryAvailable: Boolean,
+
     val returnAvailable: Boolean,
+
     val coldChainType: ColdChainType,
+
     val memo: String?,
+
     val items: List<ContractItem>,
+
     val status: ContractStatus,
 ) {
     companion object {

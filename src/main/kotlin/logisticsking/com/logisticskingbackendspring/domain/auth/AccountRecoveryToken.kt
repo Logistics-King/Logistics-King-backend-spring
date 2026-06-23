@@ -7,10 +7,15 @@ import java.util.UUID
 
 class AccountRecoveryToken private constructor(
     val id: UUID,
+
     val userId: UUID,
+
     val purpose: AccountRecoveryTokenPurpose,
+
     val tokenHash: String,
+
     val expiresAt: LocalDateTime,
+
     val usedAt: LocalDateTime?,
 ) {
     fun use(now: LocalDateTime): AccountRecoveryToken {

@@ -17,9 +17,14 @@ interface NotificationPublisher {
 
 data class PublishNotificationCommand(
     val receiverUserId: UUID,
+
     val senderUserId: UUID?,
+
     val type: NotificationType,
+
     val referenceType: NotificationReferenceType?,
+
     val referenceId: UUID?,
+
     val linkUrl: String?,
 )

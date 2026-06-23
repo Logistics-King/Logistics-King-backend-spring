@@ -12,62 +12,91 @@ import java.util.UUID
 class ContractRequest private constructor(
     // 계약 요청 식별자.
     val id: UUID,
+
     // 계약 요청 타입. VENDOR_OFFER는 화주 -> 대리점, AGENCY_OFFER는 대리점 -> 화주.
     val type: ContractRequestType,
+
     // 계약 요청을 시작한 주체 타입.
     val requesterType: ContractPartyType,
+
     // 계약 요청을 시작한 주체 식별자.
     val requesterId: UUID,
+
     // 계약 요청을 승인할 주체 타입.
     val approverType: ContractPartyType,
+
     // 특정 승인자가 정해진 경우의 식별자. 공개 요청이면 null.
     val approverId: UUID?,
+
     // 화주가 미리 등록한 배송 품목 식별자. 직접 입력 요청이면 null.
     val productId: UUID?,
+
     // 대리점 매칭에 사용할 픽업 가능 지역.
     val pickupRegion: String,
+
     // 실제 집하가 필요한 상세 주소.
     val pickupAddress: String?,
+
     // 단건/정기 계약 요청 구분.
     val contractType: ContractRequestContractType,
+
     // 단건 계약 요청의 회수 희망 시작일.
     val pickupDateFrom: LocalDate?,
+
     // 단건 계약 요청의 회수 희망 종료일.
     val pickupDateTo: LocalDate?,
+
     // 단건 계약 요청의 배송 희망 시작일.
     val deliveryDateFrom: LocalDate?,
+
     // 단건 계약 요청의 배송 희망 종료일.
     val deliveryDateTo: LocalDate?,
+
     // 정기 계약 요청의 반복 회수 주기.
     val recurringPickupCycle: RecurringPickupCycle?,
+
     // 매주 반복 회수 요일 목록.
     val recurringPickupDaysOfWeek: List<DayOfWeek>,
+
     // 매월 반복 회수 일자.
     val recurringPickupDayOfMonth: Int?,
+
     // 화주가 한 달에 보낼 것으로 예상하는 박스 수.
     val monthlyVolume: Int,
+
     // 대리점이 배송 조건과 단가를 판단할 품목 카테고리.
     val productCategory: ProductCategory,
+
     // 화주가 보내려는 대표 품목명.
     val productName: String,
+
     // 대리점 단가 산정에 사용할 주요 박스 규격.
     val boxSize: BoxSize,
+
     // 화주가 원하는 집하 시작 시간.
     val pickupStartTime: String,
+
     // 화주가 원하는 집하 종료 시간.
     val pickupEndTime: String,
+
     // 토요일 배송 조건이 필요한지 여부.
     val saturdayDeliveryRequired: Boolean,
+
     // 반품 회수 조건이 필요한지 여부.
     val returnRequired: Boolean,
+
     // 필요한 콜드체인 조건. NONE, REFRIGERATED, FROZEN 중 하나.
     val coldChainType: ColdChainType,
+
     // 화주가 기대하는 건당 희망 단가. 확정 운임은 아님.
     val targetUnitPrice: BigDecimal?,
+
     // 대리점이 제안할 때 참고할 추가 요청 사항.
     val memo: String?,
+
     // 같은 배송 조건으로 묶은 배송 물품 라인 목록.
     val items: List<ContractRequestItem>,
+
     // 계약 요청 진행 상태.
     val status: ContractRequestStatus,
 ) {

@@ -5,13 +5,21 @@ import java.util.UUID
 
 class Deliver private constructor(
     val id: UUID,
+
     val userId: UUID,
+
     val agencyId: UUID,
+
     val driverName: String,
+
     val phoneNumber: String,
+
     val vehicleNumber: String?,
+
     val serviceRegions: List<String>,
+
     val active: Boolean,
+
     val memo: String?,
 ) {
 

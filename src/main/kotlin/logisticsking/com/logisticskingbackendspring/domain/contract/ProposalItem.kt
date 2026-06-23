@@ -6,7 +6,9 @@ import java.util.UUID
 
 data class ProposalItem(
     val id: UUID,
+
     val contractRequestItemId: UUID,
+
     val unitPrice: BigDecimal,
 ) {
     fun changeUnitPrice(unitPrice: BigDecimal): ProposalItem {

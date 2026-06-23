@@ -7,21 +7,37 @@ import java.util.UUID
 
 class Proposal private constructor(
     val id: UUID,
+
     val contractRequestId: UUID,
+
     val vendorId: UUID,
+
     val agencyId: UUID,
+
     val unitPrice: BigDecimal,
+
     val initialUnitPrice: BigDecimal,
+
     val finalUnitPrice: BigDecimal?,
+
     val pendingNegotiationId: UUID?,
+
     val nextSequence: Long,
+
     val pickupStartTime: String,
+
     val pickupEndTime: String,
+
     val saturdayDeliveryAvailable: Boolean,
+
     val returnAvailable: Boolean,
+
     val coldChainType: ColdChainType,
+
     val memo: String?,
+
     val items: List<ProposalItem>,
+
     val status: ProposalStatus,
 ) {
 
