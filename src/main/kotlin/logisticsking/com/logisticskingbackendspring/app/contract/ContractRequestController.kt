@@ -149,7 +149,7 @@ class ContractRequestController(
         )
     }
 
-    @EndpointAccess(roles = [UserRole.AGENCY])
+    @EndpointAccess(roles = [UserRole.ADMIN, UserRole.AGENCY])
     @Operation(summary = "제안 가능 계약 요청 목록 조회", description = "대리점이 제안할 수 있는 OPEN 상태 계약 요청 목록을 조회합니다.")
     @GetMapping("/open")
     fun getOpenContractRequests(

@@ -439,6 +439,10 @@ class ContractRequestServiceTest {
             condition: ContractRequestSearchCondition,
             pageable: Pageable,
         ): Page<ContractRequest> = PageImpl(emptyList(), pageable, 0)
+        override fun findOpenVendorOffers(
+            condition: ContractRequestSearchCondition,
+            pageable: Pageable,
+        ): Page<ContractRequest> = findAllByStatus(ContractRequestStatus.OPEN, pageable)
         override fun existsActiveByVendorIdAndProductIds(vendorId: UUID, productIds: Collection<UUID>, excludedContractRequestId: UUID?): Boolean {
             return requests.values.any { request ->
                 request.id != excludedContractRequestId &&

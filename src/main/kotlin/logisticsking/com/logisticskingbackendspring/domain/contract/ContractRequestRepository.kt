@@ -44,6 +44,10 @@ interface ContractRequestRepository {
         condition: ContractRequestSearchCondition,
         pageable: Pageable,
     ): Page<ContractRequest>
+    fun findOpenVendorOffers(
+        condition: ContractRequestSearchCondition,
+        pageable: Pageable,
+    ): Page<ContractRequest>
     fun existsActiveByVendorIdAndProductIds(
         vendorId: UUID,
         productIds: Collection<UUID>,
