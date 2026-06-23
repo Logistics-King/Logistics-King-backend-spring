@@ -1,7 +1,7 @@
 package logisticsking.com.logisticskingbackendspring.domain.vendor
 
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
-import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorProductCommand
+import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateProductCommand
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
@@ -70,16 +70,16 @@ class VendorServiceTest {
     fun `createProduct 성공 시 화주 배송 품목을 저장한다`() {
         val user = user(role = UserRole.VENDOR)
         val vendorRepository = FakeVendorRepository()
-        val productRepository = FakeVendorProductRepository()
+        val productRepository = FakeProductRepository()
         val service = vendorService(
             userRepository = FakeUserRepository(user),
             vendorRepository = vendorRepository,
-            vendorProductRepository = productRepository,
+            productRepository = productRepository,
             idGenerator = QueueIdGenerator(UUID.randomUUID(), UUID.randomUUID()),
         )
         service.create(createVendorCommand(user.id))
 
-        val result = service.createProduct(createVendorProductCommand(user.id))
+        val result = service.createProduct(createProductCommand(user.id))
 
         assertEquals(ProductCategory.CLOTHING, result.category)
         assertEquals("여성 의류", result.name)
@@ -92,17 +92,17 @@ class VendorServiceTest {
     fun `getProducts는 물품명 카테고리 박스 사이즈로 검색한다`() {
         val user = user(role = UserRole.VENDOR)
         val vendorRepository = FakeVendorRepository()
-        val productRepository = FakeVendorProductRepository()
+        val productRepository = FakeProductRepository()
         val service = vendorService(
             userRepository = FakeUserRepository(user),
             vendorRepository = vendorRepository,
-            vendorProductRepository = productRepository,
+            productRepository = productRepository,
             idGenerator = QueueIdGenerator(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()),
         )
         service.create(createVendorCommand(user.id))
-        service.createProduct(createVendorProductCommand(user.id))
+        service.createProduct(createProductCommand(user.id))
         service.createProduct(
-            createVendorProductCommand(
+            createProductCommand(
                 userId = user.id,
                 category = ProductCategory.ELECTRONICS,
                 name = "노트북",
@@ -112,7 +112,7 @@ class VendorServiceTest {
 
         val result = service.getProducts(
             userId = user.id,
-            condition = VendorProductSearchCondition(
+            condition = ProductSearchCondition(
                 name = "의류",
                 category = ProductCategory.CLOTHING,
                 boxSize = BoxSize.SIZE_60,
@@ -132,7 +132,7 @@ class VendorServiceTest {
         val service = vendorService(userRepository = FakeUserRepository(user))
 
         val exception = assertThrows(GlobalException::class.java) {
-            service.createProduct(createVendorProductCommand(user.id))
+            service.createProduct(createProductCommand(user.id))
         }
 
         assertEquals(VendorErrorCode.VENDOR_NOT_FOUND, exception.errorCode)
@@ -141,13 +141,13 @@ class VendorServiceTest {
     private fun vendorService(
         userRepository: FakeUserRepository = FakeUserRepository(user(role = UserRole.VENDOR)),
         vendorRepository: FakeVendorRepository = FakeVendorRepository(),
-        vendorProductRepository: FakeVendorProductRepository = FakeVendorProductRepository(),
+        productRepository: FakeProductRepository = FakeProductRepository(),
         idGenerator: IdGenerator = FakeIdGenerator(UUID.randomUUID()),
     ): VendorService {
         return VendorService(
             userRepository = userRepository,
             vendorRepository = vendorRepository,
-            vendorProductRepository = vendorProductRepository,
+            productRepository = productRepository,
             idGenerator = idGenerator,
         )
     }
@@ -166,13 +166,13 @@ class VendorServiceTest {
         )
     }
 
-    private fun createVendorProductCommand(
+    private fun createProductCommand(
         userId: UUID,
         category: ProductCategory = ProductCategory.CLOTHING,
         name: String = "여성 의류",
         boxSize: BoxSize = BoxSize.SIZE_60,
-    ): CreateVendorProductCommand {
-        return CreateVendorProductCommand(
+    ): CreateProductCommand {
+        return CreateProductCommand(
             userId = userId,
             category = category,
             name = name,
@@ -281,10 +281,10 @@ class VendorServiceTest {
         }
     }
 
-    private class FakeVendorProductRepository : VendorProductRepository {
-        private val products = mutableMapOf<UUID, VendorProduct>()
+    private class FakeProductRepository : ProductRepository {
+        private val products = mutableMapOf<UUID, Product>()
 
-        override fun save(product: VendorProduct): VendorProduct {
+        override fun save(product: Product): Product {
             products[product.id] = product
             return product
         }
@@ -292,15 +292,15 @@ class VendorServiceTest {
         override fun findByIdAndVendorId(
             id: UUID,
             vendorId: UUID,
-        ): VendorProduct? {
+        ): Product? {
             return products[id]?.takeIf { it.vendorId == vendorId }
         }
 
         override fun findAllByVendorId(
             vendorId: UUID,
-            condition: VendorProductSearchCondition,
+            condition: ProductSearchCondition,
             pageable: Pageable,
-        ): Page<VendorProduct> {
+        ): Page<Product> {
             val filteredProducts = filterProducts(condition) { it.vendorId == vendorId }
 
             return PageImpl(filteredProducts, pageable, filteredProducts.size.toLong())
@@ -309,14 +309,14 @@ class VendorServiceTest {
         override fun findAllByIdsAndVendorIdForUpdate(
             ids: Collection<UUID>,
             vendorId: UUID,
-        ): List<VendorProduct> {
+        ): List<Product> {
             return products.values.filter { it.id in ids && it.vendorId == vendorId }
         }
 
         private fun filterProducts(
-            condition: VendorProductSearchCondition,
-            extraPredicate: (VendorProduct) -> Boolean = { true },
-        ): List<VendorProduct> {
+            condition: ProductSearchCondition,
+            extraPredicate: (Product) -> Boolean = { true },
+        ): List<Product> {
             return products.values.filter {
                 extraPredicate(it) &&
                     (condition.normalizedName == null || it.name.contains(condition.normalizedName, ignoreCase = true)) &&

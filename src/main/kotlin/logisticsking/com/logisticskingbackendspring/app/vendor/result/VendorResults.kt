@@ -4,7 +4,7 @@ import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
-import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
+import logisticsking.com.logisticskingbackendspring.domain.vendor.Product
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -38,7 +38,7 @@ data class VendorResult(
     }
 }
 
-data class VendorProductResult(
+data class ProductResult(
     val productId: UUID,
     val vendorId: UUID,
     val vendor: VendorResult?,
@@ -59,8 +59,8 @@ data class VendorProductResult(
     val coldChainType: ColdChainType,
 ) {
     companion object {
-        fun from(product: VendorProduct): VendorProductResult {
-            return VendorProductResult(
+        fun from(product: Product): ProductResult {
+            return ProductResult(
                 productId = product.id,
                 vendorId = product.vendorId,
                 vendor = null,

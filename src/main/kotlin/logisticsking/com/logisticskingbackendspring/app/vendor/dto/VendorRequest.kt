@@ -4,9 +4,9 @@ import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
-import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorProductCommand
+import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateProductCommand
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.UpdateVendorCommand
-import logisticsking.com.logisticskingbackendspring.app.vendor.command.UpdateVendorProductCommand
+import logisticsking.com.logisticskingbackendspring.app.vendor.command.UpdateProductCommand
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
 import java.util.UUID
@@ -81,7 +81,7 @@ sealed interface VendorRequest {
         }
     }
 
-    @Schema(name = "VendorProductCreateRequest")
+    @Schema(name = "ProductCreateRequest")
     data class CreateProduct(
         @field:Schema(description = "품목 카테고리", example = "CLOTHING")
         val category: ProductCategory,
@@ -114,8 +114,8 @@ sealed interface VendorRequest {
         @field:Schema(description = "콜드체인 필요 타입 (NONE, REFRIGERATED, FROZEN)", example = "NONE")
         val coldChainType: ColdChainType,
     ) : VendorRequest {
-        fun toCommand(userId: UUID): CreateVendorProductCommand {
-            return CreateVendorProductCommand(
+        fun toCommand(userId: UUID): CreateProductCommand {
+            return CreateProductCommand(
                 userId = userId,
                 category = category,
                 name = name,
@@ -136,7 +136,7 @@ sealed interface VendorRequest {
         }
     }
 
-    @Schema(name = "VendorProductUpdateRequest")
+    @Schema(name = "ProductUpdateRequest")
     data class UpdateProduct(
         @field:Schema(description = "품목 카테고리", example = "CLOTHING")
         val category: ProductCategory,
@@ -172,8 +172,8 @@ sealed interface VendorRequest {
         fun toCommand(
             userId: UUID,
             productId: UUID,
-        ): UpdateVendorProductCommand {
-            return UpdateVendorProductCommand(
+        ): UpdateProductCommand {
+            return UpdateProductCommand(
                 userId = userId,
                 productId = productId,
                 category = category,

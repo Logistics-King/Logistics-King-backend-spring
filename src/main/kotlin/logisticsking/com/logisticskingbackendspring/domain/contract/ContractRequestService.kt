@@ -24,7 +24,7 @@ import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
-import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductRepository
+import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductRepository
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -37,7 +37,7 @@ class ContractRequestService(
     private val userRepository: UserRepository,
     private val vendorRepository: VendorRepository,
     private val agencyRepository: AgencyRepository,
-    private val vendorProductRepository: VendorProductRepository,
+    private val productRepository: ProductRepository,
     private val contractRequestRepository: ContractRequestRepository,
     private val proposalRepository: ProposalRepository,
     private val contractRepository: ContractRepository,
@@ -322,7 +322,7 @@ class ContractRequestService(
             return
         }
 
-        val lockedProductIds = vendorProductRepository.findAllByIdsAndVendorIdForUpdate(productIds, vendorId)
+        val lockedProductIds = productRepository.findAllByIdsAndVendorIdForUpdate(productIds, vendorId)
             .map { it.id }
             .toSet()
         if (lockedProductIds.size != productIds.size) {

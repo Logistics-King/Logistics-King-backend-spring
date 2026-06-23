@@ -6,7 +6,7 @@ import logisticsking.com.logisticskingbackendspring.domain.error.requireDomain
 import java.math.BigDecimal
 import java.util.UUID
 
-class VendorProduct private constructor(
+class Product private constructor(
     val id: UUID,
     val vendorId: UUID,
     val category: ProductCategory,
@@ -42,7 +42,7 @@ class VendorProduct private constructor(
         liquid: Boolean,
         freshFood: Boolean,
         coldChainType: ColdChainType,
-    ): VendorProduct {
+    ): Product {
         return create(
             id = id,
             vendorId = vendorId,
@@ -83,7 +83,7 @@ class VendorProduct private constructor(
             liquid: Boolean,
             freshFood: Boolean,
             coldChainType: ColdChainType,
-        ): VendorProduct {
+        ): Product {
             requireDomain(name.isNotBlank(), VendorErrorCode.INVALID_PRODUCT_NAME)
             requireDomain(destinationAddress.isNotBlank(), VendorErrorCode.INVALID_DESTINATION_ADDRESS)
             requireDomain(
@@ -99,7 +99,7 @@ class VendorProduct private constructor(
                 VendorErrorCode.INVALID_PRODUCT_QUANTITY,
             )
 
-            return VendorProduct(
+            return Product(
                 id = id,
                 vendorId = vendorId,
                 category = category,
@@ -138,8 +138,8 @@ class VendorProduct private constructor(
             liquid: Boolean,
             freshFood: Boolean,
             coldChainType: ColdChainType,
-        ): VendorProduct {
-            return VendorProduct(
+        ): Product {
+            return Product(
                 id = id,
                 vendorId = vendorId,
                 category = category,

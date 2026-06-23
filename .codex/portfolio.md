@@ -41,7 +41,7 @@
 
 - `User`: 로그인 계정과 권한의 기준
 - `Vendor`: 화주
-- `VendorProduct`: 화주가 보내는 배송 품목
+- `Product`: 화주가 보내는 배송 품목
 - `Agency`: 택배 대리점
 - `Driver`: 배송기사
 - `ContractRequest`: 화주와 대리점 사이의 계약 요청/오퍼
@@ -132,7 +132,7 @@ enum class ColdChainType {
 
 반영 범위:
 
-- `VendorProduct`
+- `Product`
 - `Agency`
 - `ContractRequest`
 - `Proposal`
@@ -345,7 +345,7 @@ enum class BoxSize(
 배송 품목 목록 조회에는 검색 조건 객체를 추가했습니다.
 
 ```kotlin
-data class VendorProductSearchCondition(
+data class ProductSearchCondition(
     val name: String?,
     val category: ProductCategory?,
     val boxSize: BoxSize?,
@@ -362,9 +362,9 @@ GET /api/v1/vendors/me/products?name=의류&category=CLOTHING&boxSize=SIZE_60&co
 ### 변경 범위
 
 - `BoxSize` enum 추가
-- `VendorProduct`에 목적지 주소 필드 추가
-- `VendorProduct.boxSize`, `ContractRequest.boxSize`, `Contract.boxSize`를 enum으로 변경
-- `VendorProductSearchCondition` 추가
+- `Product`에 목적지 주소 필드 추가
+- `Product.boxSize`, `ContractRequest.boxSize`, `Contract.boxSize`를 enum으로 변경
+- `ProductSearchCondition` 추가
 - 화주 배송 품목 목록 API에 `name`, `category`, `boxSize`, `coldChainType` query parameter 추가
 - Spring Data 메서드 기반 목록 조회를 Querydsl 동적 조건 조회로 변경
 - `products` DDL에 목적지 주소 컬럼 추가

@@ -16,9 +16,9 @@ import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
-import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
-import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductRepository
-import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductSearchCondition
+import logisticsking.com.logisticskingbackendspring.domain.vendor.Product
+import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductRepository
+import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductSearchCondition
 import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -35,14 +35,14 @@ class ContractRequestServiceTest {
     fun `create 시 이미 활성 계약 요청에 묶인 배송 품목이면 예외가 발생한다`() {
         val vendorUser = user(role = UserRole.VENDOR)
         val vendor = vendor(userId = vendorUser.id)
-        val product = vendorProduct(vendorId = vendor.id)
+        val product = product(vendorId = vendor.id)
         val contractRequestRepository = FakeContractRequestRepository(
             contractRequest(vendorId = vendor.id, productId = product.id),
         )
         val service = contractRequestService(
             userRepository = FakeUserRepository(vendorUser),
             vendorRepository = FakeVendorRepository(vendor),
-            vendorProductRepository = FakeVendorProductRepository(product),
+            productRepository = FakeProductRepository(product),
             contractRequestRepository = contractRequestRepository,
         )
 
@@ -57,12 +57,12 @@ class ContractRequestServiceTest {
     fun `update 시 자기 계약 요청에 묶인 배송 품목은 유지할 수 있다`() {
         val vendorUser = user(role = UserRole.VENDOR)
         val vendor = vendor(userId = vendorUser.id)
-        val product = vendorProduct(vendorId = vendor.id)
+        val product = product(vendorId = vendor.id)
         val contractRequest = contractRequest(vendorId = vendor.id, productId = product.id)
         val service = contractRequestService(
             userRepository = FakeUserRepository(vendorUser),
             vendorRepository = FakeVendorRepository(vendor),
-            vendorProductRepository = FakeVendorProductRepository(product),
+            productRepository = FakeProductRepository(product),
             contractRequestRepository = FakeContractRequestRepository(contractRequest),
             idGenerator = QueueIdGenerator(UUID.randomUUID(), UUID.randomUUID()),
         )
@@ -123,7 +123,7 @@ class ContractRequestServiceTest {
         userRepository: UserRepository = FakeUserRepository(),
         vendorRepository: VendorRepository = FakeVendorRepository(),
         agencyRepository: AgencyRepository = FakeAgencyRepository(),
-        vendorProductRepository: VendorProductRepository = FakeVendorProductRepository(),
+        productRepository: ProductRepository = FakeProductRepository(),
         contractRequestRepository: ContractRequestRepository = FakeContractRequestRepository(),
         proposalRepository: ProposalRepository = FakeProposalRepository(),
         contractRepository: ContractRepository = FakeContractRepository(),
@@ -133,7 +133,7 @@ class ContractRequestServiceTest {
             userRepository = userRepository,
             vendorRepository = vendorRepository,
             agencyRepository = agencyRepository,
-            vendorProductRepository = vendorProductRepository,
+            productRepository = productRepository,
             contractRequestRepository = contractRequestRepository,
             proposalRepository = proposalRepository,
             contractRepository = contractRepository,
@@ -301,11 +301,11 @@ class ContractRequestServiceTest {
         )
     }
 
-    private fun vendorProduct(
+    private fun product(
         id: UUID = UUID.randomUUID(),
         vendorId: UUID,
-    ): VendorProduct {
-        return VendorProduct.create(
+    ): Product {
+        return Product.create(
             id = id,
             vendorId = vendorId,
             category = ProductCategory.CLOTHING,
@@ -373,21 +373,21 @@ class ContractRequestServiceTest {
         override fun existsByUserId(userId: UUID): Boolean = false
     }
 
-    private class FakeVendorProductRepository(
-        vararg seedProducts: VendorProduct,
-    ) : VendorProductRepository {
+    private class FakeProductRepository(
+        vararg seedProducts: Product,
+    ) : ProductRepository {
         private val products = seedProducts.associateBy { it.id }.toMutableMap()
 
-        override fun save(product: VendorProduct): VendorProduct {
+        override fun save(product: Product): Product {
             products[product.id] = product
             return product
         }
-        override fun findByIdAndVendorId(id: UUID, vendorId: UUID): VendorProduct? = products[id]?.takeIf { it.vendorId == vendorId }
-        override fun findAllByVendorId(vendorId: UUID, condition: VendorProductSearchCondition, pageable: Pageable): Page<VendorProduct> {
+        override fun findByIdAndVendorId(id: UUID, vendorId: UUID): Product? = products[id]?.takeIf { it.vendorId == vendorId }
+        override fun findAllByVendorId(vendorId: UUID, condition: ProductSearchCondition, pageable: Pageable): Page<Product> {
             val content = products.values.filter { it.vendorId == vendorId }
             return PageImpl(content, pageable, content.size.toLong())
         }
-        override fun findAllByIdsAndVendorIdForUpdate(ids: Collection<UUID>, vendorId: UUID): List<VendorProduct> {
+        override fun findAllByIdsAndVendorIdForUpdate(ids: Collection<UUID>, vendorId: UUID): List<Product> {
             return products.values.filter { it.id in ids && it.vendorId == vendorId }
         }
     }

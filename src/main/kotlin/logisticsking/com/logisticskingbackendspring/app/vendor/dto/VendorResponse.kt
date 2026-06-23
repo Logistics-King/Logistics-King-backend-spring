@@ -4,7 +4,7 @@ import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.common.PageResponse
-import logisticsking.com.logisticskingbackendspring.app.vendor.result.VendorProductResult
+import logisticsking.com.logisticskingbackendspring.app.vendor.result.ProductResult
 import logisticsking.com.logisticskingbackendspring.app.vendor.result.VendorResult
 import org.springframework.data.domain.Page
 import java.math.BigDecimal
@@ -93,7 +93,7 @@ sealed interface VendorResponse {
         }
     }
 
-    @Schema(name = "VendorProductDetailResponse")
+    @Schema(name = "ProductDetailResponse")
     data class ProductDetail(
         @field:Schema(description = "배송 품목 ID", example = "019b1f44-a741-7000-8000-000000000003")
         val productId: String,
@@ -133,7 +133,7 @@ sealed interface VendorResponse {
         val coldChainType: ColdChainType,
     ) : VendorResponse {
         companion object {
-            fun from(result: VendorProductResult): ProductDetail {
+            fun from(result: ProductResult): ProductDetail {
                 return ProductDetail(
                     productId = result.productId.toString(),
                     vendorId = result.vendorId.toString(),
@@ -158,7 +158,7 @@ sealed interface VendorResponse {
         }
     }
 
-    @Schema(name = "VendorProductListResponse")
+    @Schema(name = "ProductListResponse")
     data class ProductList(
         @field:Schema(description = "배송 품목 목록")
         val items: kotlin.collections.List<ProductDetail>,
@@ -176,7 +176,7 @@ sealed interface VendorResponse {
         val hasPrevious: Boolean,
     ) : VendorResponse {
         companion object {
-            fun from(results: Page<VendorProductResult>): ProductList {
+            fun from(results: Page<ProductResult>): ProductList {
                 val page = PageResponse.from(results, ProductDetail::from)
 
                 return ProductList(
