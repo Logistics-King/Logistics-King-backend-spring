@@ -11,6 +11,7 @@ This repository is the backend for `택배왕`, a logistics contract platform.
 - Main domain reference: `.codex/domain.md`
 - Main architecture reference: `.codex/architecture.md`
 - API reference: `.codex/api.md`
+- Code convention reference: `.codex/code-convention.md`
 - Commit reference: `.codex/commit.md`
 - Orchestration reference: `.codex/orchestration.md`
 - Error handling reference: `.codex/error-handling.md`
@@ -76,6 +77,7 @@ Nearby 대리점 submit private proposals, and the 화주 compares them in one v
 - Before implementing code, read `.codex/architecture.md`.
 - For non-trivial feature implementation, follow `.codex/orchestration.md`.
 - Before adding or changing APIs, read `.codex/api.md`.
+- Before broad formatting or naming cleanup, read `.codex/code-convention.md`.
 - Before staging or committing changes, read `.codex/commit.md`.
 - Before adding or changing exceptions, read `.codex/error-handling.md`.
 - Before adding or changing JPA persistence code, read `.codex/persistence.md`.
