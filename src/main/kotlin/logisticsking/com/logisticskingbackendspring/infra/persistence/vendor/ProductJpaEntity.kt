@@ -9,7 +9,7 @@ import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
-import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProduct
+import logisticsking.com.logisticskingbackendspring.domain.vendor.Product
 import logisticsking.com.logisticskingbackendspring.infra.persistence.common.SoftDeletableJpaEntity
 import java.math.BigDecimal
 import java.util.UUID
@@ -73,8 +73,8 @@ class ProductJpaEntity(
     val coldChainType: ColdChainType,
 ) : SoftDeletableJpaEntity() {
 
-    fun toDomain(): VendorProduct {
-        return VendorProduct.restore(
+    fun toDomain(): Product {
+        return Product.restore(
             id = id,
             vendorId = vendorId,
             category = category,
@@ -96,7 +96,7 @@ class ProductJpaEntity(
     }
 
     companion object {
-        fun from(product: VendorProduct): ProductJpaEntity {
+        fun from(product: Product): ProductJpaEntity {
             return ProductJpaEntity(
                 id = product.id,
                 vendorId = product.vendorId,

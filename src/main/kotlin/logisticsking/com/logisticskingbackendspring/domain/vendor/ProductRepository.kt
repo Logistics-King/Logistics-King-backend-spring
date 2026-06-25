@@ -4,19 +4,19 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.util.UUID
 
-interface VendorProductRepository {
-    fun save(product: VendorProduct): VendorProduct
+interface ProductRepository {
+    fun save(product: Product): Product
     fun findByIdAndVendorId(
         id: UUID,
         vendorId: UUID,
-    ): VendorProduct?
+    ): Product?
     fun findAllByVendorId(
         vendorId: UUID,
-        condition: VendorProductSearchCondition,
+        condition: ProductSearchCondition,
         pageable: Pageable,
-    ): Page<VendorProduct>
+    ): Page<Product>
     fun findAllByIdsAndVendorIdForUpdate(
         ids: Collection<UUID>,
         vendorId: UUID,
-    ): List<VendorProduct>
+    ): List<Product>
 }

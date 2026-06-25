@@ -10,11 +10,15 @@ import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractPartyType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequest
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestContractType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestType
+import logisticsking.com.logisticskingbackendspring.domain.contract.RecurringPickupCycle
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.infra.persistence.common.BaseJpaEntity
 import java.math.BigDecimal
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.util.UUID
 
 @Entity
@@ -50,6 +54,32 @@ class ContractRequestJpaEntity(
 
     @Column(name = "pickup_address", length = 255)
     val pickupAddress: String?,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "contract_type", nullable = false, length = 30)
+    val contractType: ContractRequestContractType,
+
+    @Column(name = "pickup_date_from")
+    val pickupDateFrom: LocalDate?,
+
+    @Column(name = "pickup_date_to")
+    val pickupDateTo: LocalDate?,
+
+    @Column(name = "delivery_date_from")
+    val deliveryDateFrom: LocalDate?,
+
+    @Column(name = "delivery_date_to")
+    val deliveryDateTo: LocalDate?,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recurring_pickup_cycle", length = 30)
+    val recurringPickupCycle: RecurringPickupCycle?,
+
+    @Column(name = "recurring_pickup_days_of_week", length = 100)
+    val recurringPickupDaysOfWeek: String?,
+
+    @Column(name = "recurring_pickup_day_of_month")
+    val recurringPickupDayOfMonth: Int?,
 
     @Column(name = "monthly_volume", nullable = false)
     val monthlyVolume: Int,
@@ -103,6 +133,14 @@ class ContractRequestJpaEntity(
             productId = productId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,
+            contractType = contractType,
+            pickupDateFrom = pickupDateFrom,
+            pickupDateTo = pickupDateTo,
+            deliveryDateFrom = deliveryDateFrom,
+            deliveryDateTo = deliveryDateTo,
+            recurringPickupCycle = recurringPickupCycle,
+            recurringPickupDaysOfWeek = recurringPickupDaysOfWeek.toDayOfWeeks(),
+            recurringPickupDayOfMonth = recurringPickupDayOfMonth,
             monthlyVolume = monthlyVolume,
             productCategory = productCategory,
             productName = productName,
@@ -131,6 +169,14 @@ class ContractRequestJpaEntity(
                 productId = contractRequest.productId,
                 pickupRegion = contractRequest.pickupRegion,
                 pickupAddress = contractRequest.pickupAddress,
+                contractType = contractRequest.contractType,
+                pickupDateFrom = contractRequest.pickupDateFrom,
+                pickupDateTo = contractRequest.pickupDateTo,
+                deliveryDateFrom = contractRequest.deliveryDateFrom,
+                deliveryDateTo = contractRequest.deliveryDateTo,
+                recurringPickupCycle = contractRequest.recurringPickupCycle,
+                recurringPickupDaysOfWeek = contractRequest.recurringPickupDaysOfWeek.toColumnValue(),
+                recurringPickupDayOfMonth = contractRequest.recurringPickupDayOfMonth,
                 monthlyVolume = contractRequest.monthlyVolume,
                 productCategory = contractRequest.productCategory,
                 productName = contractRequest.productName,
@@ -144,6 +190,17 @@ class ContractRequestJpaEntity(
                 memo = contractRequest.memo,
                 status = contractRequest.status,
             )
+        }
+
+        private fun List<DayOfWeek>.toColumnValue(): String? {
+            return takeIf { it.isNotEmpty() }?.joinToString(",") { it.name }
+        }
+
+        private fun String?.toDayOfWeeks(): List<DayOfWeek> {
+            return this
+                ?.split(",")
+                ?.mapNotNull { value -> value.trim().takeIf(String::isNotBlank)?.let(DayOfWeek::valueOf) }
+                .orEmpty()
         }
     }
 }

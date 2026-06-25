@@ -16,16 +16,20 @@ sealed interface AuthRequest {
         @field:Schema(description = "로그인 ID", example = "vendor01")
         @field:NotBlank(message = "loginId는 필수입니다.")
         val loginId: String?,
+
         @field:Schema(description = "이메일", example = "vendor01@example.com")
         @field:NotBlank(message = "email은 필수입니다.")
         @field:Email(message = "email 형식이 올바르지 않습니다.")
         val email: String?,
+
         @field:Schema(description = "비밀번호", example = "password1234")
         @field:NotBlank(message = "password는 필수입니다.")
         val password: String?,
+
         @field:Schema(description = "비밀번호 확인", example = "password1234")
         @field:NotBlank(message = "passwordConfirm은 필수입니다.")
         val passwordConfirm: String?,
+
         @field:Schema(description = "이름", example = "서울 옷가게")
         @field:NotBlank(message = "name은 필수입니다.")
         val name: String?,
@@ -46,16 +50,20 @@ sealed interface AuthRequest {
         @field:Schema(description = "로그인 ID", example = "agency01")
         @field:NotBlank(message = "loginId는 필수입니다.")
         val loginId: String?,
+
         @field:Schema(description = "이메일", example = "agency01@example.com")
         @field:NotBlank(message = "email은 필수입니다.")
         @field:Email(message = "email 형식이 올바르지 않습니다.")
         val email: String?,
+
         @field:Schema(description = "비밀번호", example = "password1234")
         @field:NotBlank(message = "password는 필수입니다.")
         val password: String?,
+
         @field:Schema(description = "비밀번호 확인", example = "password1234")
         @field:NotBlank(message = "passwordConfirm은 필수입니다.")
         val passwordConfirm: String?,
+
         @field:Schema(description = "이름", example = "CJ 서울 대리점")
         @field:NotBlank(message = "name은 필수입니다.")
         val name: String?,
@@ -76,16 +84,20 @@ sealed interface AuthRequest {
         @field:Schema(description = "로그인 ID", example = "driver01")
         @field:NotBlank(message = "loginId는 필수입니다.")
         val loginId: String?,
+
         @field:Schema(description = "이메일", example = "driver01@example.com")
         @field:NotBlank(message = "email은 필수입니다.")
         @field:Email(message = "email 형식이 올바르지 않습니다.")
         val email: String?,
+
         @field:Schema(description = "비밀번호", example = "password1234")
         @field:NotBlank(message = "password는 필수입니다.")
         val password: String?,
+
         @field:Schema(description = "비밀번호 확인", example = "password1234")
         @field:NotBlank(message = "passwordConfirm은 필수입니다.")
         val passwordConfirm: String?,
+
         @field:Schema(description = "이름", example = "김택배")
         @field:NotBlank(message = "name은 필수입니다.")
         val name: String?,
@@ -107,6 +119,7 @@ sealed interface AuthRequest {
         @field:Schema(description = "로그인 ID", example = "vendor01")
         @field:NotBlank(message = "loginId는 필수입니다.")
         val loginId: String?,
+
         @field:Schema(description = "비밀번호", example = "password1234")
         @field:NotBlank(message = "password는 필수입니다.")
         val password: String?,
@@ -124,6 +137,7 @@ sealed interface AuthRequest {
         @field:Schema(description = "이름", example = "서울 옷가게")
         @field:NotBlank(message = "name은 필수입니다.")
         val name: String?,
+
         @field:Schema(description = "이메일", example = "vendor01@example.com")
         @field:NotBlank(message = "email은 필수입니다.")
         @field:Email(message = "email 형식이 올바르지 않습니다.")
@@ -142,6 +156,7 @@ sealed interface AuthRequest {
         @field:Schema(description = "로그인 ID", example = "vendor01")
         @field:NotBlank(message = "loginId는 필수입니다.")
         val loginId: String?,
+
         @field:Schema(description = "이메일", example = "vendor01@example.com")
         @field:NotBlank(message = "email은 필수입니다.")
         @field:Email(message = "email 형식이 올바르지 않습니다.")
@@ -160,9 +175,11 @@ sealed interface AuthRequest {
         @field:Schema(description = "비밀번호 재설정 토큰", example = "u2oHfT7QNo4sN6ltH3GSOdr20jhpIoQPBHb0Yw4CApc")
         @field:NotBlank(message = "token은 필수입니다.")
         val token: String?,
+
         @field:Schema(description = "새 비밀번호", example = "newPassword1234")
         @field:NotBlank(message = "newPassword는 필수입니다.")
         val newPassword: String?,
+
         @field:Schema(description = "새 비밀번호 확인", example = "newPassword1234")
         @field:NotBlank(message = "newPasswordConfirm은 필수입니다.")
         val newPasswordConfirm: String?,

@@ -30,7 +30,7 @@ data class UpdateVendorCommand(
     val mainRegion: String,
 )
 
-data class CreateVendorProductCommand(
+data class CreateProductCommand(
     val userId: UUID,
     val category: ProductCategory,
     val name: String,
@@ -49,7 +49,7 @@ data class CreateVendorProductCommand(
     val coldChainType: ColdChainType,
 )
 
-data class UpdateVendorProductCommand(
+data class UpdateProductCommand(
     val userId: UUID,
     val productId: UUID,
     val category: ProductCategory,

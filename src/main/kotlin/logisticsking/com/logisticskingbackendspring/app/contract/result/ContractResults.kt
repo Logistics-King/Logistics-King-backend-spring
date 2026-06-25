@@ -6,11 +6,15 @@ import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.Contract
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestContractType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractItem
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractStatus
+import logisticsking.com.logisticskingbackendspring.domain.contract.RecurringPickupCycle
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
 import java.math.BigDecimal
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.util.UUID
 
 data class ContractResult(
@@ -21,6 +25,14 @@ data class ContractResult(
     val agencyId: UUID,
     val pickupRegion: String,
     val pickupAddress: String?,
+    val contractType: ContractRequestContractType,
+    val pickupDateFrom: LocalDate?,
+    val pickupDateTo: LocalDate?,
+    val deliveryDateFrom: LocalDate?,
+    val deliveryDateTo: LocalDate?,
+    val recurringPickupCycle: RecurringPickupCycle?,
+    val recurringPickupDaysOfWeek: List<DayOfWeek>,
+    val recurringPickupDayOfMonth: Int?,
     val monthlyVolume: Int,
     val productCategory: ProductCategory,
     val productName: String,
@@ -51,6 +63,14 @@ data class ContractResult(
                 agencyId = contract.agencyId,
                 pickupRegion = contract.pickupRegion,
                 pickupAddress = contract.pickupAddress,
+                contractType = contract.contractType,
+                pickupDateFrom = contract.pickupDateFrom,
+                pickupDateTo = contract.pickupDateTo,
+                deliveryDateFrom = contract.deliveryDateFrom,
+                deliveryDateTo = contract.deliveryDateTo,
+                recurringPickupCycle = contract.recurringPickupCycle,
+                recurringPickupDaysOfWeek = contract.recurringPickupDaysOfWeek,
+                recurringPickupDayOfMonth = contract.recurringPickupDayOfMonth,
                 monthlyVolume = contract.monthlyVolume,
                 productCategory = contract.productCategory,
                 productName = contract.productName,

@@ -8,6 +8,7 @@ sealed interface AuthResponse {
     data class SignUp(
         @field:Schema(description = "사용자 ID", example = "019b1f44-a741-7000-8000-000000000001")
         val userId: String,
+
         @field:Schema(description = "권한", example = "VENDOR")
         val role: String,
     ) : AuthResponse
@@ -16,6 +17,7 @@ sealed interface AuthResponse {
     data class Login(
         @field:Schema(description = "사용자 ID", example = "019b1f44-a741-7000-8000-000000000001")
         val userId: String,
+
         @field:Schema(description = "권한", example = "VENDOR")
         val role: String,
     ) : AuthResponse
@@ -24,6 +26,7 @@ sealed interface AuthResponse {
     data class Refresh(
         @field:Schema(description = "사용자 ID", example = "019b1f44-a741-7000-8000-000000000001")
         val userId: String,
+
         @field:Schema(description = "권한", example = "VENDOR")
         val role: String,
     ) : AuthResponse
@@ -38,6 +41,7 @@ sealed interface AuthResponse {
     data class AccountRecoveryRequest(
         @field:Schema(description = "요청 접수 여부", example = "true")
         val accepted: Boolean,
+
         @field:Schema(description = "사용자 안내 문구", example = "입력한 정보가 일치하면 이메일을 발송합니다.")
         val message: String,
     ) : AuthResponse

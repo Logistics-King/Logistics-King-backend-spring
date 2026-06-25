@@ -6,15 +6,25 @@ import java.util.UUID
 
 class Notification private constructor(
     val id: UUID,
+
     val receiverUserId: UUID,
+
     val senderUserId: UUID?,
+
     val type: NotificationType,
+
     val title: String,
+
     val message: String,
+
     val linkUrl: String?,
+
     val referenceType: NotificationReferenceType?,
+
     val referenceId: UUID?,
+
     val readAt: LocalDateTime?,
+
     val createdAt: LocalDateTime?,
 ) {
 

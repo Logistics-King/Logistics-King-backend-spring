@@ -68,7 +68,31 @@ class ProposalService(
         command: GetOpenContractRequestsCommand,
         pageable: Pageable,
     ): Page<ContractRequestResult> {
-        findAgencyUser(command.userId)
+        val user = userRepository.findById(command.userId)
+            ?: throw GlobalException(ProposalErrorCode.USER_NOT_FOUND)
+        if (user.role == UserRole.ADMIN) {
+            return contractRequestRepository.findOpenVendorOffers(
+                condition = ContractRequestSearchCondition(
+                    productName = command.productName,
+                    productCategory = command.productCategory,
+                    boxSize = command.boxSize,
+                    coldChainType = command.coldChainType,
+                    status = null,
+                    pickupRegion = command.pickupRegion,
+                    saturdayDeliveryRequired = command.saturdayDeliveryRequired,
+                    returnRequired = command.returnRequired,
+                    scope = command.scope,
+                    minTargetUnitPrice = command.minTargetUnitPrice,
+                    maxTargetUnitPrice = command.maxTargetUnitPrice,
+                    vendorName = command.vendorName,
+                ),
+                pageable = pageable,
+            )
+                .map(ContractRequestResult::from)
+        }
+        if (user.role != UserRole.AGENCY) {
+            throw GlobalException(ProposalErrorCode.USER_IS_NOT_AGENCY)
+        }
         val agency = findAgencyByUserId(command.userId)
 
         return contractRequestRepository.findOpenVendorOffersForAgency(

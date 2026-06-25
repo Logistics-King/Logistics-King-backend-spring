@@ -161,6 +161,7 @@ class NotificationService(
 
 private data class NotificationTemplate(
     val title: String,
+
     val message: String,
 ) {
     companion object {

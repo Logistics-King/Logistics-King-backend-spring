@@ -167,6 +167,41 @@ class ContractRequestQueryRepository(
         return PageImpl(content, pageable, total)
     }
 
+    fun findOpenVendorOffers(
+        condition: ContractRequestSearchCondition,
+        pageable: Pageable,
+    ): Page<ContractRequestJpaEntity> {
+        val content = queryFactory
+            .selectFrom(contractRequest)
+            .leftJoin(vendor).on(contractRequest.requesterId.eq(vendor.id))
+            .where(
+                contractRequest.type.eq(ContractRequestType.VENDOR_OFFER),
+                contractRequest.status.eq(ContractRequestStatus.OPEN),
+                contractRequest.approverType.eq(ContractPartyType.AGENCY),
+                vendor.deletedAt.isNull,
+                *searchPredicates(condition),
+            )
+            .orderBy(contractRequest.createdAt.desc())
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .fetch()
+
+        val total = queryFactory
+            .select(contractRequest.count())
+            .from(contractRequest)
+            .leftJoin(vendor).on(contractRequest.requesterId.eq(vendor.id))
+            .where(
+                contractRequest.type.eq(ContractRequestType.VENDOR_OFFER),
+                contractRequest.status.eq(ContractRequestStatus.OPEN),
+                contractRequest.approverType.eq(ContractPartyType.AGENCY),
+                vendor.deletedAt.isNull,
+                *searchPredicates(condition),
+            )
+            .fetchOne() ?: 0L
+
+        return PageImpl(content, pageable, total)
+    }
+
     fun existsActiveByVendorIdAndProductIds(
         vendorId: UUID,
         productIds: Collection<UUID>,

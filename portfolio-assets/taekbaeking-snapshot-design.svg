@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="810" viewBox="0 0 1440 810">
+  <defs>
+    <style>
+      .bg { fill: #fbfbfd; }
+      .title { font: 800 42px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #101828; }
+      .subtitle { font: 500 20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #667085; }
+      .box { fill: #ffffff; stroke: #d0d5dd; stroke-width: 2; rx: 24; }
+      .danger { fill: #fff1f2; stroke: #fb7185; }
+      .safe { fill: #ecfdf5; stroke: #34d399; }
+      .h { font: 800 28px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #101828; }
+      .t { font: 500 19px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475467; }
+      .mono { font: 700 18px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #344054; }
+      .badge { font: 800 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; }
+      .blue { fill: #2563eb; }
+      .green { fill: #059669; }
+      .red { fill: #e11d48; }
+      .line { stroke: #98a2b3; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2 2 L10 6 L2 10 Z" fill="#98a2b3"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1440" height="810"/>
+  <text class="title" x="80" y="90">최종 계약 Snapshot 설계</text>
+  <text class="subtitle" x="80" y="128">참조만 하면 단순하지만, 계약 시점의 합의 조건을 보존하기 어렵다</text>
+
+  <rect class="box danger" x="90" y="205" width="560" height="220"/>
+  <rect class="red" x="125" y="235" width="110" height="34" rx="17"/>
+  <text class="badge" x="152" y="258">문제</text>
+  <text class="h" x="125" y="315">단순 참조 기반 계약</text>
+  <text class="t" x="125" y="360">Contract가 Product와 ContractRequest만 참조</text>
+  <text class="mono" x="125" y="398">Contract -> ContractRequest -> Product</text>
+
+  <rect class="box safe" x="790" y="205" width="560" height="220"/>
+  <rect class="green" x="825" y="235" width="110" height="34" rx="17"/>
+  <text class="badge" x="852" y="258">해결</text>
+  <text class="h" x="825" y="315">Snapshot 기반 최종 계약</text>
+  <text class="t" x="825" y="360">확정 시점의 조건을 Contract에 복사</text>
+  <text class="mono" x="825" y="398">Contract + ContractItem = agreed terms</text>
+
+  <path class="line" d="M670 315 H770"/>
+
+  <rect class="box" x="180" y="520" width="1080" height="190"/>
+  <text class="h" x="220" y="578">보존 대상</text>
+  <text class="t" x="220" y="628">품목명, 박스 규격, 품목별 단가, 회수 희망 기간, 배송 희망 기간, 정기 회수 조건</text>
+  <text class="t" x="220" y="670">요청 데이터가 바뀌어도 최종 계약은 당시 합의 조건을 독립적으로 추적</text>
+</svg>

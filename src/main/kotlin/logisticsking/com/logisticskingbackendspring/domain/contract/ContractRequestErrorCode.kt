@@ -93,6 +93,21 @@ enum class ContractRequestErrorCode(
         message = "픽업 희망 시간은 필수입니다.",
         status = HttpStatus.BAD_REQUEST,
     ),
+    INVALID_PICKUP_DATE_RANGE(
+        code = "INVALID_CONTRACT_REQUEST_PICKUP_DATE_RANGE",
+        message = "회수 희망 기간이 올바르지 않습니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
+    INVALID_DELIVERY_DATE_RANGE(
+        code = "INVALID_CONTRACT_REQUEST_DELIVERY_DATE_RANGE",
+        message = "배송 희망 기간이 올바르지 않습니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
+    INVALID_RECURRING_PICKUP_RULE(
+        code = "INVALID_CONTRACT_REQUEST_RECURRING_PICKUP_RULE",
+        message = "정기 회수 조건이 올바르지 않습니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
     INVALID_TARGET_UNIT_PRICE(
         code = "INVALID_CONTRACT_REQUEST_TARGET_UNIT_PRICE",
         message = "희망 단가는 0 이상이어야 합니다.",
