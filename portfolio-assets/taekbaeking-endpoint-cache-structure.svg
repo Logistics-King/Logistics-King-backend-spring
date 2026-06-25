@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="810" viewBox="0 0 1440 810">
+  <defs>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.6" fill="#d8e1ef"/>
+    </pattern>
+    <style>
+      .bg { fill: #f4f8ff; }
+      .title { font: 850 38px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+      .subtitle { font: 540 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; }
+      .label { font: 820 22px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+      .small { font: 560 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; }
+      .tiny { font: 750 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; }
+      .tag { font: 850 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; }
+      .code { font: 760 15px "SFMono-Regular", Consolas, monospace; fill: #172033; }
+      .box { fill: #ffffff; stroke: #d4ddea; stroke-width: 2; rx: 20; }
+      .thin { fill: #ffffff; stroke: #d4ddea; stroke-width: 2; rx: 16; }
+      .blue { fill: #2563eb; }
+      .green { fill: #16a34a; }
+      .orange { fill: #f97316; }
+      .purple { fill: #7c3aed; }
+      .slate { fill: #475569; }
+      .line { stroke: #8a98ad; stroke-width: 4; fill: none; stroke-linecap: round; }
+      .line-green { stroke: #16a34a; stroke-width: 5; fill: none; stroke-linecap: round; }
+      .line-orange { stroke: #f97316; stroke-width: 4; fill: none; stroke-linecap: round; }
+      .dash { stroke: #8a98ad; stroke-width: 3; fill: none; stroke-linecap: round; stroke-dasharray: 9 10; }
+      .dash-green { stroke: #16a34a; stroke-width: 3; fill: none; stroke-linecap: round; stroke-dasharray: 9 10; }
+      .arrow { fill: #8a98ad; }
+      .arrow-green { fill: #16a34a; }
+      .arrow-orange { fill: #f97316; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1440" height="810"/>
+  <rect width="1440" height="810" fill="url(#dots)" opacity="0.75"/>
+
+  <text class="title" x="80" y="82">권한 정책 구조</text>
+  <text class="subtitle" x="80" y="118">요청 경로는 메모리 캐시만 조회하고, 운영 변경은 DB 반영 후 명시적으로 캐시 갱신</text>
+
+  <rect class="thin" x="92" y="170" width="270" height="155"/>
+  <rect class="blue" x="122" y="200" width="112" height="34" rx="17"/>
+  <text class="tag" x="144" y="223">Controller</text>
+  <text class="label" x="122" y="268">@EndpointAccess</text>
+  <text class="small" x="122" y="298">신규 API 기본 권한 선언</text>
+
+  <path class="line" d="M372 248 H470"/>
+  <polygon class="arrow" points="470,248 454,237 454,259"/>
+  <text class="tiny" x="392" y="225">서버 시작 시 스캔</text>
+
+  <rect class="thin" x="490" y="170" width="300" height="155"/>
+  <rect class="purple" x="520" y="200" width="150" height="34" rx="17"/>
+  <text class="tag" x="540" y="223">AutoRegistrar</text>
+  <text class="label" x="520" y="268">신규 API 등록</text>
+  <text class="small" x="520" y="298">기존 roles는 DB 유지</text>
+
+  <path class="line" d="M800 248 H895"/>
+  <polygon class="arrow" points="895,248 879,237 879,259"/>
+
+  <rect class="thin" x="915" y="170" width="205" height="155"/>
+  <rect class="orange" x="945" y="200" width="118" height="34" rx="17"/>
+  <text class="tag" x="965" y="223">Database</text>
+  <text class="label" x="945" y="268">end_points</text>
+  <text class="small" x="945" y="298">운영 정책 원천</text>
+
+  <path class="line-green" d="M1130 248 H1235"/>
+  <polygon class="arrow-green" points="1235,248 1217,236 1217,260"/>
+  <text class="tiny" x="1153" y="225">reload</text>
+
+  <rect class="thin" x="1255" y="170" width="120" height="155"/>
+  <rect class="green" x="1280" y="200" width="70" height="34" rx="17"/>
+  <text class="tag" x="1292" y="223">Cache</text>
+  <text class="label" x="1280" y="268">메모리</text>
+  <text class="small" x="1280" y="298">빠른 조회</text>
+
+  <rect class="box" x="110" y="425" width="1220" height="215"/>
+  <rect class="green" x="145" y="455" width="128" height="34" rx="17"/>
+  <text class="tag" x="169" y="478">요청 경로</text>
+  <text class="small" x="145" y="620">보호 API 요청은 DB를 다시 읽지 않고 캐시에서 URL, 메서드, 역할만 비교</text>
+
+  <rect class="thin" x="170" y="520" width="145" height="70"/>
+  <text class="label" x="204" y="550">클라이언트</text>
+  <text class="small" x="205" y="575">API 요청</text>
+
+  <path class="line-green" d="M325 555 H430"/>
+  <polygon class="arrow-green" points="430,555 412,543 412,567"/>
+
+  <rect class="thin" x="450" y="520" width="170" height="70"/>
+  <text class="label" x="495" y="550">JWT 인증</text>
+  <text class="small" x="500" y="575">역할 생성</text>
+
+  <path class="line-green" d="M630 555 H735"/>
+  <polygon class="arrow-green" points="735,555 717,543 717,567"/>
+
+  <rect class="thin" x="755" y="520" width="190" height="70"/>
+  <text class="label" x="804" y="550">권한 필터</text>
+  <text class="small" x="796" y="575">캐시 정책 매칭</text>
+
+  <path class="dash-green" d="M850 520 V395 H1315 V325"/>
+  <polygon class="arrow-green" points="1315,325 1303,343 1327,343"/>
+  <text class="tiny" x="972" y="388">메모리 캐시 조회</text>
+
+  <path class="line-green" d="M955 555 H1060"/>
+  <polygon class="arrow-green" points="1060,555 1042,543 1042,567"/>
+
+  <rect class="thin" x="1080" y="520" width="145" height="70"/>
+  <text class="label" x="1133" y="550">API</text>
+  <text class="small" x="1123" y="575">실행</text>
+
+  <rect class="box" x="245" y="675" width="950" height="88"/>
+  <rect class="orange" x="280" y="703" width="96" height="32" rx="16"/>
+  <text class="tag" x="303" y="725">운영</text>
+  <text class="small" x="405" y="712">DB 권한 변경 후</text>
+  <text class="code" x="560" y="712">dry-run</text>
+  <path class="line-orange" d="M640 706 H710"/>
+  <polygon class="arrow-orange" points="710,706 694,695 694,717"/>
+  <text class="code" x="740" y="712">reload</text>
+  <text class="small" x="405" y="743">차이 확인 후 서버 재시작 없이 메모리 캐시 갱신</text>
+</svg>

@@ -141,6 +141,7 @@ http://localhost:8080/swagger-ui.html
 - `.codex/error-handling.md`: ErrorCode와 GlobalException 규칙
 - `.codex/persistence.md`: JPA, SQL, DB 규칙
 - `.codex/querydsl.md`: Querydsl 작성 패턴
+- `.codex/performance.md`: 성능 테스트 기록과 개선 근거
 - `.codex/commit.md`: 커밋 메시지와 diff 분리 규칙
 
 ## AI 개발 하네스
