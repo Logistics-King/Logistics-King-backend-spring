@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="810" viewBox="0 0 1440 810">
+  <defs>
+    <style>
+      .bg { fill: #f7f8fb; }
+      .title { font: 800 40px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+      .subtitle { font: 500 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #667085; }
+      .label { font: 800 23px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+      .small { font: 500 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #667085; }
+      .tiny { font: 700 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #667085; }
+      .tag { font: 800 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; }
+      .code { font: 700 17px "SFMono-Regular", Consolas, monospace; fill: #172033; }
+      .card { fill: #ffffff; stroke: #d9deea; stroke-width: 2; rx: 22; }
+      .panel { fill: #ffffff; stroke: #d9deea; stroke-width: 2; rx: 18; }
+      .blue { fill: #2563eb; }
+      .green { fill: #16a34a; }
+      .orange { fill: #f97316; }
+      .purple { fill: #7c3aed; }
+      .red { fill: #dc2626; }
+      .gray { fill: #64748b; }
+      .line { stroke: #98a2b3; stroke-width: 4; fill: none; stroke-linecap: round; }
+      .dash { stroke: #98a2b3; stroke-width: 3; fill: none; stroke-linecap: round; stroke-dasharray: 8 10; }
+      .arrow { fill: #98a2b3; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1440" height="810"/>
+  <text class="title" x="80" y="92">EndpointAccess 기반 API 권한 관리</text>
+  <text class="subtitle" x="80" y="130">컨트롤러 권한 선언을 DB 정책으로 동기화하고, 요청마다 URL/method/role을 검증하는 구조</text>
+
+  <rect class="card" x="80" y="200" width="270" height="190"/>
+  <rect class="blue" x="108" y="228" width="118" height="34" rx="17"/>
+  <text class="tag" x="127" y="251">Controller</text>
+  <text class="label" x="108" y="302">권한 선언</text>
+  <text class="code" x="108" y="342">@EndpointAccess</text>
+  <text class="small" x="108" y="372">roles, description 선언</text>
+
+  <path class="line" d="M360 295 H430"/>
+  <polygon class="arrow" points="430,295 414,284 414,306"/>
+
+  <rect class="card" x="450" y="200" width="315" height="190"/>
+  <rect class="purple" x="478" y="228" width="132" height="34" rx="17"/>
+  <text class="tag" x="497" y="251">ApplicationRunner</text>
+  <text class="label" x="478" y="302">API Mapping 스캔</text>
+  <text class="small" x="478" y="342">Spring MVC mapping 조회</text>
+  <text class="small" x="478" y="372">URL + method + roles 추출</text>
+
+  <path class="line" d="M775 295 H845"/>
+  <polygon class="arrow" points="845,295 829,284 829,306"/>
+
+  <rect class="card" x="865" y="200" width="255" height="190"/>
+  <rect class="orange" x="893" y="228" width="104" height="34" rx="17"/>
+  <text class="tag" x="912" y="251">Database</text>
+  <text class="label" x="893" y="302">end_points 저장</text>
+  <text class="small" x="893" y="342">url, method</text>
+  <text class="small" x="893" y="372">roles(JSON), 설명</text>
+
+  <path class="line" d="M1130 295 H1190"/>
+  <polygon class="arrow" points="1190,295 1174,284 1174,306"/>
+
+  <rect class="card" x="1210" y="200" width="150" height="190"/>
+  <rect class="green" x="1238" y="228" width="64" height="34" rx="17"/>
+  <text class="tag" x="1254" y="251">Rule</text>
+  <text class="label" x="1238" y="302">ADMIN</text>
+  <text class="small" x="1238" y="342">항상 포함</text>
+  <text class="small" x="1238" y="372">누락 방지</text>
+
+  <rect class="panel" x="120" y="470" width="1200" height="230"/>
+  <text class="label" x="160" y="528">요청 처리 흐름</text>
+
+  <rect class="blue" x="160" y="565" width="150" height="48" rx="24"/>
+  <text class="tag" x="190" y="596">Client 요청</text>
+  <path class="line" d="M320 589 H415"/>
+  <polygon class="arrow" points="415,589 399,578 399,600"/>
+
+  <rect class="purple" x="435" y="548" width="240" height="82" rx="18"/>
+  <text class="tag" x="486" y="581">JWT 인증 필터</text>
+  <text class="tag" x="480" y="609">토큰 파싱 + role 세팅</text>
+  <path class="line" d="M685 589 H770"/>
+  <polygon class="arrow" points="770,589 754,578 754,600"/>
+
+  <rect class="orange" x="790" y="548" width="270" height="82" rx="18"/>
+  <text class="tag" x="848" y="581">권한 필터</text>
+  <text class="tag" x="847" y="609">URL/method/role 매칭</text>
+  <path class="line" d="M1070 589 H1145"/>
+  <polygon class="arrow" points="1145,589 1129,578 1129,600"/>
+
+  <rect class="green" x="1165" y="548" width="110" height="82" rx="18"/>
+  <text class="tag" x="1194" y="581">통과</text>
+  <text class="tag" x="1186" y="609">API 실행</text>
+
+  <path class="dash" d="M925 548 V486 H992 V390"/>
+  <polygon class="arrow" points="992,390 981,406 1003,406"/>
+  <text class="tiny" x="936" y="510">DB 권한 정책 조회</text>
+
+  <rect class="red" x="790" y="652" width="250" height="36" rx="18"/>
+  <text class="tag" x="840" y="676">불일치 시 FORBIDDEN</text>
+
+  <text class="small" x="160" y="744">설계 포인트: 보호 정책을 DB에 동기화해 API 권한 현황을 조회 가능하게 만들고, 권한 필터에서 일관되게 강제한다.</text>
+</svg>
