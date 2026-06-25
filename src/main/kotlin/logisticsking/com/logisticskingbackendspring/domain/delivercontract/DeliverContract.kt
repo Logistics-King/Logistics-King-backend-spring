@@ -7,14 +7,23 @@ import java.util.UUID
 
 class DeliverContract private constructor(
     val id: UUID,
+
     val agencyId: UUID,
+
     val deliverId: UUID,
+
     val serviceRegion: String,
+
     val expectedMonthlyVolume: Int,
+
     val unitPrice: BigDecimal,
+
     val startDate: LocalDate,
+
     val endDate: LocalDate?,
+
     val memo: String?,
+
     val status: DeliverContractStatus,
 ) {
 

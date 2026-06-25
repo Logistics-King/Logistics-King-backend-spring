@@ -6,13 +6,21 @@ import java.util.UUID
 
 class ProposalNegotiationEvent private constructor(
     val id: UUID,
+
     val proposalId: UUID,
+
     val sequence: Long,
+
     val actorType: ContractPartyType,
+
     val eventType: ProposalNegotiationEventType,
+
     val unitPrice: BigDecimal?,
+
     val items: List<ProposalNegotiationEventItem>,
+
     val memo: String?,
+
     val status: ProposalNegotiationEventStatus,
 ) {
 

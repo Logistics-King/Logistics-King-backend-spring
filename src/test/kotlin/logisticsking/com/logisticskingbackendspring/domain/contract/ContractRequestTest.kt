@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.util.UUID
 
 class ContractRequestTest {
@@ -290,12 +292,80 @@ class ContractRequestTest {
         assertEquals(ContractRequestErrorCode.REJECTED_REQUEST_CANNOT_BE_CANCELED, exception.errorCode)
     }
 
+    @Test
+    fun `단건 계약 요청은 회수와 배송 희망 기간을 가진다`() {
+        val pickupDateFrom = LocalDate.of(2026, 6, 22)
+        val pickupDateTo = LocalDate.of(2026, 6, 26)
+        val deliveryDateFrom = LocalDate.of(2026, 6, 24)
+        val deliveryDateTo = LocalDate.of(2026, 6, 30)
+
+        val contractRequest = contractRequest(
+            pickupDateFrom = pickupDateFrom,
+            pickupDateTo = pickupDateTo,
+            deliveryDateFrom = deliveryDateFrom,
+            deliveryDateTo = deliveryDateTo,
+        )
+
+        assertEquals(ContractRequestContractType.SINGLE, contractRequest.contractType)
+        assertEquals(pickupDateFrom, contractRequest.pickupDateFrom)
+        assertEquals(pickupDateTo, contractRequest.pickupDateTo)
+        assertEquals(deliveryDateFrom, contractRequest.deliveryDateFrom)
+        assertEquals(deliveryDateTo, contractRequest.deliveryDateTo)
+    }
+
+    @Test
+    fun `배송 희망 종료일이 회수 시작일보다 앞서면 예외가 발생한다`() {
+        val exception = assertThrows(GlobalException::class.java) {
+            contractRequest(
+                pickupDateFrom = LocalDate.of(2026, 6, 22),
+                pickupDateTo = LocalDate.of(2026, 6, 26),
+                deliveryDateFrom = LocalDate.of(2026, 6, 20),
+                deliveryDateTo = LocalDate.of(2026, 6, 21),
+            )
+        }
+
+        assertEquals(ContractRequestErrorCode.INVALID_DELIVERY_DATE_RANGE, exception.errorCode)
+    }
+
+    @Test
+    fun `정기 계약 요청은 주간 회수 요일을 가진다`() {
+        val contractRequest = contractRequest(
+            contractType = ContractRequestContractType.RECURRING,
+            recurringPickupCycle = RecurringPickupCycle.WEEKLY,
+            recurringPickupDaysOfWeek = listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+        )
+
+        assertEquals(ContractRequestContractType.RECURRING, contractRequest.contractType)
+        assertEquals(RecurringPickupCycle.WEEKLY, contractRequest.recurringPickupCycle)
+        assertEquals(listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY), contractRequest.recurringPickupDaysOfWeek)
+    }
+
+    @Test
+    fun `정기 월간 계약 요청은 회수 일자가 필요하다`() {
+        val exception = assertThrows(GlobalException::class.java) {
+            contractRequest(
+                contractType = ContractRequestContractType.RECURRING,
+                recurringPickupCycle = RecurringPickupCycle.MONTHLY,
+            )
+        }
+
+        assertEquals(ContractRequestErrorCode.INVALID_RECURRING_PICKUP_RULE, exception.errorCode)
+    }
+
     private fun contractRequest(
         id: UUID = UUID.randomUUID(),
         vendorId: UUID = UUID.randomUUID(),
         productId: UUID? = null,
         pickupRegion: String = "경기도 안산시 일동",
         pickupAddress: String? = "경기도 안산시 상록구 일동 101호",
+        contractType: ContractRequestContractType = ContractRequestContractType.SINGLE,
+        pickupDateFrom: LocalDate? = null,
+        pickupDateTo: LocalDate? = null,
+        deliveryDateFrom: LocalDate? = null,
+        deliveryDateTo: LocalDate? = null,
+        recurringPickupCycle: RecurringPickupCycle? = null,
+        recurringPickupDaysOfWeek: List<DayOfWeek> = emptyList(),
+        recurringPickupDayOfMonth: Int? = null,
         monthlyVolume: Int = 800,
         productName: String = "일반 의류",
         boxSize: BoxSize = BoxSize.SIZE_60,
@@ -310,6 +380,14 @@ class ContractRequestTest {
             productId = productId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,
+            contractType = contractType,
+            pickupDateFrom = pickupDateFrom,
+            pickupDateTo = pickupDateTo,
+            deliveryDateFrom = deliveryDateFrom,
+            deliveryDateTo = deliveryDateTo,
+            recurringPickupCycle = recurringPickupCycle,
+            recurringPickupDaysOfWeek = recurringPickupDaysOfWeek,
+            recurringPickupDayOfMonth = recurringPickupDayOfMonth,
             monthlyVolume = monthlyVolume,
             productCategory = ProductCategory.CLOTHING,
             productName = productName,

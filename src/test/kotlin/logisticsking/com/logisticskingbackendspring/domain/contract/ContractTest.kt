@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.util.UUID
 
 class ContractTest {
@@ -35,6 +37,14 @@ class ContractTest {
         assertEquals(vendorId, contract.vendorId)
         assertEquals(agencyId, contract.agencyId)
         assertEquals(request.pickupRegion, contract.pickupRegion)
+        assertEquals(request.contractType, contract.contractType)
+        assertEquals(request.pickupDateFrom, contract.pickupDateFrom)
+        assertEquals(request.pickupDateTo, contract.pickupDateTo)
+        assertEquals(request.deliveryDateFrom, contract.deliveryDateFrom)
+        assertEquals(request.deliveryDateTo, contract.deliveryDateTo)
+        assertEquals(request.recurringPickupCycle, contract.recurringPickupCycle)
+        assertEquals(request.recurringPickupDaysOfWeek, contract.recurringPickupDaysOfWeek)
+        assertEquals(request.recurringPickupDayOfMonth, contract.recurringPickupDayOfMonth)
         assertEquals(request.monthlyVolume, contract.monthlyVolume)
         assertEquals(request.productCategory, contract.productCategory)
         assertEquals(request.productName, contract.productName)
@@ -77,6 +87,14 @@ class ContractTest {
             productId = null,
             pickupRegion = "경기도 안산시 일동",
             pickupAddress = "경기도 안산시 상록구 일동 101호",
+            contractType = ContractRequestContractType.RECURRING,
+            pickupDateFrom = LocalDate.of(2026, 6, 22),
+            pickupDateTo = LocalDate.of(2026, 6, 26),
+            deliveryDateFrom = LocalDate.of(2026, 6, 24),
+            deliveryDateTo = LocalDate.of(2026, 6, 30),
+            recurringPickupCycle = RecurringPickupCycle.WEEKLY,
+            recurringPickupDaysOfWeek = listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+            recurringPickupDayOfMonth = null,
             monthlyVolume = 800,
             productCategory = ProductCategory.CLOTHING,
             productName = "일반 의류",

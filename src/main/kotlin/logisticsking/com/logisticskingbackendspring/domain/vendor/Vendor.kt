@@ -5,14 +5,23 @@ import java.util.UUID
 
 class Vendor private constructor(
     val id: UUID,
+
     val userId: UUID,
+
     val businessName: String,
+
     val businessRegistrationNumber: String?,
+
     val representativeName: String,
+
     val phoneNumber: String,
+
     val postalCode: String?,
+
     val address: String,
+
     val addressDetail: String?,
+
     val mainRegion: String,
 ) {
 

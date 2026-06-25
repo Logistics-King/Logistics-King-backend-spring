@@ -14,24 +14,34 @@ sealed interface NotificationResponse {
     data class Detail(
         @field:Schema(description = "알림 ID", example = "019b1f44-a741-7000-8000-000000000001")
         val notificationId: String,
+
         @field:Schema(description = "수신자 사용자 ID", example = "019b1f44-a741-7000-8000-000000000002")
         val receiverUserId: String,
+
         @field:Schema(description = "발신자 사용자 ID", example = "019b1f44-a741-7000-8000-000000000003")
         val senderUserId: String?,
+
         @field:Schema(description = "알림 타입", example = "PROPOSAL_SUBMITTED")
         val type: String,
+
         @field:Schema(description = "알림 제목", example = "새 제안 도착")
         val title: String,
+
         @field:Schema(description = "알림 메시지", example = "계약 요청에 새 대리점 제안이 도착했습니다.")
         val message: String,
+
         @field:Schema(description = "프론트 이동 경로", example = "/contract-requests/019b1f44-a741-7000-8000-000000000004/proposals")
         val linkUrl: String?,
+
         @field:Schema(description = "참조 도메인 타입", example = "PROPOSAL")
         val referenceType: String?,
+
         @field:Schema(description = "참조 도메인 ID", example = "019b1f44-a741-7000-8000-000000000005")
         val referenceId: String?,
+
         @field:Schema(description = "읽은 시각. 읽지 않았으면 null")
         val readAt: LocalDateTime?,
+
         @field:Schema(description = "생성 시각")
         val createdAt: LocalDateTime?,
     ) : NotificationResponse {
@@ -58,16 +68,22 @@ sealed interface NotificationResponse {
     data class List(
         @field:Schema(description = "알림 목록")
         val items: kotlin.collections.List<Detail>,
+
         @field:Schema(description = "현재 페이지 번호. 0부터 시작합니다.", example = "0")
         val page: Int,
+
         @field:Schema(description = "페이지 크기", example = "20")
         val size: Int,
+
         @field:Schema(description = "전체 데이터 수", example = "128")
         val totalElements: Long,
+
         @field:Schema(description = "전체 페이지 수", example = "7")
         val totalPages: Int,
+
         @field:Schema(description = "다음 페이지 존재 여부", example = "true")
         val hasNext: Boolean,
+
         @field:Schema(description = "이전 페이지 존재 여부", example = "false")
         val hasPrevious: Boolean,
     ) : NotificationResponse {

@@ -1,12 +1,12 @@
 package logisticsking.com.logisticskingbackendspring.app.vendor.usecase
 
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
-import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorProductCommand
+import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateProductCommand
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.UpdateVendorCommand
-import logisticsking.com.logisticskingbackendspring.app.vendor.command.UpdateVendorProductCommand
-import logisticsking.com.logisticskingbackendspring.app.vendor.result.VendorProductResult
+import logisticsking.com.logisticskingbackendspring.app.vendor.command.UpdateProductCommand
+import logisticsking.com.logisticskingbackendspring.app.vendor.result.ProductResult
 import logisticsking.com.logisticskingbackendspring.app.vendor.result.VendorResult
-import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductSearchCondition
+import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductSearchCondition
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.util.UUID
@@ -23,18 +23,18 @@ interface UpdateVendorUseCase {
     fun update(command: UpdateVendorCommand): VendorResult
 }
 
-interface CreateVendorProductUseCase {
-    fun createProduct(command: CreateVendorProductCommand): VendorProductResult
+interface CreateProductUseCase {
+    fun createProduct(command: CreateProductCommand): ProductResult
 }
 
-interface GetVendorProductsUseCase {
+interface GetProductsUseCase {
     fun getProducts(
         userId: UUID,
-        condition: VendorProductSearchCondition,
+        condition: ProductSearchCondition,
         pageable: Pageable,
-    ): Page<VendorProductResult>
+    ): Page<ProductResult>
 }
 
-interface UpdateVendorProductUseCase {
-    fun updateProduct(command: UpdateVendorProductCommand): VendorProductResult
+interface UpdateProductUseCase {
+    fun updateProduct(command: UpdateProductCommand): ProductResult
 }

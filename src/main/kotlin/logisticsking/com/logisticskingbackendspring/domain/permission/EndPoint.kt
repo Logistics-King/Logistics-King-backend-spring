@@ -4,9 +4,13 @@ import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 
 class EndPoint private constructor(
     val id: Long,
+
     val url: String,
+
     val method: String,
+
     val roles: Set<UserRole>,
+
     val description: String?,
 ) {
     fun allows(role: UserRole): Boolean {

@@ -2,10 +2,14 @@ package logisticsking.com.logisticskingbackendspring.app.contract.command
 
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestContractType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestStatus
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestType
+import logisticsking.com.logisticskingbackendspring.domain.contract.RecurringPickupCycle
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import java.math.BigDecimal
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.util.UUID
 
 data class CreateContractRequestCommand(
@@ -15,6 +19,14 @@ data class CreateContractRequestCommand(
     val productId: UUID?,
     val pickupRegion: String,
     val pickupAddress: String?,
+    val contractType: ContractRequestContractType = ContractRequestContractType.SINGLE,
+    val pickupDateFrom: LocalDate? = null,
+    val pickupDateTo: LocalDate? = null,
+    val deliveryDateFrom: LocalDate? = null,
+    val deliveryDateTo: LocalDate? = null,
+    val recurringPickupCycle: RecurringPickupCycle? = null,
+    val recurringPickupDaysOfWeek: List<DayOfWeek> = emptyList(),
+    val recurringPickupDayOfMonth: Int? = null,
     val monthlyVolume: Int,
     val productCategory: ProductCategory,
     val productName: String,
@@ -35,6 +47,14 @@ data class UpdateContractRequestCommand(
     val productId: UUID?,
     val pickupRegion: String,
     val pickupAddress: String?,
+    val contractType: ContractRequestContractType = ContractRequestContractType.SINGLE,
+    val pickupDateFrom: LocalDate? = null,
+    val pickupDateTo: LocalDate? = null,
+    val deliveryDateFrom: LocalDate? = null,
+    val deliveryDateTo: LocalDate? = null,
+    val recurringPickupCycle: RecurringPickupCycle? = null,
+    val recurringPickupDaysOfWeek: List<DayOfWeek> = emptyList(),
+    val recurringPickupDayOfMonth: Int? = null,
     val monthlyVolume: Int,
     val productCategory: ProductCategory,
     val productName: String,

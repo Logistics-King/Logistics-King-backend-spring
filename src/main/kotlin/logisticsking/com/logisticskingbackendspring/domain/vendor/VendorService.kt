@@ -1,16 +1,16 @@
 package logisticsking.com.logisticskingbackendspring.domain.vendor
 
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
-import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorProductCommand
+import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateProductCommand
 import logisticsking.com.logisticskingbackendspring.app.vendor.command.UpdateVendorCommand
-import logisticsking.com.logisticskingbackendspring.app.vendor.command.UpdateVendorProductCommand
-import logisticsking.com.logisticskingbackendspring.app.vendor.result.VendorProductResult
+import logisticsking.com.logisticskingbackendspring.app.vendor.command.UpdateProductCommand
+import logisticsking.com.logisticskingbackendspring.app.vendor.result.ProductResult
 import logisticsking.com.logisticskingbackendspring.app.vendor.result.VendorResult
-import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.CreateVendorProductUseCase
+import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.CreateProductUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.CreateVendorUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetMyVendorUseCase
-import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetVendorProductsUseCase
-import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorProductUseCase
+import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetProductsUseCase
+import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateProductUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorUseCase
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
@@ -27,14 +27,14 @@ import java.util.UUID
 class VendorService(
     private val userRepository: UserRepository,
     private val vendorRepository: VendorRepository,
-    private val vendorProductRepository: VendorProductRepository,
+    private val productRepository: ProductRepository,
     private val idGenerator: IdGenerator,
 ) : CreateVendorUseCase,
     GetMyVendorUseCase,
     UpdateVendorUseCase,
-    CreateVendorProductUseCase,
-    GetVendorProductsUseCase,
-    UpdateVendorProductUseCase {
+    CreateProductUseCase,
+    GetProductsUseCase,
+    UpdateProductUseCase {
 
     @Transactional
     override fun create(command: CreateVendorCommand): VendorResult {
@@ -85,10 +85,10 @@ class VendorService(
     }
 
     @Transactional
-    override fun createProduct(command: CreateVendorProductCommand): VendorProductResult {
+    override fun createProduct(command: CreateProductCommand): ProductResult {
         findVendorUser(command.userId)
         val vendor = findVendorByUserId(command.userId)
-        val product = VendorProduct.create(
+        val product = Product.create(
             id = idGenerator.generate(),
             vendorId = vendor.id,
             category = command.category,
@@ -108,27 +108,27 @@ class VendorService(
             coldChainType = command.coldChainType,
         )
 
-        return VendorProductResult.from(vendorProductRepository.save(product))
+        return ProductResult.from(productRepository.save(product))
     }
 
     @Transactional(readOnly = true)
     override fun getProducts(
         userId: UUID,
-        condition: VendorProductSearchCondition,
+        condition: ProductSearchCondition,
         pageable: Pageable,
-    ): Page<VendorProductResult> {
+    ): Page<ProductResult> {
         findVendorUser(userId)
         val vendor = findVendorByUserId(userId)
 
-        return vendorProductRepository.findAllByVendorId(vendor.id, condition, pageable)
-            .map(VendorProductResult::from)
+        return productRepository.findAllByVendorId(vendor.id, condition, pageable)
+            .map(ProductResult::from)
     }
 
     @Transactional
-    override fun updateProduct(command: UpdateVendorProductCommand): VendorProductResult {
+    override fun updateProduct(command: UpdateProductCommand): ProductResult {
         findVendorUser(command.userId)
         val vendor = findVendorByUserId(command.userId)
-        val product = vendorProductRepository.findByIdAndVendorId(
+        val product = productRepository.findByIdAndVendorId(
             id = command.productId,
             vendorId = vendor.id,
         ) ?: throw GlobalException(VendorErrorCode.PRODUCT_NOT_FOUND)
@@ -150,7 +150,7 @@ class VendorService(
             coldChainType = command.coldChainType,
         )
 
-        return VendorProductResult.from(vendorProductRepository.save(updated))
+        return ProductResult.from(productRepository.save(updated))
     }
 
     private fun findVendorUser(userId: UUID): User {

@@ -5,10 +5,15 @@ import java.util.UUID
 
 class User private constructor(
     val id: UUID,
+
     val loginId: String,
+
     val email: String,
+
     val encodedPassword: String,
+
     val name: String,
+
     val role: UserRole,
 ) {
     fun changePassword(encodedPassword: String): User {

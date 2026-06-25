@@ -6,18 +6,18 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
 import logisticsking.com.logisticskingbackendspring.app.vendor.dto.VendorRequest
 import logisticsking.com.logisticskingbackendspring.app.vendor.dto.VendorResponse
-import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.CreateVendorProductUseCase
+import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.CreateProductUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.CreateVendorUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetMyVendorUseCase
-import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetVendorProductsUseCase
-import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorProductUseCase
+import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.GetProductsUseCase
+import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateProductUseCase
 import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.UpdateVendorUseCase
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.domain.common.BoxSize
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
-import logisticsking.com.logisticskingbackendspring.domain.vendor.VendorProductSearchCondition
+import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductSearchCondition
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -41,9 +41,9 @@ class VendorController(
     private val createVendorUseCase: CreateVendorUseCase,
     private val getMyVendorUseCase: GetMyVendorUseCase,
     private val updateVendorUseCase: UpdateVendorUseCase,
-    private val createVendorProductUseCase: CreateVendorProductUseCase,
-    private val getVendorProductsUseCase: GetVendorProductsUseCase,
-    private val updateVendorProductUseCase: UpdateVendorProductUseCase,
+    private val createProductUseCase: CreateProductUseCase,
+    private val getProductsUseCase: GetProductsUseCase,
+    private val updateProductUseCase: UpdateProductUseCase,
 ) {
 
     @Operation(summary = "내 화주 프로필 생성", description = "로그인한 화주 사용자의 사업 프로필을 생성합니다.")
@@ -90,7 +90,7 @@ class VendorController(
         @AuthenticationPrincipal user: AuthenticatedUser,
         @RequestBody request: VendorRequest.CreateProduct,
     ): ApiResponse<VendorResponse.ProductDetail> {
-        val result = createVendorProductUseCase.createProduct(request.toCommand(user.userId))
+        val result = createProductUseCase.createProduct(request.toCommand(user.userId))
 
         return ApiResponse.success(
             response = VendorResponse.ProductDetail.from(result),
@@ -107,9 +107,9 @@ class VendorController(
         @RequestParam(required = false) coldChainType: ColdChainType?,
         @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<VendorResponse.ProductList> {
-        val results = getVendorProductsUseCase.getProducts(
+        val results = getProductsUseCase.getProducts(
             userId = user.userId,
-            condition = VendorProductSearchCondition(
+            condition = ProductSearchCondition(
                 name = name,
                 category = category,
                 boxSize = boxSize,
@@ -130,7 +130,7 @@ class VendorController(
         @PathVariable productId: UUID,
         @RequestBody request: VendorRequest.UpdateProduct,
     ): ApiResponse<VendorResponse.ProductDetail> {
-        val result = updateVendorProductUseCase.updateProduct(request.toCommand(user.userId, productId))
+        val result = updateProductUseCase.updateProduct(request.toCommand(user.userId, productId))
 
         return ApiResponse.success(
             response = VendorResponse.ProductDetail.from(result),

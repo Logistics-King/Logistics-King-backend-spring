@@ -10,10 +10,14 @@ import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.Contract
+import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestContractType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractStatus
+import logisticsking.com.logisticskingbackendspring.domain.contract.RecurringPickupCycle
 import logisticsking.com.logisticskingbackendspring.domain.vendor.ProductCategory
 import logisticsking.com.logisticskingbackendspring.infra.persistence.common.BaseJpaEntity
 import java.math.BigDecimal
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.util.UUID
 
 @Entity
@@ -46,6 +50,32 @@ class ContractJpaEntity(
 
     @Column(name = "pickup_address", length = 255)
     val pickupAddress: String?,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "contract_type", nullable = false, length = 30)
+    val contractType: ContractRequestContractType,
+
+    @Column(name = "pickup_date_from")
+    val pickupDateFrom: LocalDate?,
+
+    @Column(name = "pickup_date_to")
+    val pickupDateTo: LocalDate?,
+
+    @Column(name = "delivery_date_from")
+    val deliveryDateFrom: LocalDate?,
+
+    @Column(name = "delivery_date_to")
+    val deliveryDateTo: LocalDate?,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recurring_pickup_cycle", length = 30)
+    val recurringPickupCycle: RecurringPickupCycle?,
+
+    @Column(name = "recurring_pickup_days_of_week", length = 100)
+    val recurringPickupDaysOfWeek: String?,
+
+    @Column(name = "recurring_pickup_day_of_month")
+    val recurringPickupDayOfMonth: Int?,
 
     @Column(name = "monthly_volume", nullable = false)
     val monthlyVolume: Int,
@@ -97,6 +127,14 @@ class ContractJpaEntity(
             agencyId = agencyId,
             pickupRegion = pickupRegion,
             pickupAddress = pickupAddress,
+            contractType = contractType,
+            pickupDateFrom = pickupDateFrom,
+            pickupDateTo = pickupDateTo,
+            deliveryDateFrom = deliveryDateFrom,
+            deliveryDateTo = deliveryDateTo,
+            recurringPickupCycle = recurringPickupCycle,
+            recurringPickupDaysOfWeek = recurringPickupDaysOfWeek.toDayOfWeeks(),
+            recurringPickupDayOfMonth = recurringPickupDayOfMonth,
             monthlyVolume = monthlyVolume,
             productCategory = productCategory,
             productName = productName,
@@ -123,6 +161,14 @@ class ContractJpaEntity(
                 agencyId = contract.agencyId,
                 pickupRegion = contract.pickupRegion,
                 pickupAddress = contract.pickupAddress,
+                contractType = contract.contractType,
+                pickupDateFrom = contract.pickupDateFrom,
+                pickupDateTo = contract.pickupDateTo,
+                deliveryDateFrom = contract.deliveryDateFrom,
+                deliveryDateTo = contract.deliveryDateTo,
+                recurringPickupCycle = contract.recurringPickupCycle,
+                recurringPickupDaysOfWeek = contract.recurringPickupDaysOfWeek.toColumnValue(),
+                recurringPickupDayOfMonth = contract.recurringPickupDayOfMonth,
                 monthlyVolume = contract.monthlyVolume,
                 productCategory = contract.productCategory,
                 productName = contract.productName,
@@ -136,6 +182,17 @@ class ContractJpaEntity(
                 memo = contract.memo,
                 status = contract.status,
             )
+        }
+
+        private fun List<DayOfWeek>.toColumnValue(): String? {
+            return takeIf { it.isNotEmpty() }?.joinToString(",") { it.name }
+        }
+
+        private fun String?.toDayOfWeeks(): List<DayOfWeek> {
+            return this
+                ?.split(",")
+                ?.mapNotNull { value -> value.trim().takeIf(String::isNotBlank)?.let(DayOfWeek::valueOf) }
+                .orEmpty()
         }
     }
 }
