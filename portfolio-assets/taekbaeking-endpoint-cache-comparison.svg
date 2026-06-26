@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <defs>
+    <style>
+      .bg { fill: #f7f8fb; }
+      .title { font: 800 39px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+      .subtitle { font: 500 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #667085; }
+      .section { font: 850 26px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+      .label { font: 800 21px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+      .small { font: 530 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #667085; }
+      .tiny { font: 700 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #667085; }
+      .tag { font: 800 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; }
+      .metric { font: 850 28px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+      .code { font: 750 16px "SFMono-Regular", Consolas, monospace; fill: #172033; }
+      .card { fill: #ffffff; stroke: #d9deea; stroke-width: 2; rx: 20; }
+      .panel-before { fill: #fff7ed; stroke: #fed7aa; stroke-width: 2; rx: 24; }
+      .panel-after { fill: #eff6ff; stroke: #bfdbfe; stroke-width: 2; rx: 24; }
+      .metric-card { fill: #ffffff; stroke: #d9deea; stroke-width: 2; rx: 18; }
+      .blue { fill: #2563eb; }
+      .green { fill: #16a34a; }
+      .orange { fill: #f97316; }
+      .purple { fill: #7c3aed; }
+      .red { fill: #dc2626; }
+      .gray { fill: #64748b; }
+      .slate { fill: #334155; }
+      .line { stroke: #98a2b3; stroke-width: 4; fill: none; stroke-linecap: round; }
+      .line-red { stroke: #f97316; stroke-width: 4; fill: none; stroke-linecap: round; }
+      .line-green { stroke: #16a34a; stroke-width: 4; fill: none; stroke-linecap: round; }
+      .dash-red { stroke: #f97316; stroke-width: 3; fill: none; stroke-linecap: round; stroke-dasharray: 8 10; }
+      .dash-green { stroke: #16a34a; stroke-width: 3; fill: none; stroke-linecap: round; stroke-dasharray: 8 10; }
+      .arrow-gray { fill: #98a2b3; }
+      .arrow-orange { fill: #f97316; }
+      .arrow-green { fill: #16a34a; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1440" height="900"/>
+  <text class="title" x="80" y="86">권한 정책 성능 개선</text>
+  <text class="subtitle" x="80" y="124">DB 기반 운영 검토 가능성은 유지하고, 요청 경로의 반복 DB 조회는 메모리 캐시로 제거</text>
+
+  <rect class="panel-before" x="70" y="175" width="620" height="470"/>
+  <rect class="orange" x="105" y="210" width="92" height="34" rx="17"/>
+  <text class="tag" x="123" y="233">개선 전</text>
+  <text class="section" x="105" y="285">요청마다 DB 권한 정책 조회</text>
+  <text class="small" x="105" y="318">운영 중 DB 수정 즉시 반영은 가능하지만</text>
+  <text class="small" x="105" y="346">보호 API마다 end_points 전체 조회가 반복됨</text>
+
+  <rect class="card" x="105" y="390" width="135" height="78"/>
+  <text class="label" x="132" y="423">클라이언트</text>
+  <text class="small" x="128" y="450">API 요청</text>
+  <path class="line-red" d="M250 429 H307"/>
+  <polygon class="arrow-orange" points="307,429 291,418 291,440"/>
+
+  <rect class="card" x="325" y="390" width="150" height="78"/>
+  <text class="label" x="354" y="423">권한 필터</text>
+  <text class="small" x="358" y="450">역할 검사</text>
+  <path class="line-red" d="M485 429 H542"/>
+  <polygon class="arrow-orange" points="542,429 526,418 526,440"/>
+
+  <rect class="card" x="560" y="390" width="95" height="78"/>
+  <text class="label" x="585" y="423">API</text>
+  <text class="small" x="578" y="450">실행</text>
+
+  <path class="dash-red" d="M400 390 V350 H510 V468"/>
+  <polygon class="arrow-orange" points="510,468 499,452 521,452"/>
+  <rect class="orange" x="452" y="322" width="132" height="34" rx="17"/>
+  <text class="tag" x="472" y="345">end_points DB</text>
+
+  <rect class="metric-card" x="105" y="520" width="245" height="88"/>
+  <text class="tiny" x="130" y="550">요청 5000건 / 동시 요청 100개</text>
+  <text class="metric" x="130" y="588">처리량 1,342.82</text>
+
+  <rect class="metric-card" x="375" y="520" width="245" height="88"/>
+  <text class="tiny" x="400" y="550">평균 지연 시간</text>
+  <text class="metric" x="400" y="588">74 ms</text>
+
+  <rect class="panel-after" x="750" y="175" width="620" height="470"/>
+  <rect class="blue" x="785" y="210" width="82" height="34" rx="17"/>
+  <text class="tag" x="807" y="233">개선 후</text>
+  <text class="section" x="785" y="285">권한 정책 메모리 캐시 검사</text>
+  <text class="small" x="785" y="318">서버 시작 시 DB 정책을 캐시에 적재하고</text>
+  <text class="small" x="785" y="346">요청 경로에서는 URL/메서드/역할만 메모리 매칭</text>
+
+  <rect class="card" x="785" y="390" width="135" height="78"/>
+  <text class="label" x="812" y="423">클라이언트</text>
+  <text class="small" x="808" y="450">API 요청</text>
+  <path class="line-green" d="M930 429 H987"/>
+  <polygon class="arrow-green" points="987,429 971,418 971,440"/>
+
+  <rect class="card" x="1005" y="390" width="150" height="78"/>
+  <text class="label" x="1034" y="423">권한 필터</text>
+  <text class="small" x="1036" y="450">캐시 검사</text>
+  <path class="line-green" d="M1165 429 H1222"/>
+  <polygon class="arrow-green" points="1222,429 1206,418 1206,440"/>
+
+  <rect class="card" x="1240" y="390" width="95" height="78"/>
+  <text class="label" x="1265" y="423">API</text>
+  <text class="small" x="1258" y="450">실행</text>
+
+  <path class="dash-green" d="M1080 390 V350 H1190 V468"/>
+  <polygon class="arrow-green" points="1190,468 1179,452 1201,452"/>
+  <rect class="green" x="1128" y="322" width="132" height="34" rx="17"/>
+  <text class="tag" x="1150" y="345">메모리 캐시</text>
+
+  <rect class="metric-card" x="785" y="520" width="245" height="88"/>
+  <text class="tiny" x="810" y="550">요청 5000건 / 동시 요청 100개</text>
+  <text class="metric" x="810" y="588">처리량 2,583.01</text>
+
+  <rect class="metric-card" x="1055" y="520" width="245" height="88"/>
+  <text class="tiny" x="1080" y="550">평균 지연 시간</text>
+  <text class="metric" x="1080" y="588">39 ms</text>
+
+  <rect class="card" x="125" y="690" width="1190" height="135"/>
+  <rect class="purple" x="160" y="722" width="112" height="34" rx="17"/>
+  <text class="tag" x="199" y="745">운영</text>
+  <text class="label" x="160" y="785">운영 중 권한 변경은 dry-run 후 reload</text>
+  <text class="code" x="595" y="745">GET  /api/v1/admin/end-points/cache/dry-run</text>
+  <text class="code" x="595" y="785">POST /api/v1/admin/end-points/cache/reload</text>
+  <text class="small" x="160" y="815">DB 정책과 캐시 차이를 먼저 확인한 뒤, 서버 재시작 없이 권한 캐시 갱신</text>
+
+  <path class="line" d="M690 410 H750"/>
+  <polygon class="arrow-gray" points="750,410 734,399 734,421"/>
+  <text class="tiny" x="695" y="392">개선</text>
+
+  <rect class="green" x="552" y="648" width="336" height="46" rx="23"/>
+  <text class="tag" x="578" y="677">처리량 +92.4% / 평균 지연 -47.3%</text>
+</svg>

@@ -109,9 +109,39 @@ class EndPointAuthorizationFilterTest {
         assertEquals(200, response.status)
     }
 
+    @Test
+    fun `권한 검사는 요청마다 repository를 다시 조회하지 않는다`() {
+        val repository = CountingEndPointRepository(
+            listOf(
+                EndPoint.create(
+                    url = "/api/v1/vendors/**",
+                    method = "GET",
+                    roles = setOf(UserRole.VENDOR),
+                    description = "vendor endpoints",
+                )
+            )
+        )
+        val cache = EndPointAuthorizationCache(repository)
+        cache.reload()
+        val filter = EndPointAuthorizationFilter(
+            endPointAuthorizationCache = cache,
+            securityResponseWriter = SecurityResponseWriter(ObjectMapper()),
+        )
+        authenticate(UserRole.VENDOR)
+
+        filter.doFilter(request("/api/v1/vendors/me"), MockHttpServletResponse(), MockFilterChain())
+        filter.doFilter(request("/api/v1/vendors/me"), MockHttpServletResponse(), MockFilterChain())
+
+        assertEquals(1, repository.findAllCount)
+    }
+
     private fun filterWith(endPoints: List<EndPoint>): EndPointAuthorizationFilter {
+        val repository = FakeEndPointRepository(endPoints)
+        val cache = EndPointAuthorizationCache(repository)
+        cache.reload()
+
         return EndPointAuthorizationFilter(
-            endPointRepository = FakeEndPointRepository(endPoints),
+            endPointAuthorizationCache = cache,
             securityResponseWriter = SecurityResponseWriter(ObjectMapper()),
         )
     }
@@ -137,6 +167,26 @@ class EndPointAuthorizationFilterTest {
         private val endPoints: List<EndPoint>,
     ) : EndPointRepository {
         override fun findAll(): List<EndPoint> {
+            return endPoints
+        }
+
+        override fun findByUrlAndMethod(url: String, method: String): EndPoint? {
+            return endPoints.firstOrNull { it.url == url && it.method == method }
+        }
+
+        override fun save(endPoint: EndPoint): EndPoint {
+            return endPoint
+        }
+    }
+
+    private class CountingEndPointRepository(
+        private val endPoints: List<EndPoint>,
+    ) : EndPointRepository {
+        var findAllCount: Int = 0
+            private set
+
+        override fun findAll(): List<EndPoint> {
+            findAllCount += 1
             return endPoints
         }
 

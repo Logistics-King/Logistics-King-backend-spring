@@ -26,6 +26,12 @@ interface NotificationRepository {
         receiverUserId: UUID,
     ): Notification?
 
+    fun findAfter(
+        receiverUserId: UUID,
+        lastNotification: Notification,
+        limit: Int,
+    ): List<Notification>
+
     fun markAsRead(
         id: UUID,
         receiverUserId: UUID,

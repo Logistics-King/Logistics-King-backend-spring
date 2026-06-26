@@ -4,6 +4,7 @@ import logisticsking.com.logisticskingbackendspring.app.notification.dto.Notific
 import logisticsking.com.logisticskingbackendspring.app.notification.result.NotificationResult
 import logisticsking.com.logisticskingbackendspring.app.notification.usecase.SubscribeNotificationStreamUseCase
 import logisticsking.com.logisticskingbackendspring.domain.notification.Notification
+import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationRepository
 import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationStreamSender
 import org.springframework.stereotype.Service
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
@@ -13,12 +14,17 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 @Service
-class NotificationSseStreamService : NotificationStreamSender,
+class NotificationSseStreamService(
+    private val notificationRepository: NotificationRepository,
+) : NotificationStreamSender,
     SubscribeNotificationStreamUseCase {
 
     private val emittersByUserId = ConcurrentHashMap<UUID, CopyOnWriteArrayList<SseEmitter>>()
 
-    override fun subscribe(userId: UUID): SseEmitter {
+    override fun subscribe(
+        userId: UUID,
+        lastEventId: UUID?,
+    ): SseEmitter {
         val emitter = SseEmitter(TIMEOUT_MILLIS)
         val emitters = emittersByUserId.computeIfAbsent(userId) { CopyOnWriteArrayList() }
 
@@ -45,16 +51,18 @@ class NotificationSseStreamService : NotificationStreamSender,
                 .data(mapOf("connected" to true)),
         )
 
+        replayMissedNotifications(
+            userId = userId,
+            lastEventId = lastEventId,
+            emitter = emitter,
+        )
+
         return emitter
     }
 
     override fun send(notification: Notification) {
         val emitters = emittersByUserId[notification.receiverUserId] ?: return
-        val response = NotificationResponse.Detail.from(NotificationResult.from(notification))
-        val event = SseEmitter.event()
-            .id(notification.id.toString())
-            .name(NOTIFICATION_EVENT_NAME)
-            .data(response)
+        val event = buildNotificationEvent(notification)
 
         // CopyOnWriteArrayList를 쓰는 이유는 같은 userId의 여러 탭에 push하는 동안,
         // 실패한 emitter를 제거해도 순회가 안전하게 유지되기 때문이다.
@@ -83,6 +91,46 @@ class NotificationSseStreamService : NotificationStreamSender,
         }
     }
 
+    private fun replayMissedNotifications(
+        userId: UUID,
+        lastEventId: UUID?,
+        emitter: SseEmitter,
+    ) {
+        if (lastEventId == null) {
+            return
+        }
+
+        val lastNotification = notificationRepository.findByIdAndReceiverUserId(
+            id = lastEventId,
+            receiverUserId = userId,
+        ) ?: return
+
+        val missedNotifications = notificationRepository.findAfter(
+            receiverUserId = userId,
+            lastNotification = lastNotification,
+            limit = REPLAY_LIMIT,
+        )
+
+        // SSE는 전송 채널이고 알림 원천 상태는 DB다. 재연결 시 Last-Event-ID 이후
+        // 저장된 알림을 다시 흘려 보내며, 프론트는 notificationId 기준 중복 제거를 담당한다.
+        missedNotifications.forEach { notification ->
+            sendToEmitter(
+                userId = userId,
+                emitter = emitter,
+                event = buildNotificationEvent(notification),
+            )
+        }
+    }
+
+    private fun buildNotificationEvent(notification: Notification): SseEmitter.SseEventBuilder {
+        val response = NotificationResponse.Detail.from(NotificationResult.from(notification))
+
+        return SseEmitter.event()
+            .id(notification.id.toString())
+            .name(NOTIFICATION_EVENT_NAME)
+            .data(response)
+    }
+
     private fun removeEmitter(
         userId: UUID,
         emitter: SseEmitter,
@@ -96,6 +144,7 @@ class NotificationSseStreamService : NotificationStreamSender,
 
     companion object {
         private const val TIMEOUT_MILLIS = 30 * 60 * 1000L
+        private const val REPLAY_LIMIT = 100
         private const val CONNECTED_EVENT_NAME = "connected"
         private const val NOTIFICATION_EVENT_NAME = "notification"
     }

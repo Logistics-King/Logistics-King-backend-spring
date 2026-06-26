@@ -31,5 +31,8 @@ interface ReadAllNotificationsUseCase {
 }
 
 interface SubscribeNotificationStreamUseCase {
-    fun subscribe(userId: UUID): SseEmitter
+    fun subscribe(
+        userId: UUID,
+        lastEventId: UUID?,
+    ): SseEmitter
 }

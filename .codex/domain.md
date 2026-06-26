@@ -371,12 +371,28 @@ CJ 일동대리점   평점 4.8 -> S박스 2,050원 / 토요일 가능 / 냉장 
 
 ```text
 GET /api/v1/notifications/me
+GET /api/v1/notifications/stream
 GET /api/v1/notifications/me/unread-count
 PUT /api/v1/notifications/{notificationId}/read
 PUT /api/v1/notifications/me/read-all
 ```
 
-실시간 알림, SSE/WebSocket, Redis unread count cache는 2차 확장으로 둔다.
+### SSE 전달 보장 정책
+
+SSE는 알림의 원천 저장소가 아니라 실시간 전달 채널이다. 알림은 항상 DB에 먼저 저장하고, 트랜잭션 커밋 이후 접속 중인 사용자에게 SSE로 전달한다.
+
+전달 정책은 최소 1회 전달(at-least-once)을 기준으로 한다.
+
+- SSE 연결은 사용자별 emitter registry로 관리한다.
+- 새 알림은 `receiverUserId`에 해당하는 emitter에만 전달한다.
+- SSE event id는 `notification.id`를 사용한다.
+- 브라우저가 재연결하면서 `Last-Event-ID`를 보내면, 서버는 해당 알림 이후 DB에 저장된 알림을 오래된 순서로 다시 전송한다.
+- 잘못된 `Last-Event-ID`이거나 수신자 본인의 알림이 아니면 replay를 생략한다.
+- SSE 전송 성공은 사용자의 화면 처리 완료를 뜻하지 않으므로 중복 수신 가능성이 있다.
+- 프론트는 `notificationId` 기준으로 중복 제거한다.
+- 최종 복구 기준은 `GET /api/v1/notifications/me` 목록 API다.
+
+Redis unread count cache나 서버 간 SSE pub/sub은 다중 서버 배포 시 2차 확장으로 둔다.
 
 ## 도메인 전제와 확인 필요 사항
 
