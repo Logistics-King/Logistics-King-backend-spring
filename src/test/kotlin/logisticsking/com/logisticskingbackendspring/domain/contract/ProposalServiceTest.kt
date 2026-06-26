@@ -169,6 +169,7 @@ class ProposalServiceTest {
         override fun findById(id: UUID): Agency? = null
         override fun findAllByIds(ids: Collection<UUID>): List<Agency> = emptyList()
         override fun findAll(condition: AgencySearchCondition, pageable: Pageable): Page<Agency> = PageImpl(emptyList(), pageable, 0)
+        override fun findAllForRecommendation(): List<Agency> = emptyList()
         override fun findByUserId(userId: UUID): Agency? = null
         override fun existsByUserId(userId: UUID): Boolean = false
     }

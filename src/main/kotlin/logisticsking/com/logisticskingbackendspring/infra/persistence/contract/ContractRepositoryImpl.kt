@@ -3,6 +3,7 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.contract
 import logisticsking.com.logisticskingbackendspring.domain.contract.Contract
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRepository
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.util.UUID
@@ -31,6 +32,16 @@ class ContractRepositoryImpl(
     override fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Contract> {
         return contractJpaRepository.findAllByAgencyIdOrderByCreatedAtDesc(agencyId, pageable)
             .toDomainPageWithItems()
+    }
+
+    override fun findRecentAgencyIdsByVendorId(vendorId: UUID, limit: Int): List<UUID> {
+        return contractJpaRepository.findAllByVendorIdOrderByCreatedAtDesc(
+            vendorId,
+            PageRequest.of(0, limit),
+        )
+            .content
+            .map(ContractJpaEntity::agencyId)
+            .distinct()
     }
 
     override fun existsByContractRequestId(contractRequestId: UUID): Boolean {

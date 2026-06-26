@@ -77,6 +77,15 @@ class AgencyRepositoryImpl(
         return PageImpl(content, pageable, total)
     }
 
+    override fun findAllForRecommendation(): List<Agency> {
+        return queryFactory
+            .selectFrom(agency)
+            .where(agency.deletedAt.isNull)
+            .orderBy(agency.createdAt.desc())
+            .fetch()
+            .map(AgencyJpaEntity::toDomain)
+    }
+
     override fun findByUserId(userId: UUID): Agency? {
         return jpaRepository.findByUserIdAndDeletedAtIsNull(userId)?.toDomain()
     }
