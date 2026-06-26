@@ -627,6 +627,62 @@ ab -n 5000 -c 100 -C "accessToken=..." http://127.0.0.1:8081/api/v1/notification
 - 성능 테스트로 병목 가능성을 확인한 뒤, 메모리 캐시와 명시적 reload API로 개선했습니다.
 - 단순히 캐시만 넣지 않고 `dry-run`을 추가해 운영자가 반영 전 변경 범위를 확인할 수 있게 했습니다.
 
+## 2026-06-26 SSE 알림 전달 보장 구조 개선
+
+### 문제
+
+알림은 사용자가 계약 요청, 제안, 계약 확정 같은 중요한 상태 변화를 놓치지 않도록 전달되어야 합니다.
+
+기존 구조는 알림을 DB에 저장하고 접속 중인 사용자에게 SSE로 즉시 전달하는 방식이었습니다. 이 방식은 새로고침 없이 실시간에 가까운 사용자 경험을 만들 수 있지만, 네트워크 끊김이나 브라우저 재연결 사이에 발생한 알림을 놓칠 수 있다는 문제가 있었습니다.
+
+SSE는 메시지 큐나 영속 저장소가 아니라 서버와 브라우저 사이의 단방향 전달 채널입니다. 따라서 전달 보장을 SSE 자체에 기대하기보다, DB를 알림의 원천 저장소로 두고 SSE는 실시간 전달과 재연결 복구를 보조하는 구조가 필요했습니다.
+
+### 해결
+
+알림 전달 정책을 최소 1회 전달(at-least-once)로 정리했습니다.
+
+알림 생성 시에는 먼저 `notifications` 테이블에 저장하고, 트랜잭션 커밋 이후 접속 중인 사용자에게 SSE로 전송합니다. SSE event id는 `notification.id`를 사용하도록 했습니다.
+
+브라우저가 SSE를 재연결할 때 `Last-Event-ID`를 보내면, 서버는 해당 알림이 로그인 사용자의 알림인지 확인한 뒤 그 이후 DB에 저장된 알림을 최대 100개까지 오래된 순서로 다시 전송합니다.
+
+```text
+알림 발생
+-> notifications 저장
+-> transaction commit
+-> 접속 중인 사용자에게 SSE 전송
+-> 연결 끊김
+-> 브라우저 재연결 + Last-Event-ID
+-> DB 기준 누락 알림 replay
+```
+
+이 구조에서는 중복 수신 가능성을 허용합니다. 대신 프론트엔드는 `notificationId` 기준으로 중복 제거를 수행하고, 최종 상태 복구는 알림 목록 조회 API를 사용합니다.
+
+### 변경 범위
+
+- `GET /api/v1/notifications/stream`에서 `Last-Event-ID` 헤더 수신
+- `NotificationRepository.findAfter` 추가
+- SSE 재연결 시 누락 알림 replay 처리
+- replay 최대 개수 100개 제한
+- 잘못된 `Last-Event-ID` 또는 본인 알림이 아닌 경우 replay 생략
+- SSE 전달 보장 정책을 `.codex/domain.md`, `.codex/api.md`에 문서화
+- `NotificationSseStreamServiceTest` 추가
+
+### 검증
+
+```bash
+./gradlew compileKotlin
+./gradlew test
+git diff --check
+```
+
+### 포트폴리오 포인트
+
+- SSE를 영속 메시지 저장소로 오해하지 않고, DB 기반 알림 이력과 실시간 전달 채널로 역할을 분리했습니다.
+- exactly-once 전달을 무리하게 보장하기보다 at-least-once 정책과 프론트 중복 제거로 현실적인 전달 보장 모델을 선택했습니다.
+- 트랜잭션 커밋 이후 전송하도록 하여 저장 실패 알림이 화면에 먼저 노출되는 문제를 방지했습니다.
+- `Last-Event-ID`를 활용해 브라우저 재연결 시 누락 알림을 복구할 수 있게 했습니다.
+- 다중 서버 환경에서는 Redis pub/sub이나 MQ가 필요할 수 있다는 확장 지점을 남겼습니다.
+
 ## 다음에 보강할 작업
 
 - 운영 profile과 로컬 profile 분리
@@ -639,7 +695,7 @@ ab -n 5000 -c 100 -C "accessToken=..." http://127.0.0.1:8081/api/v1/notification
 - Docker Compose로 MySQL/Redis 로컬 실행 환경 구성
 - CI에서 compile/test 자동 실행
 - `AGENCY_OFFER` 프론트 플로우와 상세 QA
-- 알림 SSE/WebSocket 실시간 전달 검토
+- 다중 서버 환경에서 알림 SSE pub/sub 구조 검토
 
 ## 작업 기록 업데이트 규칙
 
