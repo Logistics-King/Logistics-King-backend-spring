@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "Recommendation", description = "추천 API")
 @SecurityRequirement(name = "accessTokenCookie")
-@EndpointAccess(roles = [UserRole.VENDOR])
 @RestController
 @RequestMapping("/api/v1/recommendations")
 class RecommendationController(
@@ -28,6 +27,7 @@ class RecommendationController(
         summary = "화주용 추천 대리점 조회",
         description = "로그인한 화주에게 이전 계약 이력과 지역 기준으로 추천 대리점 목록을 제공합니다.",
     )
+    @EndpointAccess(roles = [UserRole.VENDOR])
     @GetMapping("/agencies")
     fun getRecommendedAgencies(
         @AuthenticationPrincipal user: AuthenticatedUser,
