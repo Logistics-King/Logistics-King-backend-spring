@@ -9,5 +9,6 @@ interface ContractRepository {
     fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<Contract>
     fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Contract>
     fun findRecentAgencyIdsByVendorId(vendorId: UUID, limit: Int): List<UUID>
+    fun findRecentVendorIdsByAgencyId(agencyId: UUID, limit: Int): List<UUID>
     fun existsByContractRequestId(contractRequestId: UUID): Boolean
 }

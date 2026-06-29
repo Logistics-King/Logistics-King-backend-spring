@@ -67,6 +67,57 @@ class RecommendationServiceTest {
         assertEquals(50, results[1].score)
     }
 
+    @Test
+    fun `대리점에게 이전 계약과 지역 기준으로 화주를 추천한다`() {
+        val agencyUser = user(role = UserRole.AGENCY)
+        val agency = agency(
+            userId = agencyUser.id,
+            name = "CJ 일동대리점",
+            mainRegion = "경기도 안산시 일동",
+            serviceRegions = listOf("경기도 안산시 일동", "경기도 안산시 본오동"),
+        )
+        val previousMatchedVendor = vendor(
+            userId = UUID.randomUUID(),
+            businessName = "일동 의류몰",
+            mainRegion = "경기도 안산시 일동",
+        )
+        val regionMatchedVendor = vendor(
+            userId = UUID.randomUUID(),
+            businessName = "본오 잡화몰",
+            mainRegion = "경기도 안산시 본오동",
+        )
+        val unmatchedVendor = vendor(
+            userId = UUID.randomUUID(),
+            businessName = "선부 식품몰",
+            mainRegion = "경기도 안산시 선부동",
+        )
+        val service = recommendationService(
+            userRepository = FakeUserRepository(agencyUser),
+            agencyRepository = FakeAgencyRepository(agency),
+            vendorRepository = FakeVendorRepository(previousMatchedVendor, regionMatchedVendor, unmatchedVendor),
+            contractRepository = FakeContractRepository(previousVendorIds = listOf(previousMatchedVendor.id)),
+        )
+
+        val results = service.getRecommendedVendors(
+            userId = agencyUser.id,
+            limit = 10,
+        )
+
+        assertEquals(2, results.size)
+        assertEquals(previousMatchedVendor.id, results[0].vendorId)
+        assertEquals(180, results[0].score)
+        assertEquals(
+            listOf(
+                RecommendationReasonType.PREVIOUS_CONTRACT,
+                RecommendationReasonType.SERVICE_REGION_MATCH,
+                RecommendationReasonType.MAIN_REGION_MATCH,
+            ),
+            results[0].reasons.map { it.type },
+        )
+        assertEquals(regionMatchedVendor.id, results[1].vendorId)
+        assertEquals(50, results[1].score)
+    }
+
     private fun recommendationService(
         userRepository: UserRepository = FakeUserRepository(),
         vendorRepository: VendorRepository = FakeVendorRepository(),
@@ -98,11 +149,12 @@ class RecommendationServiceTest {
     private fun vendor(
         userId: UUID,
         mainRegion: String,
+        businessName: String = "테스트 화주",
     ): Vendor {
         return Vendor.create(
             id = UUID.randomUUID(),
             userId = userId,
-            businessName = "테스트 화주",
+            businessName = businessName,
             businessRegistrationNumber = "123-45-67890",
             representativeName = "김화주",
             phoneNumber = "010-1234-5678",
@@ -114,13 +166,14 @@ class RecommendationServiceTest {
     }
 
     private fun agency(
+        userId: UUID = UUID.randomUUID(),
         name: String,
         mainRegion: String,
         serviceRegions: List<String>,
     ): Agency {
         return Agency.create(
             id = UUID.randomUUID(),
-            userId = UUID.randomUUID(),
+            userId = userId,
             carrier = Carrier.CJ,
             agencyName = name,
             businessRegistrationNumber = "123-45-67890",
@@ -164,6 +217,7 @@ class RecommendationServiceTest {
         override fun save(vendor: Vendor): Vendor = vendor
         override fun findById(id: UUID): Vendor? = vendors[id]
         override fun findAllByIds(ids: Collection<UUID>): List<Vendor> = vendors.values.filter { it.id in ids }
+        override fun findAllForRecommendation(): List<Vendor> = vendors.values.toList()
         override fun findByUserId(userId: UUID): Vendor? = vendors.values.firstOrNull { it.userId == userId }
         override fun existsByUserId(userId: UUID): Boolean = vendors.values.any { it.userId == userId }
     }
@@ -183,12 +237,19 @@ class RecommendationServiceTest {
     }
 
     private class FakeContractRepository(
-        private vararg val previousAgencyIds: UUID,
+        previousAgencyIds: List<UUID> = emptyList(),
+        previousVendorIds: List<UUID> = emptyList(),
     ) : ContractRepository {
+        private val previousAgencyIds = previousAgencyIds
+        private val previousVendorIds = previousVendorIds
+
+        constructor(vararg previousAgencyIds: UUID) : this(previousAgencyIds = previousAgencyIds.toList())
+
         override fun save(contract: Contract): Contract = contract
         override fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<Contract> = PageImpl(emptyList(), pageable, 0)
         override fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Contract> = PageImpl(emptyList(), pageable, 0)
         override fun findRecentAgencyIdsByVendorId(vendorId: UUID, limit: Int): List<UUID> = previousAgencyIds.take(limit)
+        override fun findRecentVendorIdsByAgencyId(agencyId: UUID, limit: Int): List<UUID> = previousVendorIds.take(limit)
         override fun existsByContractRequestId(contractRequestId: UUID): Boolean = false
     }
 }

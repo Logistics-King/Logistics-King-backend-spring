@@ -374,6 +374,10 @@ class AgencyServiceTest {
             return vendors.values.filter { it.id in ids }
         }
 
+        override fun findAllForRecommendation(): List<Vendor> {
+            return vendors.values.toList()
+        }
+
         override fun findByUserId(userId: UUID): Vendor? {
             return vendors.values.firstOrNull { it.userId == userId }
         }

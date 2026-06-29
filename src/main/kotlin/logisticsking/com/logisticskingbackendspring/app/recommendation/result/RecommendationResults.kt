@@ -6,6 +6,7 @@ import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.recommendation.RecommendationPurpose
 import logisticsking.com.logisticskingbackendspring.domain.recommendation.RecommendationReasonType
 import logisticsking.com.logisticskingbackendspring.domain.recommendation.RecommendationTargetType
+import logisticsking.com.logisticskingbackendspring.domain.vendor.Vendor
 import java.util.UUID
 
 data class AgencyRecommendationResult(
@@ -62,3 +63,39 @@ data class RecommendationReasonResult(
     val type: RecommendationReasonType,
     val label: String = type.label,
 )
+
+data class VendorRecommendationResult(
+    val targetType: RecommendationTargetType,
+    val purpose: RecommendationPurpose,
+    val vendorId: UUID,
+    val businessName: String,
+    val representativeName: String,
+    val phoneNumber: String,
+    val address: String,
+    val addressDetail: String?,
+    val mainRegion: String,
+    val score: Int,
+    val reasons: List<RecommendationReasonResult>,
+) {
+    companion object {
+        fun from(
+            vendor: Vendor,
+            score: Int,
+            reasons: List<RecommendationReasonResult>,
+        ): VendorRecommendationResult {
+            return VendorRecommendationResult(
+                targetType = RecommendationTargetType.VENDOR,
+                purpose = RecommendationPurpose.AGENCY_SALES_VENDOR_DISCOVERY,
+                vendorId = vendor.id,
+                businessName = vendor.businessName,
+                representativeName = vendor.representativeName,
+                phoneNumber = vendor.phoneNumber,
+                address = vendor.address,
+                addressDetail = vendor.addressDetail,
+                mainRegion = vendor.mainRegion,
+                score = score,
+                reasons = reasons,
+            )
+        }
+    }
+}

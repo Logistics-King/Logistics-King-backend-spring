@@ -160,6 +160,7 @@ class ProposalServiceTest {
         override fun save(vendor: Vendor): Vendor = vendor
         override fun findById(id: UUID): Vendor? = null
         override fun findAllByIds(ids: Collection<UUID>): List<Vendor> = emptyList()
+        override fun findAllForRecommendation(): List<Vendor> = emptyList()
         override fun findByUserId(userId: UUID): Vendor? = null
         override fun existsByUserId(userId: UUID): Boolean = false
     }

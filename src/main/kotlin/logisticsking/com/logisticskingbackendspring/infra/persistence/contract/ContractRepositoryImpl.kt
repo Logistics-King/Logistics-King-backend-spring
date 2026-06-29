@@ -44,6 +44,16 @@ class ContractRepositoryImpl(
             .distinct()
     }
 
+    override fun findRecentVendorIdsByAgencyId(agencyId: UUID, limit: Int): List<UUID> {
+        return contractJpaRepository.findAllByAgencyIdOrderByCreatedAtDesc(
+            agencyId,
+            PageRequest.of(0, limit),
+        )
+            .content
+            .map(ContractJpaEntity::vendorId)
+            .distinct()
+    }
+
     override fun existsByContractRequestId(contractRequestId: UUID): Boolean {
         return contractJpaRepository.existsByContractRequestId(contractRequestId)
     }

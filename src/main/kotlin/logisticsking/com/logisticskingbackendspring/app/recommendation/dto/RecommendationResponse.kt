@@ -3,6 +3,7 @@ package logisticsking.com.logisticskingbackendspring.app.recommendation.dto
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.recommendation.result.AgencyRecommendationResult
 import logisticsking.com.logisticskingbackendspring.app.recommendation.result.RecommendationReasonResult
+import logisticsking.com.logisticskingbackendspring.app.recommendation.result.VendorRecommendationResult
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 
 @Schema(description = "추천 응답")
@@ -16,6 +17,20 @@ sealed interface RecommendationResponse {
             fun from(results: kotlin.collections.List<AgencyRecommendationResult>): RecommendedAgencies {
                 return RecommendedAgencies(
                     items = results.map(RecommendedAgency::from),
+                )
+            }
+        }
+    }
+
+    @Schema(name = "RecommendedVendorListResponse")
+    data class RecommendedVendors(
+        @field:Schema(description = "추천 화주 목록")
+        val items: kotlin.collections.List<RecommendedVendor>,
+    ) : RecommendationResponse {
+        companion object {
+            fun from(results: kotlin.collections.List<VendorRecommendationResult>): RecommendedVendors {
+                return RecommendedVendors(
+                    items = results.map(RecommendedVendor::from),
                 )
             }
         }
@@ -96,6 +111,60 @@ sealed interface RecommendationResponse {
                     returnAvailable = result.returnAvailable,
                     supportedColdChainTypes = result.supportedColdChainTypes,
                     maxMonthlyVolume = result.maxMonthlyVolume,
+                    score = result.score,
+                    reasons = result.reasons.map(RecommendationReason::from),
+                )
+            }
+        }
+    }
+
+    @Schema(name = "RecommendedVendorResponse")
+    data class RecommendedVendor(
+        @field:Schema(description = "추천 대상 타입", example = "VENDOR")
+        val targetType: String,
+
+        @field:Schema(description = "추천 목적", example = "AGENCY_SALES_VENDOR_DISCOVERY")
+        val purpose: String,
+
+        @field:Schema(description = "화주 ID", example = "019b1f44-a741-7000-8000-000000000001")
+        val vendorId: String,
+
+        @field:Schema(description = "화주 상호명", example = "안산 의류몰")
+        val businessName: String,
+
+        @field:Schema(description = "대표자명", example = "김화주")
+        val representativeName: String,
+
+        @field:Schema(description = "연락처", example = "010-1234-5678")
+        val phoneNumber: String,
+
+        @field:Schema(description = "화주 주소", example = "경기도 안산시 상록구 일동")
+        val address: String,
+
+        @field:Schema(description = "상세 주소", example = "101호")
+        val addressDetail: String?,
+
+        @field:Schema(description = "주요 지역", example = "경기도 안산시 일동")
+        val mainRegion: String,
+
+        @field:Schema(description = "추천 점수", example = "180")
+        val score: Int,
+
+        @field:Schema(description = "추천 사유 목록")
+        val reasons: kotlin.collections.List<RecommendationReason>,
+    ) : RecommendationResponse {
+        companion object {
+            fun from(result: VendorRecommendationResult): RecommendedVendor {
+                return RecommendedVendor(
+                    targetType = result.targetType.name,
+                    purpose = result.purpose.name,
+                    vendorId = result.vendorId.toString(),
+                    businessName = result.businessName,
+                    representativeName = result.representativeName,
+                    phoneNumber = result.phoneNumber,
+                    address = result.address,
+                    addressDetail = result.addressDetail,
+                    mainRegion = result.mainRegion,
                     score = result.score,
                     reasons = result.reasons.map(RecommendationReason::from),
                 )

@@ -18,9 +18,19 @@ enum class RecommendationErrorCode(
         message = "화주 사용자만 대리점 추천을 조회할 수 있습니다.",
         status = HttpStatus.FORBIDDEN,
     ),
+    USER_IS_NOT_AGENCY(
+        code = "RECOMMENDATION_USER_IS_NOT_AGENCY",
+        message = "대리점 사용자만 화주 추천을 조회할 수 있습니다.",
+        status = HttpStatus.FORBIDDEN,
+    ),
     VENDOR_NOT_FOUND(
         code = "RECOMMENDATION_VENDOR_NOT_FOUND",
         message = "화주 프로필을 찾을 수 없습니다.",
+        status = HttpStatus.NOT_FOUND,
+    ),
+    AGENCY_NOT_FOUND(
+        code = "RECOMMENDATION_AGENCY_NOT_FOUND",
+        message = "대리점 프로필을 찾을 수 없습니다.",
         status = HttpStatus.NOT_FOUND,
     ),
     INVALID_LIMIT(
