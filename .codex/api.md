@@ -32,6 +32,8 @@ POST /api/v1/proposals/{proposalId}/negotiations/price-offers
 POST /api/v1/proposals/{proposalId}/negotiations/{eventId}/accept
 POST /api/v1/proposals/{proposalId}/negotiations/{eventId}/reject
 GET /api/v1/notifications/stream
+GET /api/v1/recommendations/agencies
+GET /api/v1/recommendations/vendors
 GET /api/v1/delivers/agency/me?page=0&size=20
 ```
 

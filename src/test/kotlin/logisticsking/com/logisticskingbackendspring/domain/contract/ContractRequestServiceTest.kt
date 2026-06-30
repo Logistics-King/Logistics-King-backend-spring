@@ -360,6 +360,7 @@ class ContractRequestServiceTest {
         }
         override fun findById(id: UUID): Vendor? = vendors[id]
         override fun findAllByIds(ids: Collection<UUID>): List<Vendor> = vendors.values.filter { it.id in ids }
+        override fun findAllForRecommendation(): List<Vendor> = vendors.values.toList()
         override fun findByUserId(userId: UUID): Vendor? = vendors.values.firstOrNull { it.userId == userId }
         override fun existsByUserId(userId: UUID): Boolean = vendors.values.any { it.userId == userId }
     }
@@ -369,6 +370,7 @@ class ContractRequestServiceTest {
         override fun findById(id: UUID): Agency? = null
         override fun findAllByIds(ids: Collection<UUID>): List<Agency> = emptyList()
         override fun findAll(condition: AgencySearchCondition, pageable: Pageable): Page<Agency> = PageImpl(emptyList(), pageable, 0)
+        override fun findAllForRecommendation(): List<Agency> = emptyList()
         override fun findByUserId(userId: UUID): Agency? = null
         override fun existsByUserId(userId: UUID): Boolean = false
     }
@@ -472,6 +474,8 @@ class ContractRequestServiceTest {
         override fun save(contract: Contract): Contract = contract
         override fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<Contract> = PageImpl(emptyList(), pageable, 0)
         override fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Contract> = PageImpl(emptyList(), pageable, 0)
+        override fun findRecentAgencyIdsByVendorId(vendorId: UUID, limit: Int): List<UUID> = emptyList()
+        override fun findRecentVendorIdsByAgencyId(agencyId: UUID, limit: Int): List<UUID> = emptyList()
         override fun existsByContractRequestId(contractRequestId: UUID): Boolean = false
     }
 

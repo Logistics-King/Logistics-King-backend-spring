@@ -27,6 +27,11 @@ class VendorRepositoryImpl(
             .map(VendorJpaEntity::toDomain)
     }
 
+    override fun findAllForRecommendation(): List<Vendor> {
+        return jpaRepository.findAllByDeletedAtIsNull()
+            .map(VendorJpaEntity::toDomain)
+    }
+
     override fun findByUserId(userId: UUID): Vendor? {
         return jpaRepository.findByUserIdAndDeletedAtIsNull(userId)?.toDomain()
     }
