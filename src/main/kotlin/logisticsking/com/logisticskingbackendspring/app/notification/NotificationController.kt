@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.UUID
@@ -44,8 +45,12 @@ class NotificationController(
     @GetMapping("/stream")
     fun stream(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @RequestHeader(name = "Last-Event-ID", required = false) lastEventId: UUID?,
     ): SseEmitter {
-        return subscribeNotificationStreamUseCase.subscribe(user.userId)
+        return subscribeNotificationStreamUseCase.subscribe(
+            userId = user.userId,
+            lastEventId = lastEventId,
+        )
     }
 
     @Operation(summary = "내 알림 목록 조회", description = "로그인한 사용자의 최근 30일 알림 목록을 조회합니다.")

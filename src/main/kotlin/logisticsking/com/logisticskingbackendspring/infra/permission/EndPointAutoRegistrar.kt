@@ -5,6 +5,7 @@ import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAcces
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPoint
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import logisticsking.com.logisticskingbackendspring.infra.security.EndPointAuthorizationCache
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 class EndPointAutoRegistrar(
     private val requestMappingHandlerMapping: RequestMappingHandlerMapping,
     private val endPointRepository: EndPointRepository,
+    private val endPointAuthorizationCache: EndPointAuthorizationCache,
 ) : ApplicationRunner {
 
     @Transactional
@@ -24,6 +26,8 @@ class EndPointAutoRegistrar(
         findApiMappings()
             .filter { mapping -> shouldRegister(mapping.url) }
             .forEach { mapping -> syncEndPoint(mapping) }
+
+        endPointAuthorizationCache.reload()
     }
 
     @Suppress("DEPRECATION")
@@ -59,23 +63,26 @@ class EndPointAutoRegistrar(
         val description = describe(mapping.handlerMethod)
         val current = endPointRepository.findByUrlAndMethod(mapping.url, mapping.method)
 
-        endPointRepository.save(
-            current
-                ?.let {
-                    EndPoint.restore(
-                        id = it.id,
-                        url = mapping.url,
-                        method = mapping.method,
-                        roles = roles,
-                        description = description,
-                    )
-                }
-                ?: EndPoint.create(
+        if (current == null) {
+            endPointRepository.save(
+                EndPoint.create(
                     url = mapping.url,
                     method = mapping.method,
                     roles = roles,
                     description = description,
                 )
+            )
+            return
+        }
+
+        endPointRepository.save(
+            EndPoint.restore(
+                id = current.id,
+                url = mapping.url,
+                method = mapping.method,
+                roles = current.roles,
+                description = description,
+            )
         )
     }
 

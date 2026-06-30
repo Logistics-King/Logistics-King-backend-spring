@@ -345,6 +345,10 @@ class AgencyServiceTest {
             return PageImpl(content, pageable, content.size.toLong())
         }
 
+        override fun findAllForRecommendation(): List<Agency> {
+            return agencies.values.toList()
+        }
+
         override fun findByUserId(userId: UUID): Agency? {
             return agencies.values.firstOrNull { it.userId == userId }
         }
@@ -368,6 +372,10 @@ class AgencyServiceTest {
 
         override fun findAllByIds(ids: Collection<UUID>): List<Vendor> {
             return vendors.values.filter { it.id in ids }
+        }
+
+        override fun findAllForRecommendation(): List<Vendor> {
+            return vendors.values.toList()
         }
 
         override fun findByUserId(userId: UUID): Vendor? {

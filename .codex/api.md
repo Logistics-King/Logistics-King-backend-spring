@@ -32,6 +32,8 @@ POST /api/v1/proposals/{proposalId}/negotiations/price-offers
 POST /api/v1/proposals/{proposalId}/negotiations/{eventId}/accept
 POST /api/v1/proposals/{proposalId}/negotiations/{eventId}/reject
 GET /api/v1/notifications/stream
+GET /api/v1/recommendations/agencies
+GET /api/v1/recommendations/vendors
 GET /api/v1/delivers/agency/me?page=0&size=20
 ```
 
@@ -41,6 +43,38 @@ GET /api/v1/delivers/agency/me?page=0&size=20
 - resource 이름은 가능하면 복수형을 사용한다.
 - 행위가 필요한 경우 마지막 segment에 action을 둔다.
 - API version은 URL prefix로 관리한다.
+
+## SSE 알림 규칙
+
+알림 SSE는 `GET /api/v1/notifications/stream`을 사용한다.
+
+요청:
+
+```text
+GET /api/v1/notifications/stream
+Cookie: accessToken=...
+Last-Event-ID: {notificationId}   # 선택, 브라우저 EventSource 재연결 시 자동 전송
+```
+
+이벤트:
+
+```text
+event: connected
+data: {"connected":true}
+
+id: {notificationId}
+event: notification
+data: NotificationDetailResponse
+```
+
+규칙:
+
+- 서버는 알림을 DB에 저장한 뒤 트랜잭션 커밋 이후 SSE로 전달한다.
+- `Last-Event-ID`가 유효하면 해당 알림 이후 저장된 알림을 최대 100개까지 오래된 순서로 재전송한다.
+- `Last-Event-ID`가 없거나 본인 알림이 아니면 replay 없이 연결만 유지한다.
+- SSE는 최소 1회 전달 정책이므로 중복 수신 가능성이 있다.
+- 프론트는 `notificationId` 기준으로 중복 제거한다.
+- 최종 상태 복구는 `GET /api/v1/notifications/me`를 사용한다.
 
 ## Request DTO 규칙
 

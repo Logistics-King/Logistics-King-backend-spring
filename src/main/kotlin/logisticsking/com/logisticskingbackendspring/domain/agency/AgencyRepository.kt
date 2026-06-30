@@ -12,6 +12,7 @@ interface AgencyRepository {
         condition: AgencySearchCondition,
         pageable: Pageable,
     ): Page<Agency>
+    fun findAllForRecommendation(): List<Agency>
     fun findByUserId(userId: UUID): Agency?
     fun existsByUserId(userId: UUID): Boolean
 }

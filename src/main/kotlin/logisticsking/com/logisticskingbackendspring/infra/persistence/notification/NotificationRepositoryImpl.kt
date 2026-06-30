@@ -3,6 +3,7 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.notificat
 import logisticsking.com.logisticskingbackendspring.domain.notification.Notification
 import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationRepository
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
@@ -52,6 +53,22 @@ class NotificationRepositoryImpl(
         receiverUserId: UUID,
     ): Notification? {
         return notificationJpaRepository.findByIdAndReceiverUserId(id, receiverUserId)?.toDomain()
+    }
+
+    override fun findAfter(
+        receiverUserId: UUID,
+        lastNotification: Notification,
+        limit: Int,
+    ): List<Notification> {
+        val createdAt = lastNotification.createdAt ?: return emptyList()
+
+        return notificationJpaRepository.findAllAfter(
+            receiverUserId = receiverUserId,
+            createdAt = createdAt,
+            pageable = PageRequest.of(0, limit),
+        )
+            .filter { it.id != lastNotification.id }
+            .map(NotificationJpaEntity::toDomain)
     }
 
     override fun markAsRead(

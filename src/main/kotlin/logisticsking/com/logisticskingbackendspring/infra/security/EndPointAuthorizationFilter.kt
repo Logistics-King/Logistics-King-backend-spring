@@ -4,20 +4,16 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import logisticsking.com.logisticskingbackendspring.domain.auth.AuthErrorCode
-import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointRepository
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
-import org.springframework.util.AntPathMatcher
 import org.springframework.web.cors.CorsUtils
 import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
 class EndPointAuthorizationFilter(
-    private val endPointRepository: EndPointRepository,
+    private val endPointAuthorizationCache: EndPointAuthorizationCache,
     private val securityResponseWriter: SecurityResponseWriter,
 ) : OncePerRequestFilter() {
-
-    private val pathMatcher = AntPathMatcher()
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         return CorsUtils.isPreFlightRequest(request) ||
@@ -38,12 +34,11 @@ class EndPointAuthorizationFilter(
 
         val requestUri = request.servletPath
         val requestMethod = request.method
-        val allowed = endPointRepository.findAll()
-            .any { endPoint ->
-                pathMatcher.match(endPoint.url, requestUri) &&
-                    endPoint.method == requestMethod &&
-                    endPoint.allows(principal.role)
-            }
+        val allowed = endPointAuthorizationCache.isAllowed(
+            requestUri = requestUri,
+            requestMethod = requestMethod,
+            role = principal.role,
+        )
 
         if (!allowed) {
             securityResponseWriter.writeError(response, AuthErrorCode.FORBIDDEN)

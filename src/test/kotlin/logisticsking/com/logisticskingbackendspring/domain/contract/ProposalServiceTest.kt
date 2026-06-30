@@ -160,6 +160,7 @@ class ProposalServiceTest {
         override fun save(vendor: Vendor): Vendor = vendor
         override fun findById(id: UUID): Vendor? = null
         override fun findAllByIds(ids: Collection<UUID>): List<Vendor> = emptyList()
+        override fun findAllForRecommendation(): List<Vendor> = emptyList()
         override fun findByUserId(userId: UUID): Vendor? = null
         override fun existsByUserId(userId: UUID): Boolean = false
     }
@@ -169,6 +170,7 @@ class ProposalServiceTest {
         override fun findById(id: UUID): Agency? = null
         override fun findAllByIds(ids: Collection<UUID>): List<Agency> = emptyList()
         override fun findAll(condition: AgencySearchCondition, pageable: Pageable): Page<Agency> = PageImpl(emptyList(), pageable, 0)
+        override fun findAllForRecommendation(): List<Agency> = emptyList()
         override fun findByUserId(userId: UUID): Agency? = null
         override fun existsByUserId(userId: UUID): Boolean = false
     }
