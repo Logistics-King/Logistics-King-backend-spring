@@ -79,13 +79,13 @@ class AgencyService(
         condition: AgencySearchCondition,
         pageable: Pageable,
     ): Page<AgencyResult> {
-        findVendorUser(userId)
-        val effectiveCondition = when (condition.scope) {
-            ListViewScope.ALL -> condition
-            ListViewScope.NEARBY -> {
+        val user = findVendorOrDriverUser(userId)
+        val effectiveCondition = when {
+            condition.scope == ListViewScope.NEARBY && user.role == UserRole.VENDOR -> {
                 val vendor = findVendorByUserId(userId)
                 condition.copy(region = vendor.mainRegion)
             }
+            else -> condition.copy(scope = ListViewScope.ALL)
         }
 
         return agencyRepository.findAll(effectiveCondition, pageable)
@@ -97,7 +97,7 @@ class AgencyService(
         userId: UUID,
         agencyId: UUID,
     ): AgencyResult {
-        findVendorUser(userId)
+        findVendorOrDriverUser(userId)
 
         return AgencyResult.from(findAgencyById(agencyId))
     }
@@ -144,6 +144,16 @@ class AgencyService(
             ?: throw GlobalException(AgencyErrorCode.USER_NOT_FOUND)
         if (user.role != UserRole.VENDOR) {
             throw GlobalException(AgencyErrorCode.USER_IS_NOT_VENDOR)
+        }
+
+        return user
+    }
+
+    private fun findVendorOrDriverUser(userId: UUID): User {
+        val user = userRepository.findById(userId)
+            ?: throw GlobalException(AgencyErrorCode.USER_NOT_FOUND)
+        if (user.role != UserRole.VENDOR && user.role != UserRole.DRIVER) {
+            throw GlobalException(AgencyErrorCode.USER_IS_NOT_VENDOR_OR_DRIVER)
         }
 
         return user

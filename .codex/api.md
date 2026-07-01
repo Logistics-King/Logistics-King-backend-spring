@@ -34,7 +34,12 @@ POST /api/v1/proposals/{proposalId}/negotiations/{eventId}/reject
 GET /api/v1/notifications/stream
 GET /api/v1/recommendations/agencies
 GET /api/v1/recommendations/vendors
+GET /api/v1/agencies?agencyName=CJ%20일동&page=0&size=20
+GET /api/v1/agencies/{agencyId}
 GET /api/v1/delivers/agency/me?page=0&size=20
+GET /api/v1/delivers/agency/me?active=true&serviceRegion=경기도%20안산시%20일동&driverName=김택배&vehicleNumber=12가&page=0&size=20
+GET /api/v1/deliver-contracts/agency/me?status=REQUESTED&serviceRegion=경기도%20안산시%20일동&startDateFrom=2026-06-01&startDateTo=2026-12-31&page=0&size=20
+GET /api/v1/deliver-contracts/driver/me?status=REQUESTED&serviceRegion=경기도%20안산시%20일동&startDateFrom=2026-06-01&startDateTo=2026-12-31&page=0&size=20
 ```
 
 규칙:
@@ -43,6 +48,26 @@ GET /api/v1/delivers/agency/me?page=0&size=20
 - resource 이름은 가능하면 복수형을 사용한다.
 - 행위가 필요한 경우 마지막 segment에 action을 둔다.
 - API version은 URL prefix로 관리한다.
+
+## 대리점 검색/상세 조회 사용처
+
+`GET /api/v1/agencies`와 `GET /api/v1/agencies/{agencyId}`는 화주의 계약 요청 대상 대리점 선택과 배송기사의 소속 대리점 선택에서 함께 사용한다.
+
+배송기사 프로필 등록 화면에서는 다음 흐름을 사용한다.
+
+1. 배송기사가 대리점명을 입력한다.
+2. 프론트는 `GET /api/v1/agencies?agencyName={검색어}&page=0&size=20&scope=ALL`로 후보 목록을 조회한다.
+3. 목록에서 `agencyId`, `carrier`, `agencyName`, `mainRegion`, `serviceRegions`를 보여준다.
+4. 상세 정보가 필요하면 `GET /api/v1/agencies/{agencyId}`를 호출한다.
+5. 상세 화면에서는 `representativeName`, `phoneNumber`, `address`, `addressDetail`, `serviceRegions`, `supportedColdChainTypes`, `maxMonthlyVolume`까지 보여줄 수 있다.
+6. 배송기사 프로필 생성/수정 요청에는 선택한 `agencyId`를 넣는다.
+
+권한:
+
+- `GET /api/v1/agencies`: `VENDOR`, `DRIVER`
+- `GET /api/v1/agencies/{agencyId}`: `VENDOR`, `DRIVER`
+
+배송기사에게 `scope=NEARBY`는 별도 기준 지역이 없으므로 현재는 `ALL`처럼 처리한다. 화주에게만 `NEARBY`가 화주 주요 지역 기준으로 적용된다.
 
 ## SSE 알림 규칙
 

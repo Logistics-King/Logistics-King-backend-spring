@@ -68,8 +68,11 @@ class AgencyController(
         )
     }
 
-    @EndpointAccess(roles = [UserRole.VENDOR])
-    @Operation(summary = "근방 대리점 목록 조회", description = "화주가 계약 요청을 보낼 수 있는 근방 대리점 목록을 조회합니다.")
+    @EndpointAccess(roles = [UserRole.VENDOR, UserRole.DRIVER])
+    @Operation(
+        summary = "대리점 목록 조회",
+        description = "화주는 계약 요청 대상 대리점을 조회하고, 배송기사는 프로필 등록 시 소속 대리점을 검색합니다.",
+    )
     @GetMapping
     fun getAgencies(
         @AuthenticationPrincipal user: AuthenticatedUser,
@@ -99,8 +102,11 @@ class AgencyController(
         )
     }
 
-    @EndpointAccess(roles = [UserRole.VENDOR])
-    @Operation(summary = "대리점 상세 조회", description = "화주가 계약 요청을 보낼 대리점 상세 정보를 조회합니다.")
+    @EndpointAccess(roles = [UserRole.VENDOR, UserRole.DRIVER])
+    @Operation(
+        summary = "대리점 상세 조회",
+        description = "화주와 배송기사가 대리점 대표자명, 연락처, 주소, 서비스 조건 등 상세 정보를 조회합니다.",
+    )
     @GetMapping("/{agencyId}")
     fun getAgency(
         @AuthenticationPrincipal user: AuthenticatedUser,
