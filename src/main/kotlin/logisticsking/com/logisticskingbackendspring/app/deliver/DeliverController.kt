@@ -11,6 +11,7 @@ import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetAgenc
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetMyDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.UpdateDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
+import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverSearchCondition
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
 import org.springframework.data.domain.Pageable
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "Deliver", description = "배송기사 API")
@@ -65,9 +67,22 @@ class DeliverController(
     @GetMapping("/agency/me")
     fun getAgencyDelivers(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @RequestParam(required = false) active: Boolean?,
+        @RequestParam(required = false) serviceRegion: String?,
+        @RequestParam(required = false) driverName: String?,
+        @RequestParam(required = false) vehicleNumber: String?,
         @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<DeliverResponse.List> {
-        val results = getAgencyDeliversUseCase.getAgencyDelivers(user.userId, pageable)
+        val results = getAgencyDeliversUseCase.getAgencyDelivers(
+            userId = user.userId,
+            condition = DeliverSearchCondition(
+                active = active,
+                serviceRegion = serviceRegion,
+                driverName = driverName,
+                vehicleNumber = vehicleNumber,
+            ),
+            pageable = pageable,
+        )
 
         return ApiResponse.success(
             response = DeliverResponse.List.from(results),

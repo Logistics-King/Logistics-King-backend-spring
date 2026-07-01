@@ -1,7 +1,9 @@
 package logisticsking.com.logisticskingbackendspring.app.delivercontract.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import logisticsking.com.logisticskingbackendspring.app.agency.dto.AgencyResponse
 import logisticsking.com.logisticskingbackendspring.app.common.PageResponse
+import logisticsking.com.logisticskingbackendspring.app.deliver.dto.DeliverResponse
 import logisticsking.com.logisticskingbackendspring.app.delivercontract.result.DeliverContractResult
 import org.springframework.data.domain.Page
 import java.math.BigDecimal
@@ -40,6 +42,12 @@ sealed interface DeliverContractResponse {
 
         @field:Schema(description = "계약 상태", example = "REQUESTED")
         val status: String,
+
+        @field:Schema(description = "계약 요청 대리점 요약 정보")
+        val agency: AgencyResponse.Summary?,
+
+        @field:Schema(description = "계약 대상 배송기사 요약 정보")
+        val deliver: DeliverResponse.Summary?,
     ) : DeliverContractResponse {
         companion object {
             fun from(result: DeliverContractResult): Detail {
@@ -54,6 +62,8 @@ sealed interface DeliverContractResponse {
                     endDate = result.endDate,
                     memo = result.memo,
                     status = result.status.name,
+                    agency = result.agency?.let(AgencyResponse.Summary::from),
+                    deliver = result.deliver?.let(DeliverResponse.Summary::from),
                 )
             }
         }

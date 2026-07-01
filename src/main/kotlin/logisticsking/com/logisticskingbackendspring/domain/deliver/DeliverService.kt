@@ -51,23 +51,43 @@ class DeliverService(
             memo = command.memo,
         )
 
-        return DeliverResult.from(deliverRepository.save(deliver))
+        return DeliverResult.from(
+            deliver = deliverRepository.save(deliver),
+            agency = findAgency(command.agencyId),
+        )
     }
 
     @Transactional(readOnly = true)
     override fun getMyDeliver(userId: UUID): DeliverResult {
         findDriverUser(userId)
 
-        return DeliverResult.from(findDeliverByUserId(userId))
+        val deliver = findDeliverByUserId(userId)
+
+        return DeliverResult.from(
+            deliver = deliver,
+            agency = findAgency(deliver.agencyId),
+        )
     }
 
     @Transactional(readOnly = true)
-    override fun getAgencyDelivers(userId: UUID, pageable: Pageable): Page<DeliverResult> {
+    override fun getAgencyDelivers(
+        userId: UUID,
+        condition: DeliverSearchCondition,
+        pageable: Pageable,
+    ): Page<DeliverResult> {
         findAgencyUser(userId)
         val agency = findAgencyByUserId(userId)
 
-        return deliverRepository.findAllByAgencyId(agency.id, pageable)
-            .map(DeliverResult::from)
+        return deliverRepository.findAllByAgencyId(
+            agencyId = agency.id,
+            condition = condition,
+            pageable = pageable,
+        ).map { deliver ->
+            DeliverResult.from(
+                deliver = deliver,
+                agency = agency,
+            )
+        }
     }
 
     @Transactional
@@ -85,7 +105,10 @@ class DeliverService(
             memo = command.memo,
         )
 
-        return DeliverResult.from(deliverRepository.save(updated))
+        return DeliverResult.from(
+            deliver = deliverRepository.save(updated),
+            agency = findAgency(command.agencyId),
+        )
     }
 
     private fun findDriverUser(userId: UUID): User {
@@ -115,6 +138,11 @@ class DeliverService(
 
     private fun ensureAgencyExists(agencyId: UUID) {
         agencyRepository.findById(agencyId)
+            ?: throw GlobalException(DeliverErrorCode.AGENCY_NOT_FOUND)
+    }
+
+    private fun findAgency(agencyId: UUID): Agency {
+        return agencyRepository.findById(agencyId)
             ?: throw GlobalException(DeliverErrorCode.AGENCY_NOT_FOUND)
     }
 
