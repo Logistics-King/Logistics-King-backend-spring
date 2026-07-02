@@ -3,6 +3,7 @@ package logisticsking.com.logisticskingbackendspring.app.error
 import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalErrorCode
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -100,6 +101,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(Exception::class)
     fun handleException(exception: Exception): ResponseEntity<ApiResponse<Nothing>> {
         val errorCode = GlobalErrorCode.INTERNAL_SERVER_ERROR
+        logger.error("Unhandled exception occurred while processing request.", exception)
 
         return ResponseEntity
             .status(errorCode.status)
@@ -154,5 +156,9 @@ class GlobalExceptionHandler {
             UUID::class.java -> "UUID"
             else -> simpleName
         }
+    }
+
+    private companion object {
+        private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
     }
 }
