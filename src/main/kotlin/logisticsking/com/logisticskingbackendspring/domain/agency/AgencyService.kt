@@ -75,14 +75,14 @@ class AgencyService(
 
     @Transactional(readOnly = true)
     override fun getAgencies(
-        userId: UUID,
+        userId: UUID?,
         condition: AgencySearchCondition,
         pageable: Pageable,
     ): Page<AgencyResult> {
-        val user = findVendorOrDriverUser(userId)
+        val user = userId?.let(userRepository::findById)
         val effectiveCondition = when {
-            condition.scope == ListViewScope.NEARBY && user.role == UserRole.VENDOR -> {
-                val vendor = findVendorByUserId(userId)
+            condition.scope == ListViewScope.NEARBY && user?.role == UserRole.VENDOR -> {
+                val vendor = findVendorByUserId(user.id)
                 condition.copy(region = vendor.mainRegion)
             }
             else -> condition.copy(scope = ListViewScope.ALL)
@@ -94,11 +94,9 @@ class AgencyService(
 
     @Transactional(readOnly = true)
     override fun getAgency(
-        userId: UUID,
+        userId: UUID?,
         agencyId: UUID,
     ): AgencyResult {
-        findVendorOrDriverUser(userId)
-
         return AgencyResult.from(findAgencyById(agencyId))
     }
 
@@ -134,26 +132,6 @@ class AgencyService(
             ?: throw GlobalException(AgencyErrorCode.USER_NOT_FOUND)
         if (user.role != UserRole.AGENCY) {
             throw GlobalException(AgencyErrorCode.USER_IS_NOT_AGENCY)
-        }
-
-        return user
-    }
-
-    private fun findVendorUser(userId: UUID): User {
-        val user = userRepository.findById(userId)
-            ?: throw GlobalException(AgencyErrorCode.USER_NOT_FOUND)
-        if (user.role != UserRole.VENDOR) {
-            throw GlobalException(AgencyErrorCode.USER_IS_NOT_VENDOR)
-        }
-
-        return user
-    }
-
-    private fun findVendorOrDriverUser(userId: UUID): User {
-        val user = userRepository.findById(userId)
-            ?: throw GlobalException(AgencyErrorCode.USER_NOT_FOUND)
-        if (user.role != UserRole.VENDOR && user.role != UserRole.DRIVER) {
-            throw GlobalException(AgencyErrorCode.USER_IS_NOT_VENDOR_OR_DRIVER)
         }
 
         return user

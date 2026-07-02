@@ -18,7 +18,7 @@ interface GetMyAgencyUseCase {
 
 interface GetAgenciesUseCase {
     fun getAgencies(
-        userId: UUID,
+        userId: UUID?,
         condition: AgencySearchCondition,
         pageable: Pageable,
     ): Page<AgencyResult>
@@ -26,7 +26,7 @@ interface GetAgenciesUseCase {
 
 interface GetAgencyUseCase {
     fun getAgency(
-        userId: UUID,
+        userId: UUID?,
         agencyId: UUID,
     ): AgencyResult
 }

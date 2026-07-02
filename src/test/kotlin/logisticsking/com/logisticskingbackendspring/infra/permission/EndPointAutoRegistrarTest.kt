@@ -2,6 +2,7 @@ package logisticsking.com.logisticskingbackendspring.infra.permission
 
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPoint
+import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointAccessRole
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.EndPointAuthorizationCache
@@ -23,7 +24,7 @@ class EndPointAutoRegistrarTest {
                     id = 1,
                     url = "/api/v1/test",
                     method = RequestMethod.GET.name,
-                    roles = setOf(UserRole.AGENCY),
+                    roles = setOf(EndPointAccessRole.AGENCY),
                     description = "운영에서 변경된 권한",
                 )
             )
@@ -48,7 +49,33 @@ class EndPointAutoRegistrarTest {
 
         val saved = repository.findByUrlAndMethod("/api/v1/test", RequestMethod.GET.name)
 
-        assertEquals(setOf(UserRole.AGENCY), saved?.roles)
+        assertEquals(setOf(EndPointAccessRole.AGENCY), saved?.roles)
+    }
+
+    @Test
+    fun `publicAccess endpoint는 PUBLIC 정책으로 신규 등록한다`() {
+        val repository = MutableEndPointRepository(emptyList())
+        val handlerMapping = RequestMappingHandlerMapping()
+        val controller = TestController()
+        handlerMapping.registerMapping(
+            RequestMappingInfo
+                .paths("/api/v1/public-test")
+                .methods(RequestMethod.GET)
+                .build(),
+            controller,
+            TestController::class.java.getDeclaredMethod("publicGet"),
+        )
+        val registrar = EndPointAutoRegistrar(
+            requestMappingHandlerMapping = handlerMapping,
+            endPointRepository = repository,
+            endPointAuthorizationCache = EndPointAuthorizationCache(repository),
+        )
+
+        registrar.run(DefaultApplicationArguments())
+
+        val saved = repository.findByUrlAndMethod("/api/v1/public-test", RequestMethod.GET.name)
+
+        assertEquals(setOf(EndPointAccessRole.PUBLIC), saved?.roles)
     }
 
     private class TestController {
@@ -56,6 +83,11 @@ class EndPointAutoRegistrarTest {
         @EndpointAccess(roles = [UserRole.VENDOR])
         @GetMapping("/api/v1/test")
         fun get() {
+        }
+
+        @EndpointAccess(publicAccess = true)
+        @GetMapping("/api/v1/public-test")
+        fun publicGet() {
         }
     }
 

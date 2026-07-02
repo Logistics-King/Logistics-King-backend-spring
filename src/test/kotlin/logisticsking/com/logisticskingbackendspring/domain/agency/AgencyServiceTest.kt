@@ -169,19 +169,24 @@ class AgencyServiceTest {
     }
 
     @Test
-    fun `getAgencies 시 화주 또는 배송기사 권한이 아니면 예외가 발생한다`() {
+    fun `getAgencies는 비로그인 상태에서도 전체 대리점을 조회한다`() {
         val agencyUser = user(role = UserRole.AGENCY)
-        val service = agencyService(userRepository = FakeUserRepository(agencyUser))
+        val agencyRepository = FakeAgencyRepository()
+        val service = agencyService(
+            userRepository = FakeUserRepository(agencyUser),
+            agencyRepository = agencyRepository,
+        )
+        val matched = agency(name = "CJ 일동대리점", mainRegion = "경기도 안산시 일동")
+        agencyRepository.save(matched)
 
-        val exception = assertThrows(GlobalException::class.java) {
-            service.getAgencies(
-                userId = agencyUser.id,
-                condition = AgencySearchCondition(region = "일동"),
-                pageable = unpaged(),
-            )
-        }
+        val result = service.getAgencies(
+            userId = null,
+            condition = AgencySearchCondition(region = "일동"),
+            pageable = unpaged(),
+        )
 
-        assertEquals(AgencyErrorCode.USER_IS_NOT_VENDOR_OR_DRIVER, exception.errorCode)
+        assertEquals(1, result.totalElements)
+        assertEquals(matched.id, result.content.first().agencyId)
     }
 
     @Test

@@ -68,14 +68,14 @@ class AgencyController(
         )
     }
 
-    @EndpointAccess(roles = [UserRole.VENDOR, UserRole.DRIVER])
+    @EndpointAccess(publicAccess = true)
     @Operation(
         summary = "대리점 목록 조회",
-        description = "화주는 계약 요청 대상 대리점을 조회하고, 배송기사는 프로필 등록 시 소속 대리점을 검색합니다.",
+        description = "화주는 계약 요청 대상 대리점을 조회하고, 배송기사는 회원가입 또는 프로필 등록 시 소속 대리점을 검색합니다.",
     )
     @GetMapping
     fun getAgencies(
-        @AuthenticationPrincipal user: AuthenticatedUser,
+        @AuthenticationPrincipal user: AuthenticatedUser?,
         @RequestParam(required = false) agencyName: String?,
         @RequestParam(required = false) region: String?,
         @RequestParam(required = false) carrier: Carrier?,
@@ -85,7 +85,7 @@ class AgencyController(
         @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<AgencyResponse.List> {
         val results = getAgenciesUseCase.getAgencies(
-            userId = user.userId,
+            userId = user?.userId,
             condition = AgencySearchCondition(
                 agencyName = agencyName,
                 region = region,
@@ -102,18 +102,18 @@ class AgencyController(
         )
     }
 
-    @EndpointAccess(roles = [UserRole.VENDOR, UserRole.DRIVER])
+    @EndpointAccess(publicAccess = true)
     @Operation(
         summary = "대리점 상세 조회",
         description = "화주와 배송기사가 대리점 대표자명, 연락처, 주소, 서비스 조건 등 상세 정보를 조회합니다.",
     )
     @GetMapping("/{agencyId}")
     fun getAgency(
-        @AuthenticationPrincipal user: AuthenticatedUser,
+        @AuthenticationPrincipal user: AuthenticatedUser?,
         @PathVariable agencyId: UUID,
     ): ApiResponse<AgencyResponse.Detail> {
         val result = getAgencyUseCase.getAgency(
-            userId = user.userId,
+            userId = user?.userId,
             agencyId = agencyId,
         )
 
