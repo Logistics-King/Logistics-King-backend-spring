@@ -48,4 +48,9 @@ enum class AuthErrorCode(
         message = "비밀번호 재설정 토큰이 만료되었습니다.",
         status = HttpStatus.BAD_REQUEST,
     ),
+    INVALID_SIGN_UP_PROFILE(
+        code = "INVALID_SIGN_UP_PROFILE",
+        message = "회원가입 프로필 정보가 올바르지 않습니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
 }

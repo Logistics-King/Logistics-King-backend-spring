@@ -16,8 +16,11 @@ sealed interface DeliverResponse {
         @field:Schema(description = "사용자 ID", example = "019b1f44-a741-7000-8000-000000000021")
         val userId: String,
 
+        @field:Schema(description = "배송기사 고용 형태", example = "AGENCY_AFFILIATED")
+        val employmentType: String,
+
         @field:Schema(description = "소속 대리점 ID", example = "019b1f44-a741-7000-8000-000000000010")
-        val agencyId: String,
+        val agencyId: String?,
 
         @field:Schema(description = "기사명", example = "김택배")
         val driverName: String,
@@ -45,7 +48,8 @@ sealed interface DeliverResponse {
                 return Detail(
                     deliverId = result.deliverId.toString(),
                     userId = result.userId.toString(),
-                    agencyId = result.agencyId.toString(),
+                    employmentType = result.employmentType.name,
+                    agencyId = result.agencyId?.toString(),
                     driverName = result.driverName,
                     phoneNumber = result.phoneNumber,
                     vehicleNumber = result.vehicleNumber,
@@ -66,8 +70,11 @@ sealed interface DeliverResponse {
         @field:Schema(description = "사용자 ID", example = "019b1f44-a741-7000-8000-000000000021")
         val userId: String,
 
+        @field:Schema(description = "배송기사 고용 형태", example = "FREELANCER")
+        val employmentType: String,
+
         @field:Schema(description = "소속 대리점 ID", example = "019b1f44-a741-7000-8000-000000000010")
-        val agencyId: String,
+        val agencyId: String?,
 
         @field:Schema(description = "기사명", example = "김택배")
         val driverName: String,
@@ -89,7 +96,8 @@ sealed interface DeliverResponse {
                 return Summary(
                     deliverId = result.deliverId.toString(),
                     userId = result.userId.toString(),
-                    agencyId = result.agencyId.toString(),
+                    employmentType = result.employmentType.name,
+                    agencyId = result.agencyId?.toString(),
                     driverName = result.driverName,
                     phoneNumber = result.phoneNumber,
                     vehicleNumber = result.vehicleNumber,

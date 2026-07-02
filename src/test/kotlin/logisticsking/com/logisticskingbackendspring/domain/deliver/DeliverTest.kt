@@ -47,6 +47,7 @@ class DeliverTest {
         val newAgencyId = UUID.randomUUID()
 
         val updated = deliver.update(
+            employmentType = DeliverEmploymentType.AGENCY_AFFILIATED,
             agencyId = newAgencyId,
             driverName = "박배송",
             phoneNumber = "010-9876-5432",
@@ -81,16 +82,29 @@ class DeliverTest {
         assertEquals(DeliverErrorCode.INVALID_SERVICE_REGIONS, exception.errorCode)
     }
 
+    @Test
+    fun `create 성공 시 프리랜서 배송기사는 소속 대리점 없이 생성할 수 있다`() {
+        val deliver = deliver(
+            employmentType = DeliverEmploymentType.FREELANCER,
+            agencyId = null,
+        )
+
+        assertEquals(DeliverEmploymentType.FREELANCER, deliver.employmentType)
+        assertEquals(null, deliver.agencyId)
+    }
+
     private fun deliver(
         id: UUID = UUID.randomUUID(),
         userId: UUID = UUID.randomUUID(),
-        agencyId: UUID = UUID.randomUUID(),
+        employmentType: DeliverEmploymentType = DeliverEmploymentType.AGENCY_AFFILIATED,
+        agencyId: UUID? = UUID.randomUUID(),
         driverName: String = "김택배",
         serviceRegions: List<String> = listOf("경기도 안산시 일동", "경기도 안산시 본오동"),
     ): Deliver {
         return Deliver.create(
             id = id,
             userId = userId,
+            employmentType = employmentType,
             agencyId = agencyId,
             driverName = driverName,
             phoneNumber = "010-1234-5678",

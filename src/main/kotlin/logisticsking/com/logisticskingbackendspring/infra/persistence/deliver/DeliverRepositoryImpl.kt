@@ -3,6 +3,7 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.deliver
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.jpa.impl.JPAQueryFactory
 import logisticsking.com.logisticskingbackendspring.domain.deliver.Deliver
+import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverEmploymentType
 import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverRepository
 import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverSearchCondition
 import org.springframework.data.domain.Page
@@ -71,6 +72,42 @@ class DeliverRepositoryImpl(
             .from(deliver)
             .where(
                 deliver.agencyId.eq(agencyId),
+                deliver.deletedAt.isNull,
+                condition.active?.let { deliver.active.eq(it) },
+                condition.normalizedServiceRegion?.let(::serviceRegionsContains),
+                condition.normalizedDriverName?.let { deliver.driverName.containsIgnoreCase(it) },
+                condition.normalizedVehicleNumber?.let { deliver.vehicleNumber.containsIgnoreCase(it) },
+            )
+            .fetchOne() ?: 0L
+
+        return PageImpl(content, pageable, total)
+    }
+
+    override fun findAllFreelancers(
+        condition: DeliverSearchCondition,
+        pageable: Pageable,
+    ): Page<Deliver> {
+        val content = queryFactory
+            .selectFrom(deliver)
+            .where(
+                deliver.employmentType.eq(DeliverEmploymentType.FREELANCER),
+                deliver.deletedAt.isNull,
+                condition.active?.let { deliver.active.eq(it) },
+                condition.normalizedServiceRegion?.let(::serviceRegionsContains),
+                condition.normalizedDriverName?.let { deliver.driverName.containsIgnoreCase(it) },
+                condition.normalizedVehicleNumber?.let { deliver.vehicleNumber.containsIgnoreCase(it) },
+            )
+            .orderBy(deliver.createdAt.desc())
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .fetch()
+            .map(DeliverJpaEntity::toDomain)
+
+        val total = queryFactory
+            .select(deliver.count())
+            .from(deliver)
+            .where(
+                deliver.employmentType.eq(DeliverEmploymentType.FREELANCER),
                 deliver.deletedAt.isNull,
                 condition.active?.let { deliver.active.eq(it) },
                 condition.normalizedServiceRegion?.let(::serviceRegionsContains),

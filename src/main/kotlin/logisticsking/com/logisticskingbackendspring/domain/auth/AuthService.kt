@@ -1,5 +1,7 @@
 package logisticsking.com.logisticskingbackendspring.domain.auth
 
+import logisticsking.com.logisticskingbackendspring.app.agency.command.CreateAgencyCommand
+import logisticsking.com.logisticskingbackendspring.app.agency.usecase.CreateAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.command.LoginCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.command.LogoutCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.command.RefreshTokenCommand
@@ -20,12 +22,17 @@ import logisticsking.com.logisticskingbackendspring.app.auth.usecase.RequestLogi
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.RequestPasswordResetUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.ResetPasswordUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.SignUpUseCase
+import logisticsking.com.logisticskingbackendspring.app.deliver.command.CreateDeliverCommand
+import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.CreateDeliverUseCase
+import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
+import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.CreateVendorUseCase
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.error.requireDomain
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserErrorCode
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
+import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -43,6 +50,9 @@ class AuthService(
     private val accountRecoveryTokenRepository: AccountRecoveryTokenRepository,
     private val accountRecoveryTokenGenerator: AccountRecoveryTokenGenerator,
     private val accountRecoveryEmailSender: AccountRecoveryEmailSender,
+    private val createVendorUseCase: CreateVendorUseCase,
+    private val createAgencyUseCase: CreateAgencyUseCase,
+    private val createDeliverUseCase: CreateDeliverUseCase,
     @Value("\${auth.jwt.refresh-token-expiration-seconds}") private val refreshTokenExpirationSeconds: Long,
 ) : SignUpUseCase,
     LoginUseCase,
@@ -78,11 +88,81 @@ class AuthService(
             role = command.role,
         )
         val saved = userRepository.save(user)
+        createProfile(command, saved)
 
         return SignUpResult(
             userId = saved.id,
             role = saved.role,
         )
+    }
+
+    private fun createProfile(
+        command: SignUpCommand,
+        user: User,
+    ) {
+        when (user.role) {
+            UserRole.VENDOR -> {
+                val profile = command.vendorProfile
+                    ?: throw GlobalException(AuthErrorCode.INVALID_SIGN_UP_PROFILE)
+                createVendorUseCase.create(
+                    CreateVendorCommand(
+                        userId = user.id,
+                        businessName = profile.businessName,
+                        businessRegistrationNumber = profile.businessRegistrationNumber,
+                        representativeName = profile.representativeName,
+                        phoneNumber = profile.phoneNumber,
+                        postalCode = profile.postalCode,
+                        address = profile.address,
+                        addressDetail = profile.addressDetail,
+                        mainRegion = profile.mainRegion,
+                    )
+                )
+            }
+            UserRole.AGENCY -> {
+                val profile = command.agencyProfile
+                    ?: throw GlobalException(AuthErrorCode.INVALID_SIGN_UP_PROFILE)
+                createAgencyUseCase.create(
+                    CreateAgencyCommand(
+                        userId = user.id,
+                        carrier = profile.carrier,
+                        agencyName = profile.agencyName,
+                        businessRegistrationNumber = profile.businessRegistrationNumber,
+                        representativeName = profile.representativeName,
+                        phoneNumber = profile.phoneNumber,
+                        postalCode = profile.postalCode,
+                        address = profile.address,
+                        addressDetail = profile.addressDetail,
+                        mainRegion = profile.mainRegion,
+                        serviceRegions = profile.serviceRegions,
+                        weekdayPickupStartTime = profile.weekdayPickupStartTime,
+                        weekdayPickupEndTime = profile.weekdayPickupEndTime,
+                        saturdayPickupAvailable = profile.saturdayPickupAvailable,
+                        saturdayDeliveryAvailable = profile.saturdayDeliveryAvailable,
+                        returnAvailable = profile.returnAvailable,
+                        supportedColdChainTypes = profile.supportedColdChainTypes,
+                        maxMonthlyVolume = profile.maxMonthlyVolume,
+                    )
+                )
+            }
+            UserRole.DRIVER -> {
+                val profile = command.deliverProfile
+                    ?: throw GlobalException(AuthErrorCode.INVALID_SIGN_UP_PROFILE)
+                createDeliverUseCase.create(
+                    CreateDeliverCommand(
+                        userId = user.id,
+                        employmentType = profile.employmentType,
+                        agencyId = profile.agencyId,
+                        driverName = profile.driverName,
+                        phoneNumber = profile.phoneNumber,
+                        vehicleNumber = profile.vehicleNumber,
+                        serviceRegions = profile.serviceRegions,
+                        active = profile.active,
+                        memo = profile.memo,
+                    )
+                )
+            }
+            UserRole.ADMIN -> Unit
+        }
     }
 
     override fun login(command: LoginCommand): LoginResult {

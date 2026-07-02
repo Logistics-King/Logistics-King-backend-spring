@@ -5,6 +5,7 @@ import logisticsking.com.logisticskingbackendspring.app.deliver.command.UpdateDe
 import logisticsking.com.logisticskingbackendspring.app.deliver.result.DeliverResult
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.CreateDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetAgencyDeliversUseCase
+import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetFreelanceDeliversUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetMyDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.UpdateDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
@@ -29,6 +30,7 @@ class DeliverService(
 ) : CreateDeliverUseCase,
     GetMyDeliverUseCase,
     GetAgencyDeliversUseCase,
+    GetFreelanceDeliversUseCase,
     UpdateDeliverUseCase {
 
     @Transactional
@@ -37,11 +39,15 @@ class DeliverService(
         if (deliverRepository.existsByUserId(user.id)) {
             throw GlobalException(DeliverErrorCode.DELIVER_ALREADY_EXISTS)
         }
-        ensureAgencyExists(command.agencyId)
+        ensureAgencyExistsIfNeeded(
+            employmentType = command.employmentType,
+            agencyId = command.agencyId,
+        )
 
         val deliver = Deliver.create(
             id = idGenerator.generate(),
             userId = user.id,
+            employmentType = command.employmentType,
             agencyId = command.agencyId,
             driverName = command.driverName,
             phoneNumber = command.phoneNumber,
@@ -53,7 +59,7 @@ class DeliverService(
 
         return DeliverResult.from(
             deliver = deliverRepository.save(deliver),
-            agency = findAgency(command.agencyId),
+            agency = command.agencyId?.let(::findAgency),
         )
     }
 
@@ -65,7 +71,7 @@ class DeliverService(
 
         return DeliverResult.from(
             deliver = deliver,
-            agency = findAgency(deliver.agencyId),
+            agency = deliver.agencyId?.let(::findAgency),
         )
     }
 
@@ -85,17 +91,37 @@ class DeliverService(
         ).map { deliver ->
             DeliverResult.from(
                 deliver = deliver,
-                agency = agency,
+                agency = deliver.agencyId?.let { agency },
             )
+        }
+    }
+
+    @Transactional(readOnly = true)
+    override fun getFreelanceDelivers(
+        userId: UUID,
+        condition: DeliverSearchCondition,
+        pageable: Pageable,
+    ): Page<DeliverResult> {
+        findAgencyUser(userId)
+
+        return deliverRepository.findAllFreelancers(
+            condition = condition,
+            pageable = pageable,
+        ).map { deliver ->
+            DeliverResult.from(deliver = deliver)
         }
     }
 
     @Transactional
     override fun update(command: UpdateDeliverCommand): DeliverResult {
         findDriverUser(command.userId)
-        ensureAgencyExists(command.agencyId)
+        ensureAgencyExistsIfNeeded(
+            employmentType = command.employmentType,
+            agencyId = command.agencyId,
+        )
         val deliver = findDeliverByUserId(command.userId)
         val updated = deliver.update(
+            employmentType = command.employmentType,
             agencyId = command.agencyId,
             driverName = command.driverName,
             phoneNumber = command.phoneNumber,
@@ -107,7 +133,7 @@ class DeliverService(
 
         return DeliverResult.from(
             deliver = deliverRepository.save(updated),
-            agency = findAgency(command.agencyId),
+            agency = command.agencyId?.let(::findAgency),
         )
     }
 
@@ -136,9 +162,17 @@ class DeliverService(
             ?: throw GlobalException(DeliverErrorCode.AGENCY_NOT_FOUND)
     }
 
-    private fun ensureAgencyExists(agencyId: UUID) {
-        agencyRepository.findById(agencyId)
-            ?: throw GlobalException(DeliverErrorCode.AGENCY_NOT_FOUND)
+    private fun ensureAgencyExistsIfNeeded(
+        employmentType: DeliverEmploymentType,
+        agencyId: UUID?,
+    ) {
+        if (employmentType == DeliverEmploymentType.AGENCY_AFFILIATED && agencyId == null) {
+            throw GlobalException(DeliverErrorCode.AGENCY_REQUIRED_FOR_AFFILIATED_DELIVER)
+        }
+        if (agencyId != null) {
+            agencyRepository.findById(agencyId)
+                ?: throw GlobalException(DeliverErrorCode.AGENCY_NOT_FOUND)
+        }
     }
 
     private fun findAgency(agencyId: UUID): Agency {

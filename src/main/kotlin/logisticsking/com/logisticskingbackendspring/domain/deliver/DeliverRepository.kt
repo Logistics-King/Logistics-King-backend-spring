@@ -14,5 +14,9 @@ interface DeliverRepository {
         condition: DeliverSearchCondition,
         pageable: Pageable,
     ): Page<Deliver>
+    fun findAllFreelancers(
+        condition: DeliverSearchCondition,
+        pageable: Pageable,
+    ): Page<Deliver>
     fun existsByUserId(userId: UUID): Boolean
 }

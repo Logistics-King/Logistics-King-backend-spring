@@ -15,6 +15,7 @@ import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.deliver.Deliver
+import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverEmploymentType
 import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverRepository
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationPublisher
@@ -280,7 +281,7 @@ class DeliverContractService(
         deliver: Deliver,
         agency: Agency,
     ) {
-        if (deliver.agencyId != agency.id) {
+        if (deliver.employmentType == DeliverEmploymentType.AGENCY_AFFILIATED && deliver.agencyId != agency.id) {
             throw GlobalException(DeliverContractErrorCode.DELIVER_DOES_NOT_BELONG_TO_AGENCY)
         }
     }

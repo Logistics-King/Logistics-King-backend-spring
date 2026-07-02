@@ -312,7 +312,8 @@ CREATE TABLE IF NOT EXISTS agencies (
 CREATE TABLE IF NOT EXISTS delivers (
     id BINARY(16) NOT NULL,
     user_id BINARY(16) NOT NULL,
-    agency_id BINARY(16) NOT NULL,
+    employment_type VARCHAR(30) NOT NULL DEFAULT 'AGENCY_AFFILIATED',
+    agency_id BINARY(16) NULL,
     driver_name VARCHAR(50) NOT NULL,
     phone_number VARCHAR(30) NOT NULL,
     vehicle_number VARCHAR(30) NULL,
@@ -324,6 +325,7 @@ CREATE TABLE IF NOT EXISTS delivers (
     deleted_at DATETIME(6) NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_delivers_user_id (user_id),
+    KEY idx_delivers_employment_type (employment_type),
     KEY idx_delivers_agency_id (agency_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

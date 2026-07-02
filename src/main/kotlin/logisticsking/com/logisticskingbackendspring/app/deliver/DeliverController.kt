@@ -8,6 +8,7 @@ import logisticsking.com.logisticskingbackendspring.app.deliver.dto.DeliverReque
 import logisticsking.com.logisticskingbackendspring.app.deliver.dto.DeliverResponse
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.CreateDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetAgencyDeliversUseCase
+import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetFreelanceDeliversUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.GetMyDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.UpdateDeliverUseCase
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
@@ -34,6 +35,7 @@ class DeliverController(
     private val createDeliverUseCase: CreateDeliverUseCase,
     private val getMyDeliverUseCase: GetMyDeliverUseCase,
     private val getAgencyDeliversUseCase: GetAgencyDeliversUseCase,
+    private val getFreelanceDeliversUseCase: GetFreelanceDeliversUseCase,
     private val updateDeliverUseCase: UpdateDeliverUseCase,
 ) {
 
@@ -74,6 +76,33 @@ class DeliverController(
         @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<DeliverResponse.List> {
         val results = getAgencyDeliversUseCase.getAgencyDelivers(
+            userId = user.userId,
+            condition = DeliverSearchCondition(
+                active = active,
+                serviceRegion = serviceRegion,
+                driverName = driverName,
+                vehicleNumber = vehicleNumber,
+            ),
+            pageable = pageable,
+        )
+
+        return ApiResponse.success(
+            response = DeliverResponse.List.from(results),
+        )
+    }
+
+    @EndpointAccess(roles = [UserRole.AGENCY])
+    @Operation(summary = "프리랜서 배송기사 목록 조회", description = "대리점이 계약 요청할 수 있는 프리랜서 배송기사 목록을 조회합니다.")
+    @GetMapping("/freelancers")
+    fun getFreelanceDelivers(
+        @AuthenticationPrincipal user: AuthenticatedUser,
+        @RequestParam(required = false) active: Boolean?,
+        @RequestParam(required = false) serviceRegion: String?,
+        @RequestParam(required = false) driverName: String?,
+        @RequestParam(required = false) vehicleNumber: String?,
+        @PageableDefault(size = 20) pageable: Pageable,
+    ): ApiResponse<DeliverResponse.List> {
+        val results = getFreelanceDeliversUseCase.getFreelanceDelivers(
             userId = user.userId,
             condition = DeliverSearchCondition(
                 active = active,

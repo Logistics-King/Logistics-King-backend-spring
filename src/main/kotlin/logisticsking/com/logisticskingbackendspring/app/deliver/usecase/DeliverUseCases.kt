@@ -24,6 +24,14 @@ interface GetAgencyDeliversUseCase {
     ): Page<DeliverResult>
 }
 
+interface GetFreelanceDeliversUseCase {
+    fun getFreelanceDelivers(
+        userId: UUID,
+        condition: DeliverSearchCondition,
+        pageable: Pageable,
+    ): Page<DeliverResult>
+}
+
 interface UpdateDeliverUseCase {
     fun update(command: UpdateDeliverCommand): DeliverResult
 }
