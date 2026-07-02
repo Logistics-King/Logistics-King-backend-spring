@@ -19,6 +19,9 @@ Controller는 `app` 계층에 둔다. Controller는 HTTP DTO를 command로 변�
 예시:
 
 ```text
+POST /api/v1/auth/sign-up/vendor
+POST /api/v1/auth/sign-up/agency
+POST /api/v1/auth/sign-up/driver
 POST /api/v1/users
 GET /api/v1/users/{userId}
 
@@ -38,6 +41,7 @@ GET /api/v1/agencies?agencyName=CJ%20일동&page=0&size=20
 GET /api/v1/agencies/{agencyId}
 GET /api/v1/delivers/agency/me?page=0&size=20
 GET /api/v1/delivers/agency/me?active=true&serviceRegion=경기도%20안산시%20일동&driverName=김택배&vehicleNumber=12가&page=0&size=20
+GET /api/v1/delivers/freelancers?active=true&serviceRegion=경기도%20안산시%20일동&driverName=김택배&vehicleNumber=12가&page=0&size=20
 GET /api/v1/deliver-contracts/agency/me?status=REQUESTED&serviceRegion=경기도%20안산시%20일동&startDateFrom=2026-06-01&startDateTo=2026-12-31&page=0&size=20
 GET /api/v1/deliver-contracts/driver/me?status=REQUESTED&serviceRegion=경기도%20안산시%20일동&startDateFrom=2026-06-01&startDateTo=2026-12-31&page=0&size=20
 ```
@@ -53,21 +57,46 @@ GET /api/v1/deliver-contracts/driver/me?status=REQUESTED&serviceRegion=경기도
 
 `GET /api/v1/agencies`와 `GET /api/v1/agencies/{agencyId}`는 화주의 계약 요청 대상 대리점 선택과 배송기사의 소속 대리점 선택에서 함께 사용한다.
 
-배송기사 프로필 등록 화면에서는 다음 흐름을 사용한다.
+배송기사 프로필 등록 화면에서 `employmentType=AGENCY_AFFILIATED`를 선택한 경우 다음 흐름을 사용한다.
 
 1. 배송기사가 대리점명을 입력한다.
 2. 프론트는 `GET /api/v1/agencies?agencyName={검색어}&page=0&size=20&scope=ALL`로 후보 목록을 조회한다.
 3. 목록에서 `agencyId`, `carrier`, `agencyName`, `mainRegion`, `serviceRegions`를 보여준다.
 4. 상세 정보가 필요하면 `GET /api/v1/agencies/{agencyId}`를 호출한다.
 5. 상세 화면에서는 `representativeName`, `phoneNumber`, `address`, `addressDetail`, `serviceRegions`, `supportedColdChainTypes`, `maxMonthlyVolume`까지 보여줄 수 있다.
-6. 배송기사 프로필 생성/수정 요청에는 선택한 `agencyId`를 넣는다.
+6. 배송기사 회원가입 또는 프로필 생성/수정 요청에는 선택한 `agencyId`를 넣는다.
 
 권한:
 
-- `GET /api/v1/agencies`: `VENDOR`, `DRIVER`
-- `GET /api/v1/agencies/{agencyId}`: `VENDOR`, `DRIVER`
+- `GET /api/v1/agencies`: `PUBLIC`
+- `GET /api/v1/agencies/{agencyId}`: `PUBLIC`
+
+`PUBLIC`은 실제 사용자 역할이 아니라 endpoint 접근 정책이다. 회원가입 전 배송기사도 소속 대리점을 검색해야 하므로, 해당 API는 인증 없이 호출할 수 있다.
 
 배송기사에게 `scope=NEARBY`는 별도 기준 지역이 없으므로 현재는 `ALL`처럼 처리한다. 화주에게만 `NEARBY`가 화주 주요 지역 기준으로 적용된다.
+
+## 회원가입과 프로필 생성 규칙
+
+역할별 회원가입 API는 계정과 해당 역할의 프로필을 한 번에 생성한다.
+
+- `POST /api/v1/auth/sign-up/vendor`: 화주 계정과 화주 프로필 생성
+- `POST /api/v1/auth/sign-up/agency`: 대리점 계정과 대리점 프로필 생성
+- `POST /api/v1/auth/sign-up/driver`: 배송기사 계정과 배송기사 프로필 생성
+
+트랜잭션 기준:
+
+- 계정 생성과 프로필 생성은 같은 트랜잭션에서 처리한다.
+- 프로필 생성이 실패하면 계정 생성도 rollback된다.
+- 로그인 ID나 이메일 중복이면 프로필 생성 전에 실패한다.
+
+배송기사 회원가입 request에는 `employmentType`을 함께 보낸다.
+
+- `AGENCY_AFFILIATED`: 특정 대리점 소속 기사. `agencyId` 필수.
+- `FREELANCER`: 프리랜서 기사. `agencyId`는 null 가능.
+
+배송기사 회원가입 화면에서 대리점 소속을 선택한 경우 먼저 `GET /api/v1/agencies?agencyName={검색어}&scope=ALL`로 소속 대리점을 검색하고, 선택한 `agencyId`를 `POST /api/v1/auth/sign-up/driver` request에 넣는다. 프리랜서를 선택한 경우 대리점 검색 없이 `agencyId=null`로 가입할 수 있다.
+
+별도 프로필 생성 API는 수정/재등록 흐름 또는 관리자/운영 보정용으로 유지한다.
 
 ## SSE 알림 규칙
 
