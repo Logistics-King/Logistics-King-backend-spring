@@ -1,4 +1,5 @@
--- Backfill proposal negotiation columns for local databases created before proposal negotiation was added.
+-- 계약 도메인 보정 DML입니다.
+-- 제안 단가 조율 컬럼이 추가되기 전 생성된 로컬 DB에 기본값을 보정합니다.
 
 UPDATE proposals
 SET next_sequence = 1

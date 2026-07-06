@@ -36,7 +36,7 @@ Pagination 구현은 완료됐고 `./gradlew compileKotlin`, `./gradlew test` �
 - `src/main/kotlin/logisticsking/com/logisticskingbackendspring/app/delivercontract/dto/DeliverContractResponse.kt`: 배송기사 계약 목록 응답을 공통 pagination 형태로 변경.
 - `src/main/kotlin/logisticsking/com/logisticskingbackendspring/domain/**`: 관련 usecase, service, repository 반환 타입을 `List`에서 `Page`로 변경. `ContractService.accept`의 proposal 일괄 상태 변경용 전체 조회는 유지했다.
 - `src/main/kotlin/logisticsking/com/logisticskingbackendspring/infra/persistence/**`: JPA repository 목록 조회에 `Pageable`과 `Page` 적용.
-- `src/main/resources/sql/dml/001_seed.sql`: `/api/v1/delivers/agency/me` 권한 seed 추가.
+- `src/main/resources/sql/dml/001_agency_driver_seed.sql`: `/api/v1/delivers/agency/me` 권한 seed 추가.
 - `src/test/kotlin/logisticsking/com/logisticskingbackendspring/domain/vendor/VendorServiceTest.kt`: fake product repository를 `PageImpl` 반환으로 변경.
 - `src/test/kotlin/logisticsking/com/logisticskingbackendspring/domain/deliver/DeliverServiceTest.kt`: fake deliver repository에 agency list pagination 메서드 추가.
 - `/Users/bangilhyeon/.codex/skills/api-spec-handoff/SKILL.md`: target thread 직접 전송 workflow 추가.
