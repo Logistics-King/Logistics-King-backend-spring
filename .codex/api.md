@@ -44,6 +44,13 @@ GET /api/v1/delivers/agency/me?active=true&serviceRegion=경기도%20안산시%2
 GET /api/v1/delivers/freelancers?active=true&serviceRegion=경기도%20안산시%20일동&driverName=김택배&vehicleNumber=12가&page=0&size=20
 GET /api/v1/deliver-contracts/agency/me?status=REQUESTED&serviceRegion=경기도%20안산시%20일동&startDateFrom=2026-06-01&startDateTo=2026-12-31&page=0&size=20
 GET /api/v1/deliver-contracts/driver/me?status=REQUESTED&serviceRegion=경기도%20안산시%20일동&startDateFrom=2026-06-01&startDateTo=2026-12-31&page=0&size=20
+POST /api/v1/driver-works
+GET /api/v1/driver-works/agency/me?status=OPEN&serviceRegion=대전%20유성구&page=0&size=20
+GET /api/v1/driver-works/driver/me/open?serviceRegion=대전%20유성구&page=0&size=20
+GET /api/v1/driver-works/driver/me/assigned?status=ASSIGNED&page=0&size=20
+POST /api/v1/driver-works/{driverWorkId}/applications
+POST /api/v1/driver-works/{driverWorkId}/applications/{applicationId}/select
+POST /api/v1/driver-works/{driverWorkId}/assign
 ```
 
 규칙:
@@ -97,6 +104,49 @@ GET /api/v1/deliver-contracts/driver/me?status=REQUESTED&serviceRegion=경기도
 배송기사 회원가입 화면에서 대리점 소속을 선택한 경우 먼저 `GET /api/v1/agencies?agencyName={검색어}&scope=ALL`로 소속 대리점을 검색하고, 선택한 `agencyId`를 `POST /api/v1/auth/sign-up/driver` request에 넣는다. 프리랜서를 선택한 경우 대리점 검색 없이 `agencyId=null`로 가입할 수 있다.
 
 별도 프로필 생성 API는 수정/재등록 흐름 또는 관리자/운영 보정용으로 유지한다.
+
+## 배송기사 일감 규칙
+
+`DriverWork`는 대리점이 최종 계약 물량을 소속 배송기사에게 맡기는 실제 일감 단위다.
+
+- `POST /api/v1/driver-works`: 대리점이 기사 일감을 생성한다.
+- `GET /api/v1/driver-works/agency/me`: 대리점이 자기 기사 일감 목록을 조회한다.
+- `GET /api/v1/driver-works/driver/me/open`: 소속 배송기사가 자기 대리점의 OPEN 일감을 조회한다.
+- `GET /api/v1/driver-works/driver/me/assigned`: 배송기사가 자기에게 확정 할당된 일감을 조회한다.
+- `GET /api/v1/driver-works/driver/me/applications`: 배송기사가 자기 신청 목록을 조회한다.
+- `GET /api/v1/driver-works/{driverWorkId}/applications`: 대리점이 특정 일감 신청자 목록을 조회한다.
+- `POST /api/v1/driver-works/{driverWorkId}/applications`: 배송기사가 OPEN 일감에 신청한다.
+- `DELETE /api/v1/driver-works/{driverWorkId}/applications/me`: 배송기사가 신청을 철회한다.
+- `POST /api/v1/driver-works/{driverWorkId}/applications/{applicationId}/select`: 대리점이 신청자 중 한 명을 선택한다.
+- `POST /api/v1/driver-works/{driverWorkId}/assign`: 대리점이 OPEN 일감을 특정 소속 기사에게 직접 할당한다.
+- `POST /api/v1/driver-works/{driverWorkId}/cancel`: 대리점이 완료 전 일감을 취소한다.
+- `POST /api/v1/driver-works/{driverWorkId}/complete`: 대리점이 할당 일감을 완료 처리한다.
+
+생성 request:
+
+```json
+{
+  "contractId": "019b1f44-a741-7000-8000-000000000030",
+  "title": "유성구 봉명동 집하",
+  "serviceRegion": "대전 유성구 봉명동",
+  "pickupStartDate": "2026-07-10",
+  "pickupEndDate": "2026-07-31",
+  "expectedVolume": 500,
+  "unitPrice": 900,
+  "assignedDeliverId": null,
+  "memo": "오후 집하 중심"
+}
+```
+
+`assignedDeliverId`가 null이면 `OPEN`, 값이 있으면 직접 할당되어 `ASSIGNED`로 생성된다.
+
+정책:
+
+- 대리점은 자기 최종 계약에 대해서만 일감을 생성한다.
+- 소속 배송기사(`AGENCY_AFFILIATED`)만 OPEN 일감 조회/신청/할당 대상이다.
+- 프리랜서 배송기사는 `DriverWork`가 아니라 `DeliverContract` 외부 계약 흐름을 사용한다.
+- OPEN 상태에서만 신청, 신청자 선택, 직접 할당이 가능하다.
+- 신청자 선택 시 선택 신청은 `SELECTED`, 나머지 신청은 `REJECTED`, 일감은 `ASSIGNED`가 된다.
 
 ## SSE 알림 규칙
 

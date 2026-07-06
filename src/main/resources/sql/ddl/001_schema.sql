@@ -349,6 +349,42 @@ CREATE TABLE IF NOT EXISTS deliver_contracts (
     KEY idx_deliver_contracts_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS driver_works (
+    id BINARY(16) NOT NULL,
+    agency_id BINARY(16) NOT NULL,
+    contract_id BINARY(16) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    service_region VARCHAR(100) NOT NULL,
+    pickup_start_date DATE NOT NULL,
+    pickup_end_date DATE NULL,
+    expected_volume INT NOT NULL,
+    unit_price DECIMAL(15, 2) NOT NULL,
+    assigned_deliver_id BINARY(16) NULL,
+    status VARCHAR(30) NOT NULL,
+    memo VARCHAR(255) NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_driver_works_agency_status (agency_id, status),
+    KEY idx_driver_works_contract_id (contract_id),
+    KEY idx_driver_works_assigned_deliver_status (assigned_deliver_id, status),
+    KEY idx_driver_works_pickup_start_date (pickup_start_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS driver_work_applications (
+    id BINARY(16) NOT NULL,
+    driver_work_id BINARY(16) NOT NULL,
+    deliver_id BINARY(16) NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    memo VARCHAR(255) NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_driver_work_applications_work_deliver (driver_work_id, deliver_id),
+    KEY idx_driver_work_applications_work_status (driver_work_id, status),
+    KEY idx_driver_work_applications_deliver_status (deliver_id, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS notifications (
     id BINARY(16) NOT NULL,
     receiver_user_id BINARY(16) NOT NULL,
