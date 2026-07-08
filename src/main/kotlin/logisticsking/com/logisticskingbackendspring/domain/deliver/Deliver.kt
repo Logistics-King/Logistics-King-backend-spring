@@ -8,7 +8,9 @@ class Deliver private constructor(
 
     val userId: UUID,
 
-    val agencyId: UUID,
+    val employmentType: DeliverEmploymentType,
+
+    val agencyId: UUID?,
 
     val driverName: String,
 
@@ -24,7 +26,8 @@ class Deliver private constructor(
 ) {
 
     fun update(
-        agencyId: UUID,
+        employmentType: DeliverEmploymentType,
+        agencyId: UUID?,
         driverName: String,
         phoneNumber: String,
         vehicleNumber: String?,
@@ -35,6 +38,7 @@ class Deliver private constructor(
         return create(
             id = id,
             userId = userId,
+            employmentType = employmentType,
             agencyId = agencyId,
             driverName = driverName,
             phoneNumber = phoneNumber,
@@ -54,7 +58,8 @@ class Deliver private constructor(
         fun create(
             id: UUID,
             userId: UUID,
-            agencyId: UUID,
+            employmentType: DeliverEmploymentType,
+            agencyId: UUID?,
             driverName: String,
             phoneNumber: String,
             vehicleNumber: String?,
@@ -68,10 +73,15 @@ class Deliver private constructor(
                 serviceRegions.isNotEmpty() && serviceRegions.all { it.isNotBlank() },
                 DeliverErrorCode.INVALID_SERVICE_REGIONS,
             )
+            requireDomain(
+                employmentType != DeliverEmploymentType.AGENCY_AFFILIATED || agencyId != null,
+                DeliverErrorCode.AGENCY_REQUIRED_FOR_AFFILIATED_DELIVER,
+            )
 
             return Deliver(
                 id = id,
                 userId = userId,
+                employmentType = employmentType,
                 agencyId = agencyId,
                 driverName = driverName.trim(),
                 phoneNumber = phoneNumber.trim(),
@@ -85,7 +95,8 @@ class Deliver private constructor(
         fun restore(
             id: UUID,
             userId: UUID,
-            agencyId: UUID,
+            employmentType: DeliverEmploymentType,
+            agencyId: UUID?,
             driverName: String,
             phoneNumber: String,
             vehicleNumber: String?,
@@ -96,6 +107,7 @@ class Deliver private constructor(
             return Deliver(
                 id = id,
                 userId = userId,
+                employmentType = employmentType,
                 agencyId = agencyId,
                 driverName = driverName,
                 phoneNumber = phoneNumber,

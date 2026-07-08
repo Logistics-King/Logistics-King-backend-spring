@@ -6,6 +6,7 @@ import java.util.UUID
 
 interface ContractRepository {
     fun save(contract: Contract): Contract
+    fun findById(id: UUID): Contract?
     fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<Contract>
     fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Contract>
     fun findRecentAgencyIdsByVendorId(vendorId: UUID, limit: Int): List<UUID>

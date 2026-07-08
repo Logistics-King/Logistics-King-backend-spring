@@ -3,6 +3,7 @@ package logisticsking.com.logisticskingbackendspring.infra.permission
 import io.swagger.v3.oas.annotations.Operation
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPoint
+import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointAccessRole
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.EndPointAuthorizationCache
@@ -86,16 +87,21 @@ class EndPointAutoRegistrar(
         )
     }
 
-    private fun rolesFor(handlerMethod: HandlerMethod): Set<UserRole> {
+    private fun rolesFor(handlerMethod: HandlerMethod): Set<EndPointAccessRole> {
         val access = handlerMethod.getMethodAnnotation(EndpointAccess::class.java)
             ?: handlerMethod.beanType.getAnnotation(EndpointAccess::class.java)
+        if (access?.publicAccess == true) {
+            return setOf(EndPointAccessRole.PUBLIC)
+        }
 
         val accessRoles = access
             ?.roles
             ?.toSet()
             ?.takeIf { it.isNotEmpty() }
+            ?.map(EndPointAccessRole::from)
+            ?.toSet()
 
-        return accessRoles.orEmpty() + DEFAULT_ROLE
+        return accessRoles.orEmpty() + EndPointAccessRole.from(DEFAULT_ROLE)
     }
 
     private fun describe(handlerMethod: HandlerMethod): String {

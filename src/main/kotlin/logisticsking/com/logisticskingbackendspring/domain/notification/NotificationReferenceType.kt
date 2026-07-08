@@ -5,5 +5,6 @@ enum class NotificationReferenceType {
     PROPOSAL,
     CONTRACT,
     DELIVER_CONTRACT,
+    DRIVER_WORK,
     SHIPMENT,
 }

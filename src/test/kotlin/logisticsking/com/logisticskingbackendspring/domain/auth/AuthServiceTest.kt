@@ -1,5 +1,8 @@
 package logisticsking.com.logisticskingbackendspring.domain.auth
 
+import logisticsking.com.logisticskingbackendspring.app.agency.command.CreateAgencyCommand
+import logisticsking.com.logisticskingbackendspring.app.agency.result.AgencyResult
+import logisticsking.com.logisticskingbackendspring.app.agency.usecase.CreateAgencyUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.command.LoginCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.command.LogoutCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.command.RefreshTokenCommand
@@ -7,6 +10,15 @@ import logisticsking.com.logisticskingbackendspring.app.auth.command.RequestLogi
 import logisticsking.com.logisticskingbackendspring.app.auth.command.RequestPasswordResetCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.command.ResetPasswordCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.command.SignUpCommand
+import logisticsking.com.logisticskingbackendspring.app.auth.command.SignUpVendorProfileCommand
+import logisticsking.com.logisticskingbackendspring.app.deliver.command.CreateDeliverCommand
+import logisticsking.com.logisticskingbackendspring.app.deliver.result.DeliverResult
+import logisticsking.com.logisticskingbackendspring.app.deliver.usecase.CreateDeliverUseCase
+import logisticsking.com.logisticskingbackendspring.app.vendor.command.CreateVendorCommand
+import logisticsking.com.logisticskingbackendspring.app.vendor.result.VendorResult
+import logisticsking.com.logisticskingbackendspring.app.vendor.usecase.CreateVendorUseCase
+import logisticsking.com.logisticskingbackendspring.domain.agency.Carrier
+import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.user.User
@@ -33,19 +45,18 @@ class AuthServiceTest {
         )
 
         val result = service.signUp(
-            SignUpCommand(
-                loginId = "agency01",
-                email = "agency01@example.com",
+            signUpVendorCommand(
+                loginId = "vendor01",
+                email = "vendor01@example.com",
                 password = "password",
                 passwordConfirm = "password",
-                name = "CJ 일동대리점",
-                role = UserRole.AGENCY,
+                name = "안산 옷가게",
             )
         )
 
-        val saved = userRepository.findByLoginId("agency01")
+        val saved = userRepository.findByLoginId("vendor01")
         assertEquals(userId, result.userId)
-        assertEquals(UserRole.AGENCY, result.role)
+        assertEquals(UserRole.VENDOR, result.role)
         assertEquals("encoded-password", saved?.encodedPassword)
     }
 
@@ -56,13 +67,12 @@ class AuthServiceTest {
 
         assertThrows(GlobalException::class.java) {
             service.signUp(
-                SignUpCommand(
+                signUpVendorCommand(
                     loginId = user.loginId,
                     email = "new@example.com",
                     password = "password",
                     passwordConfirm = "password",
                     name = "new user",
-                    role = UserRole.VENDOR,
                 )
             )
         }
@@ -75,13 +85,12 @@ class AuthServiceTest {
 
         assertThrows(GlobalException::class.java) {
             service.signUp(
-                SignUpCommand(
+                signUpVendorCommand(
                     loginId = "new-login-id",
                     email = user.email,
                     password = "password",
                     passwordConfirm = "password",
                     name = "new user",
-                    role = UserRole.VENDOR,
                 )
             )
         }
@@ -93,13 +102,12 @@ class AuthServiceTest {
 
         val exception = assertThrows(GlobalException::class.java) {
             service.signUp(
-                SignUpCommand(
+                signUpVendorCommand(
                     loginId = "vendor01",
                     email = "vendor01@example.com",
                     password = "password",
                     passwordConfirm = "different-password",
                     name = "new user",
-                    role = UserRole.VENDOR,
                 )
             )
         }
@@ -291,6 +299,9 @@ class AuthServiceTest {
         refreshTokenRepository: FakeRefreshTokenRepository = FakeRefreshTokenRepository(),
         accountRecoveryTokenRepository: FakeAccountRecoveryTokenRepository = FakeAccountRecoveryTokenRepository(),
         accountRecoveryEmailSender: FakeAccountRecoveryEmailSender = FakeAccountRecoveryEmailSender(),
+        createVendorUseCase: CreateVendorUseCase = FakeCreateVendorUseCase(),
+        createAgencyUseCase: CreateAgencyUseCase = FakeCreateAgencyUseCase(),
+        createDeliverUseCase: CreateDeliverUseCase = FakeCreateDeliverUseCase(),
     ): AuthService {
         return AuthService(
             userRepository = userRepository,
@@ -301,7 +312,37 @@ class AuthServiceTest {
             accountRecoveryTokenRepository = accountRecoveryTokenRepository,
             accountRecoveryTokenGenerator = FakeAccountRecoveryTokenGenerator(),
             accountRecoveryEmailSender = accountRecoveryEmailSender,
+            createVendorUseCase = createVendorUseCase,
+            createAgencyUseCase = createAgencyUseCase,
+            createDeliverUseCase = createDeliverUseCase,
             refreshTokenExpirationSeconds = 1209600,
+        )
+    }
+
+    private fun signUpVendorCommand(
+        loginId: String,
+        email: String,
+        password: String,
+        passwordConfirm: String,
+        name: String,
+    ): SignUpCommand {
+        return SignUpCommand(
+            loginId = loginId,
+            email = email,
+            password = password,
+            passwordConfirm = passwordConfirm,
+            name = name,
+            role = UserRole.VENDOR,
+            vendorProfile = SignUpVendorProfileCommand(
+                businessName = "안산 옷가게",
+                businessRegistrationNumber = "123-45-67890",
+                representativeName = "김사장",
+                phoneNumber = "010-1234-5678",
+                postalCode = "15360",
+                address = "경기도 안산시 상록구 일동",
+                addressDetail = "101호",
+                mainRegion = "경기도 안산시 일동",
+            ),
         )
     }
 
@@ -366,6 +407,67 @@ class AuthServiceTest {
             val changed = user.changePassword(encodedPassword)
             users[id] = changed
             return changed
+        }
+    }
+
+    private class FakeCreateVendorUseCase : CreateVendorUseCase {
+        override fun create(command: CreateVendorCommand): VendorResult {
+            return VendorResult(
+                vendorId = UUID.randomUUID(),
+                userId = command.userId,
+                businessName = command.businessName,
+                businessRegistrationNumber = command.businessRegistrationNumber,
+                representativeName = command.representativeName,
+                phoneNumber = command.phoneNumber,
+                postalCode = command.postalCode,
+                address = command.address,
+                addressDetail = command.addressDetail,
+                mainRegion = command.mainRegion,
+            )
+        }
+    }
+
+    private class FakeCreateAgencyUseCase : CreateAgencyUseCase {
+        override fun create(command: CreateAgencyCommand): AgencyResult {
+            return AgencyResult(
+                agencyId = UUID.randomUUID(),
+                userId = command.userId,
+                carrier = command.carrier,
+                agencyName = command.agencyName,
+                businessRegistrationNumber = command.businessRegistrationNumber,
+                representativeName = command.representativeName,
+                phoneNumber = command.phoneNumber,
+                postalCode = command.postalCode,
+                address = command.address,
+                addressDetail = command.addressDetail,
+                mainRegion = command.mainRegion,
+                serviceRegions = command.serviceRegions,
+                weekdayPickupStartTime = command.weekdayPickupStartTime,
+                weekdayPickupEndTime = command.weekdayPickupEndTime,
+                saturdayPickupAvailable = command.saturdayPickupAvailable,
+                saturdayDeliveryAvailable = command.saturdayDeliveryAvailable,
+                returnAvailable = command.returnAvailable,
+                supportedColdChainTypes = command.supportedColdChainTypes,
+                maxMonthlyVolume = command.maxMonthlyVolume,
+            )
+        }
+    }
+
+    private class FakeCreateDeliverUseCase : CreateDeliverUseCase {
+        override fun create(command: CreateDeliverCommand): DeliverResult {
+            return DeliverResult(
+                deliverId = UUID.randomUUID(),
+                userId = command.userId,
+                employmentType = command.employmentType,
+                agencyId = command.agencyId,
+                driverName = command.driverName,
+                phoneNumber = command.phoneNumber,
+                vehicleNumber = command.vehicleNumber,
+                serviceRegions = command.serviceRegions,
+                active = command.active,
+                memo = command.memo,
+                agency = null,
+            )
         }
     }
 

@@ -138,6 +138,7 @@ class DeliverServiceTest {
     private fun createDeliverCommand(userId: UUID, agencyId: UUID): CreateDeliverCommand {
         return CreateDeliverCommand(
             userId = userId,
+            employmentType = DeliverEmploymentType.AGENCY_AFFILIATED,
             agencyId = agencyId,
             driverName = "김택배",
             phoneNumber = "010-1234-5678",
@@ -151,6 +152,7 @@ class DeliverServiceTest {
     private fun updateDeliverCommand(userId: UUID, agencyId: UUID): UpdateDeliverCommand {
         return UpdateDeliverCommand(
             userId = userId,
+            employmentType = DeliverEmploymentType.AGENCY_AFFILIATED,
             agencyId = agencyId,
             driverName = "박배송",
             phoneNumber = "010-9876-5432",
@@ -301,12 +303,41 @@ class DeliverServiceTest {
             return delivers[id]
         }
 
+        override fun findAllByIds(ids: Collection<UUID>): List<Deliver> {
+            return delivers.values.filter { it.id in ids }
+        }
+
         override fun findByUserId(userId: UUID): Deliver? {
             return delivers.values.firstOrNull { it.userId == userId }
         }
 
-        override fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Deliver> {
-            val filteredDelivers = delivers.values.filter { it.agencyId == agencyId }
+        override fun findAllByAgencyId(
+            agencyId: UUID,
+            condition: DeliverSearchCondition,
+            pageable: Pageable,
+        ): Page<Deliver> {
+            val filteredDelivers = delivers.values.filter { deliver ->
+                deliver.agencyId == agencyId &&
+                    condition.active?.let { deliver.active == it } != false &&
+                    condition.normalizedServiceRegion?.let { deliver.serviceRegions.any { region -> region.contains(it) } } != false &&
+                    condition.normalizedDriverName?.let { deliver.driverName.contains(it, ignoreCase = true) } != false &&
+                    condition.normalizedVehicleNumber?.let { deliver.vehicleNumber?.contains(it, ignoreCase = true) == true } != false
+            }
+
+            return PageImpl(filteredDelivers, pageable, filteredDelivers.size.toLong())
+        }
+
+        override fun findAllFreelancers(
+            condition: DeliverSearchCondition,
+            pageable: Pageable,
+        ): Page<Deliver> {
+            val filteredDelivers = delivers.values.filter { deliver ->
+                deliver.employmentType == DeliverEmploymentType.FREELANCER &&
+                    condition.active?.let { deliver.active == it } != false &&
+                    condition.normalizedServiceRegion?.let { deliver.serviceRegions.any { region -> region.contains(it) } } != false &&
+                    condition.normalizedDriverName?.let { deliver.driverName.contains(it, ignoreCase = true) } != false &&
+                    condition.normalizedVehicleNumber?.let { deliver.vehicleNumber?.contains(it, ignoreCase = true) == true } != false
+            }
 
             return PageImpl(filteredDelivers, pageable, filteredDelivers.size.toLong())
         }

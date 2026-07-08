@@ -2,9 +2,12 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.deliver
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.deliver.Deliver
+import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverEmploymentType
 import logisticsking.com.logisticskingbackendspring.infra.persistence.common.SoftDeletableJpaEntity
 import java.util.UUID
 
@@ -18,8 +21,12 @@ class DeliverJpaEntity(
     @Column(name = "user_id", columnDefinition = "BINARY(16)", nullable = false, unique = true)
     val userId: UUID,
 
-    @Column(name = "agency_id", columnDefinition = "BINARY(16)", nullable = false)
-    val agencyId: UUID,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "employment_type", nullable = false, length = 30)
+    val employmentType: DeliverEmploymentType,
+
+    @Column(name = "agency_id", columnDefinition = "BINARY(16)")
+    val agencyId: UUID?,
 
     @Column(name = "driver_name", nullable = false, length = 50)
     val driverName: String,
@@ -44,6 +51,7 @@ class DeliverJpaEntity(
         return Deliver.restore(
             id = id,
             userId = userId,
+            employmentType = employmentType,
             agencyId = agencyId,
             driverName = driverName,
             phoneNumber = phoneNumber,
@@ -63,6 +71,7 @@ class DeliverJpaEntity(
             return DeliverJpaEntity(
                 id = deliver.id,
                 userId = deliver.userId,
+                employmentType = deliver.employmentType,
                 agencyId = deliver.agencyId,
                 driverName = deliver.driverName,
                 phoneNumber = deliver.phoneNumber,

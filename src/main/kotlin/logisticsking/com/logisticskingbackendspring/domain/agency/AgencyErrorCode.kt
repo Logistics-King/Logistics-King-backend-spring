@@ -23,6 +23,11 @@ enum class AgencyErrorCode(
         message = "화주 권한 사용자만 대리점 목록을 조회할 수 있습니다.",
         status = HttpStatus.FORBIDDEN,
     ),
+    USER_IS_NOT_VENDOR_OR_DRIVER(
+        code = "AGENCY_USER_IS_NOT_VENDOR_OR_DRIVER",
+        message = "화주 또는 배송기사 권한 사용자만 대리점 목록을 조회할 수 있습니다.",
+        status = HttpStatus.FORBIDDEN,
+    ),
     AGENCY_ALREADY_EXISTS(
         code = "AGENCY_ALREADY_EXISTS",
         message = "이미 대리점 프로필이 존재합니다.",

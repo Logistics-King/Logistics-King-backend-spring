@@ -246,6 +246,7 @@ class RecommendationServiceTest {
         constructor(vararg previousAgencyIds: UUID) : this(previousAgencyIds = previousAgencyIds.toList())
 
         override fun save(contract: Contract): Contract = contract
+        override fun findById(id: UUID): Contract? = null
         override fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<Contract> = PageImpl(emptyList(), pageable, 0)
         override fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Contract> = PageImpl(emptyList(), pageable, 0)
         override fun findRecentAgencyIdsByVendorId(vendorId: UUID, limit: Int): List<UUID> = previousAgencyIds.take(limit)

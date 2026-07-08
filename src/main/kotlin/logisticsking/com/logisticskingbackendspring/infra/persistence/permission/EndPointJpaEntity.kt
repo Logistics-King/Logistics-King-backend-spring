@@ -8,7 +8,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPoint
-import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointAccessRole
 import logisticsking.com.logisticskingbackendspring.infra.persistence.common.BaseJpaEntity
 
 @Entity
@@ -25,9 +25,9 @@ class EndPointJpaEntity(
     @Column(name = "method", nullable = false, length = 10)
     val method: String,
 
-    @Convert(converter = UserRoleSetConverter::class)
+    @Convert(converter = EndPointAccessRoleSetConverter::class)
     @Column(name = "roles", nullable = false, columnDefinition = "JSON")
-    val roles: Set<UserRole>,
+    val roles: Set<EndPointAccessRole>,
 
     @Column(name = "description", length = 255)
     val description: String?,

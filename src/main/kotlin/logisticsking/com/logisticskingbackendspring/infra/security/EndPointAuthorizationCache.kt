@@ -82,13 +82,41 @@ class EndPointAuthorizationCache(
         requestMethod: String,
         role: UserRole,
     ): Boolean {
-        return endPointsByMethod.get()
+        return matchingEndPoints(
+            requestUri = requestUri,
+            requestMethod = requestMethod,
+        )
+            .any { endPoint ->
+                endPoint.allows(role)
+            }
+    }
+
+    fun isPublicAllowed(
+        requestUri: String,
+        requestMethod: String,
+    ): Boolean {
+        return matchingEndPoints(
+            requestUri = requestUri,
+            requestMethod = requestMethod,
+        )
+            .any { endPoint ->
+                endPoint.isPublic()
+            }
+    }
+
+    private fun matchingEndPoints(
+        requestUri: String,
+        requestMethod: String,
+    ): List<EndPoint> {
+        val endPoints = endPointsByMethod.get()
             .orEmpty()[requestMethod]
             .orEmpty()
-            .any { endPoint ->
-                pathMatcher.match(endPoint.url, requestUri) &&
-                    endPoint.allows(role)
-            }
+        val exactMatches = endPoints.filter { endPoint -> endPoint.url == requestUri }
+        if (exactMatches.isNotEmpty()) {
+            return exactMatches
+        }
+
+        return endPoints.filter { endPoint -> pathMatcher.match(endPoint.url, requestUri) }
     }
 
     private fun currentEndPoints(): List<EndPoint> {

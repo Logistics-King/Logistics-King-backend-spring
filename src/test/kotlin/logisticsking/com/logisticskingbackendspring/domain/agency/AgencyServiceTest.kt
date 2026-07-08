@@ -126,19 +126,67 @@ class AgencyServiceTest {
     }
 
     @Test
-    fun `getAgencies 시 화주 권한이 아니면 예외가 발생한다`() {
+    fun `getAgencies 성공 시 배송기사가 이름으로 소속 대리점을 검색한다`() {
+        val driverUser = user(role = UserRole.DRIVER)
+        val agencyRepository = FakeAgencyRepository()
+        val service = agencyService(
+            userRepository = FakeUserRepository(driverUser),
+            agencyRepository = agencyRepository,
+        )
+        val matched = agency(name = "CJ 일동대리점", mainRegion = "경기도 안산시 일동")
+        val unmatched = agency(name = "롯데 선부대리점", mainRegion = "경기도 안산시 선부동")
+        agencyRepository.save(matched)
+        agencyRepository.save(unmatched)
+
+        val result = service.getAgencies(
+            userId = driverUser.id,
+            condition = AgencySearchCondition(agencyName = "일동"),
+            pageable = unpaged(),
+        )
+
+        assertEquals(1, result.totalElements)
+        assertEquals(matched.id, result.content.first().agencyId)
+    }
+
+    @Test
+    fun `getAgency 성공 시 배송기사가 대리점 상세를 조회한다`() {
+        val driverUser = user(role = UserRole.DRIVER)
+        val agencyRepository = FakeAgencyRepository()
+        val service = agencyService(
+            userRepository = FakeUserRepository(driverUser),
+            agencyRepository = agencyRepository,
+        )
+        val agency = agency(name = "한진 사동대리점", mainRegion = "경기도 안산시 사동")
+        agencyRepository.save(agency)
+
+        val result = service.getAgency(
+            userId = driverUser.id,
+            agencyId = agency.id,
+        )
+
+        assertEquals(agency.id, result.agencyId)
+        assertEquals("김대표", result.representativeName)
+    }
+
+    @Test
+    fun `getAgencies는 비로그인 상태에서도 전체 대리점을 조회한다`() {
         val agencyUser = user(role = UserRole.AGENCY)
-        val service = agencyService(userRepository = FakeUserRepository(agencyUser))
+        val agencyRepository = FakeAgencyRepository()
+        val service = agencyService(
+            userRepository = FakeUserRepository(agencyUser),
+            agencyRepository = agencyRepository,
+        )
+        val matched = agency(name = "CJ 일동대리점", mainRegion = "경기도 안산시 일동")
+        agencyRepository.save(matched)
 
-        val exception = assertThrows(GlobalException::class.java) {
-            service.getAgencies(
-                userId = agencyUser.id,
-                condition = AgencySearchCondition(region = "일동"),
-                pageable = unpaged(),
-            )
-        }
+        val result = service.getAgencies(
+            userId = null,
+            condition = AgencySearchCondition(region = "일동"),
+            pageable = unpaged(),
+        )
 
-        assertEquals(AgencyErrorCode.USER_IS_NOT_VENDOR, exception.errorCode)
+        assertEquals(1, result.totalElements)
+        assertEquals(matched.id, result.content.first().agencyId)
     }
 
     @Test
@@ -330,6 +378,10 @@ class AgencyServiceTest {
             pageable: Pageable,
         ): Page<Agency> {
             val content = agencies.values
+                .filter { agency ->
+                    condition.normalizedAgencyName == null ||
+                        agency.agencyName.contains(condition.normalizedAgencyName, ignoreCase = true)
+                }
                 .filter { agency ->
                     condition.normalizedRegion == null ||
                         agency.mainRegion.contains(condition.normalizedRegion, ignoreCase = true) ||

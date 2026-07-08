@@ -1,0 +1,42 @@
+CREATE TABLE IF NOT EXISTS vendors (
+    id BINARY(16) NOT NULL COMMENT '화주 식별자',
+    user_id BINARY(16) NOT NULL COMMENT '화주 사용자 식별자',
+    business_name VARCHAR(100) NOT NULL COMMENT '화주 상호명',
+    business_registration_number VARCHAR(30) NULL COMMENT '사업자등록번호',
+    representative_name VARCHAR(50) NOT NULL COMMENT '대표자명',
+    phone_number VARCHAR(30) NOT NULL COMMENT '연락처',
+    postal_code VARCHAR(20) NULL COMMENT '우편번호',
+    address VARCHAR(255) NOT NULL COMMENT '주소',
+    address_detail VARCHAR(255) NULL COMMENT '상세 주소',
+    main_region VARCHAR(100) NOT NULL COMMENT '주요 출고 지역',
+    created_at DATETIME(6) NOT NULL COMMENT '생성 시각',
+    updated_at DATETIME(6) NOT NULL COMMENT '마지막 수정 시각',
+    deleted_at DATETIME(6) NULL COMMENT '삭제 시각',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_vendors_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='화주 프로필';
+
+CREATE TABLE IF NOT EXISTS products (
+    id BINARY(16) NOT NULL COMMENT '배송 품목 템플릿 식별자',
+    vendor_id BINARY(16) NOT NULL COMMENT '소유 화주 식별자',
+    category VARCHAR(30) NOT NULL COMMENT '품목 카테고리',
+    name VARCHAR(100) NOT NULL COMMENT '품목명',
+    description VARCHAR(255) NULL COMMENT '품목 설명',
+    average_price DECIMAL(15, 2) NULL COMMENT '평균 상품 가격',
+    average_weight_gram INT NULL COMMENT '평균 무게(g)',
+    box_size VARCHAR(30) NULL COMMENT '기본 박스 규격',
+    box_quantity INT NOT NULL COMMENT '기본 박스 수량',
+    item_quantity INT NOT NULL COMMENT '기본 상품 수량',
+    destination_postal_code VARCHAR(20) NULL COMMENT '도착지 우편번호',
+    destination_address VARCHAR(255) NOT NULL COMMENT '도착지 주소',
+    destination_address_detail VARCHAR(255) NULL COMMENT '도착지 상세 주소',
+    fragile BOOLEAN NOT NULL COMMENT '파손 주의 여부',
+    liquid BOOLEAN NOT NULL COMMENT '액체 포함 여부',
+    fresh_food BOOLEAN NOT NULL COMMENT '신선식품 여부',
+    cold_chain_type VARCHAR(30) NOT NULL COMMENT '콜드체인 유형',
+    created_at DATETIME(6) NOT NULL COMMENT '생성 시각',
+    updated_at DATETIME(6) NOT NULL COMMENT '마지막 수정 시각',
+    deleted_at DATETIME(6) NULL COMMENT '삭제 시각',
+    PRIMARY KEY (id),
+    KEY idx_products_vendor_id (vendor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='화주 배송 품목 템플릿';
