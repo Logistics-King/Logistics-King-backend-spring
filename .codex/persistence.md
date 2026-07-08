@@ -63,21 +63,72 @@ spring:
 src/main/resources/sql
   ddl
     000_create_database.sql
-    001_schema.sql
+    001_auth.sql
+    001_vendor.sql
+    001_contract.sql
+    001_agency_driver.sql
+    001_notification.sql
   dml
-    001_seed.sql
+    001_vendor_seed.sql
+    001_contract_seed.sql
+    001_agency_driver_seed.sql
+    001_notification_seed.sql
+    002_auth_cleanup_legacy_end_points.sql
+    003_contract_backfill_proposal_negotiation_columns.sql
 ```
 
 규칙:
 
 - database 생성 스크립트는 `sql/ddl/000_create_database.sql`에 둔다.
-- schema DDL은 `sql/ddl/001_schema.sql`에 둔다.
-- seed/reference DML은 `sql/dml/001_seed.sql`에 둔다.
+- schema DDL은 도메인별 `sql/ddl/001_{domain}.sql`에 둔다.
+- 새 테이블이나 컬럼이 생기면 별도 `create_*`, `add_*` DDL 파일을 만들지 말고 해당 도메인 schema 파일을 최신 상태로 수정한다.
+- DDL 파일명에는 작업 동사보다 도메인과 목적을 쓴다. 예: `001_contract.sql`.
+- 인증/권한/계정 복구는 `001_auth.sql`에 둔다.
+- 화주와 배송 품목 템플릿은 `001_vendor.sql`에 둔다.
+- 계약 요청, 제안, 최종 계약은 `001_contract.sql`에 둔다.
+- 대리점, 배송기사, 기사 일감은 `001_agency_driver.sql`에 둔다.
+- 알림은 `001_notification.sql`에 둔다.
+- seed/reference DML도 도메인별 `sql/dml/001_{domain}_seed.sql`에 둔다.
+- 기존 데이터 보정 DML은 `sql/dml/{순번}_{domain}_{작업내용}.sql` 형식으로 둔다.
 - 로컬 개발 환경에서는 Hibernate `ddl-auto=create`를 유지한다.
 - SQL init은 자동 실행하지 않는다. `spring.sql.init.mode=never`를 유지한다.
 - DDL/DML 파일은 스키마와 데이터 변경 이력을 사람이 확인하고 필요할 때 수동 실행하기 위한 관리 파일이다.
 - 새 테이블이나 컬럼은 JPA Entity만 수정하지 말고 DDL 파일도 함께 수정한다.
+- 새 테이블과 컬럼은 MySQL `COMMENT`를 작성한다.
+- 테이블 끝에는 `COMMENT='도메인 테이블 설명'`을 붙인다.
+- 컬럼은 한 줄 안에 `COMMENT '컬럼 설명'`을 붙여 DataGrip, ERD, 메타데이터에서 바로 의미를 확인할 수 있게 한다.
+- 컬럼 설명은 구현 타입보다 도메인 의미를 우선한다. 예: `BINARY(16)` 설명보다 `화주 식별자`, `계약 요청 식별자`처럼 작성한다.
+- DML 파일은 파일 상단에 `-- {도메인} {목적} DML입니다.` 형태의 설명 주석을 작성한다.
+- seed row 자체에 설명 컬럼이 있는 경우, 예를 들어 `end_points.description`, 운영자가 이해할 수 있는 API 목적을 한국어로 작성한다.
 - 로컬 DB가 없으면 먼저 `000_create_database.sql`을 MySQL에 수동 실행한다.
+
+DDL 예시:
+
+```sql
+CREATE TABLE IF NOT EXISTS driver_works (
+    id BINARY(16) NOT NULL COMMENT '기사 일감 식별자',
+    agency_id BINARY(16) NOT NULL COMMENT '일감을 생성한 대리점 식별자',
+    status VARCHAR(30) NOT NULL COMMENT '기사 일감 상태',
+    created_at DATETIME(6) NOT NULL COMMENT '생성 시각',
+    updated_at DATETIME(6) NOT NULL COMMENT '마지막 수정 시각',
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='배송기사 일감';
+```
+
+DML 예시:
+
+```sql
+-- 계약 도메인 endpoint seed입니다.
+-- endpoint 접근 정책은 운영 DB의 end_points 테이블과 캐시 reload를 기준으로 적용됩니다.
+
+INSERT INTO end_points (url, method, roles, description, created_at, updated_at)
+VALUES
+    ('/api/v1/contracts/vendor/me', 'GET', '["ADMIN","VENDOR"]', '로그인한 화주의 최종 계약 목록을 조회합니다.', NOW(6), NOW(6))
+ON DUPLICATE KEY UPDATE
+    roles = VALUES(roles),
+    description = VALUES(description),
+    updated_at = VALUES(updated_at);
+```
 
 ## Entity와 Domain 분리
 

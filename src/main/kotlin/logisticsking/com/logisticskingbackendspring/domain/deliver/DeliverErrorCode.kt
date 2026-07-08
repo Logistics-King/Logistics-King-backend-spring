@@ -53,4 +53,9 @@ enum class DeliverErrorCode(
         message = "담당 가능 지역은 1개 이상이어야 합니다.",
         status = HttpStatus.BAD_REQUEST,
     ),
+    AGENCY_REQUIRED_FOR_AFFILIATED_DELIVER(
+        code = "AGENCY_REQUIRED_FOR_AFFILIATED_DELIVER",
+        message = "대리점 소속 배송기사는 소속 대리점이 필요합니다.",
+        status = HttpStatus.BAD_REQUEST,
+    ),
 }

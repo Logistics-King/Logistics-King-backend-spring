@@ -18,7 +18,11 @@ class EndPointAuthorizationFilter(
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         return CorsUtils.isPreFlightRequest(request) ||
             !request.servletPath.startsWith(API_PATH) ||
-            PUBLIC_PATHS.any { publicPath -> request.servletPath.startsWith(publicPath) }
+            PUBLIC_PATHS.any { publicPath -> request.servletPath.startsWith(publicPath) } ||
+            endPointAuthorizationCache.isPublicAllowed(
+                requestUri = request.servletPath,
+                requestMethod = request.method,
+            )
     }
 
     override fun doFilterInternal(

@@ -211,6 +211,18 @@ private data class NotificationTemplate(
                     title = "배송기사 계약 거절",
                     message = "배송기사가 계약 요청을 거절했습니다.",
                 )
+                NotificationType.DRIVER_WORK_ASSIGNED -> NotificationTemplate(
+                    title = "기사 일감 할당",
+                    message = "대리점에서 기사 일감을 할당했습니다.",
+                )
+                NotificationType.DRIVER_WORK_APPLIED -> NotificationTemplate(
+                    title = "기사 일감 신청",
+                    message = "배송기사가 기사 일감에 신청했습니다.",
+                )
+                NotificationType.DRIVER_WORK_SELECTED -> NotificationTemplate(
+                    title = "기사 일감 확정",
+                    message = "대리점이 기사 일감 신청을 선택했습니다.",
+                )
             }
         }
     }

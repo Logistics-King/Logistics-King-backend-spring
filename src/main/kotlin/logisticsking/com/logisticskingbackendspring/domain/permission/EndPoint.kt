@@ -9,19 +9,23 @@ class EndPoint private constructor(
 
     val method: String,
 
-    val roles: Set<UserRole>,
+    val roles: Set<EndPointAccessRole>,
 
     val description: String?,
 ) {
     fun allows(role: UserRole): Boolean {
-        return roles.contains(role)
+        return isPublic() || roles.contains(EndPointAccessRole.from(role))
+    }
+
+    fun isPublic(): Boolean {
+        return roles.contains(EndPointAccessRole.PUBLIC)
     }
 
     companion object {
         fun create(
             url: String,
             method: String,
-            roles: Set<UserRole>,
+            roles: Set<EndPointAccessRole>,
             description: String?,
         ): EndPoint {
             return EndPoint(
@@ -37,7 +41,7 @@ class EndPoint private constructor(
             id: Long,
             url: String,
             method: String,
-            roles: Set<UserRole>,
+            roles: Set<EndPointAccessRole>,
             description: String?,
         ): EndPoint {
             return EndPoint(

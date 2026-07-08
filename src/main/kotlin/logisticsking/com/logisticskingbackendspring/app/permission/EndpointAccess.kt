@@ -6,5 +6,6 @@ import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 @Retention(AnnotationRetention.RUNTIME)
 annotation class EndpointAccess(
     val roles: Array<UserRole> = [UserRole.ADMIN],
+    val publicAccess: Boolean = false,
     val description: String = "",
 )

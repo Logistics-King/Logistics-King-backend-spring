@@ -2,12 +2,12 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.permissio
 
 import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Converter
-import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
+import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointAccessRole
 
 @Converter
-class UserRoleSetConverter : AttributeConverter<Set<UserRole>, String> {
+class EndPointAccessRoleSetConverter : AttributeConverter<Set<EndPointAccessRole>, String> {
 
-    override fun convertToDatabaseColumn(attribute: Set<UserRole>?): String {
+    override fun convertToDatabaseColumn(attribute: Set<EndPointAccessRole>?): String {
         val roles = attribute.orEmpty()
             .sortedBy { it.ordinal }
             .joinToString(separator = ",") { role -> "\"${role.name}\"" }
@@ -15,7 +15,7 @@ class UserRoleSetConverter : AttributeConverter<Set<UserRole>, String> {
         return "[$roles]"
     }
 
-    override fun convertToEntityAttribute(dbData: String?): Set<UserRole> {
+    override fun convertToEntityAttribute(dbData: String?): Set<EndPointAccessRole> {
         if (dbData.isNullOrBlank() || dbData.trim() == "null") {
             return emptySet()
         }
@@ -27,7 +27,7 @@ class UserRoleSetConverter : AttributeConverter<Set<UserRole>, String> {
             .split(",")
             .map { role -> role.trim().removeSurrounding("\"") }
             .filter { role -> role.isNotBlank() }
-            .map(UserRole::valueOf)
+            .map(EndPointAccessRole::valueOf)
             .toSet()
     }
 }

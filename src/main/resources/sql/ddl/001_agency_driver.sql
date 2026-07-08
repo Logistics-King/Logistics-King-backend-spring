@@ -1,0 +1,102 @@
+CREATE TABLE IF NOT EXISTS agencies (
+    id BINARY(16) NOT NULL COMMENT '대리점 식별자',
+    user_id BINARY(16) NOT NULL COMMENT '대리점 사용자 식별자',
+    carrier VARCHAR(30) NOT NULL COMMENT '소속 택배사',
+    agency_name VARCHAR(100) NOT NULL COMMENT '대리점명',
+    business_registration_number VARCHAR(30) NULL COMMENT '사업자등록번호',
+    representative_name VARCHAR(50) NOT NULL COMMENT '대표자명',
+    phone_number VARCHAR(30) NOT NULL COMMENT '연락처',
+    postal_code VARCHAR(20) NULL COMMENT '우편번호',
+    address VARCHAR(255) NOT NULL COMMENT '주소',
+    address_detail VARCHAR(255) NULL COMMENT '상세 주소',
+    main_region VARCHAR(100) NOT NULL COMMENT '주요 영업 지역',
+    service_regions VARCHAR(500) NOT NULL COMMENT '서비스 가능 지역 목록',
+    weekday_pickup_start_time VARCHAR(10) NULL COMMENT '평일 집하 시작 시간',
+    weekday_pickup_end_time VARCHAR(10) NULL COMMENT '평일 집하 종료 시간',
+    saturday_pickup_available BOOLEAN NOT NULL COMMENT '토요일 집하 가능 여부',
+    saturday_delivery_available BOOLEAN NOT NULL COMMENT '토요일 배송 가능 여부',
+    return_available BOOLEAN NOT NULL COMMENT '반품 처리 가능 여부',
+    supported_cold_chain_types JSON NOT NULL COMMENT '지원 콜드체인 유형 목록',
+    max_monthly_volume INT NULL COMMENT '처리 가능 월 최대 물량',
+    created_at DATETIME(6) NOT NULL COMMENT '생성 시각',
+    updated_at DATETIME(6) NOT NULL COMMENT '마지막 수정 시각',
+    deleted_at DATETIME(6) NULL COMMENT '삭제 시각',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_agencies_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='대리점 프로필';
+
+CREATE TABLE IF NOT EXISTS delivers (
+    id BINARY(16) NOT NULL COMMENT '배송기사 식별자',
+    user_id BINARY(16) NOT NULL COMMENT '배송기사 사용자 식별자',
+    employment_type VARCHAR(30) NOT NULL DEFAULT 'AGENCY_AFFILIATED' COMMENT '배송기사 근무 유형',
+    agency_id BINARY(16) NULL COMMENT '소속 대리점 식별자',
+    driver_name VARCHAR(50) NOT NULL COMMENT '배송기사 이름',
+    phone_number VARCHAR(30) NOT NULL COMMENT '연락처',
+    vehicle_number VARCHAR(30) NULL COMMENT '차량 번호',
+    service_regions VARCHAR(500) NOT NULL COMMENT '수행 가능 지역 목록',
+    active BOOLEAN NOT NULL COMMENT '활성 상태 여부',
+    memo VARCHAR(255) NULL COMMENT '배송기사 메모',
+    created_at DATETIME(6) NOT NULL COMMENT '생성 시각',
+    updated_at DATETIME(6) NOT NULL COMMENT '마지막 수정 시각',
+    deleted_at DATETIME(6) NULL COMMENT '삭제 시각',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_delivers_user_id (user_id),
+    KEY idx_delivers_employment_type (employment_type),
+    KEY idx_delivers_agency_id (agency_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='배송기사 프로필';
+
+CREATE TABLE IF NOT EXISTS deliver_contracts (
+    id BINARY(16) NOT NULL COMMENT '배송기사 계약 식별자',
+    agency_id BINARY(16) NOT NULL COMMENT '계약 요청 대리점 식별자',
+    deliver_id BINARY(16) NOT NULL COMMENT '계약 대상 배송기사 식별자',
+    service_region VARCHAR(100) NOT NULL COMMENT '수행 지역',
+    expected_monthly_volume INT NOT NULL COMMENT '월 예상 물량',
+    unit_price DECIMAL(15, 2) NOT NULL COMMENT '박스당 단가',
+    start_date DATE NOT NULL COMMENT '계약 시작일',
+    end_date DATE NULL COMMENT '계약 종료일',
+    memo VARCHAR(255) NULL COMMENT '배송기사 계약 메모',
+    status VARCHAR(30) NOT NULL COMMENT '배송기사 계약 상태',
+    created_at DATETIME(6) NOT NULL COMMENT '생성 시각',
+    updated_at DATETIME(6) NOT NULL COMMENT '마지막 수정 시각',
+    PRIMARY KEY (id),
+    KEY idx_deliver_contracts_agency_id (agency_id),
+    KEY idx_deliver_contracts_deliver_id (deliver_id),
+    KEY idx_deliver_contracts_agency_deliver_status (agency_id, deliver_id, status),
+    KEY idx_deliver_contracts_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='배송기사 계약';
+
+CREATE TABLE IF NOT EXISTS driver_works (
+    id BINARY(16) NOT NULL COMMENT '기사 일감 식별자',
+    agency_id BINARY(16) NOT NULL COMMENT '일감을 생성한 대리점 식별자',
+    contract_id BINARY(16) NOT NULL COMMENT '일감의 기준이 되는 최종 계약 식별자',
+    title VARCHAR(100) NOT NULL COMMENT '대리점/기사가 구분하기 위한 일감 제목',
+    service_region VARCHAR(100) NOT NULL COMMENT '집하 또는 수행 대상 지역',
+    pickup_start_date DATE NOT NULL COMMENT '일감 시작일',
+    pickup_end_date DATE NULL COMMENT '일감 종료일, 단건이면 null 가능',
+    expected_volume INT NOT NULL COMMENT '해당 일감의 예상 물량',
+    unit_price DECIMAL(15, 2) NOT NULL COMMENT '기사에게 제시하는 박스당 단가',
+    assigned_deliver_id BINARY(16) NULL COMMENT '최종 배정된 배송기사 식별자, OPEN 일감이면 null',
+    status VARCHAR(30) NOT NULL COMMENT '기사 일감 상태(OPEN, ASSIGNED, CANCELLED, COMPLETED)',
+    memo VARCHAR(255) NULL COMMENT '대리점이 남기는 일감 메모',
+    created_at DATETIME(6) NOT NULL COMMENT '생성 시각',
+    updated_at DATETIME(6) NOT NULL COMMENT '마지막 수정 시각',
+    PRIMARY KEY (id),
+    KEY idx_driver_works_agency_status (agency_id, status),
+    KEY idx_driver_works_contract_id (contract_id),
+    KEY idx_driver_works_assigned_deliver_status (assigned_deliver_id, status),
+    KEY idx_driver_works_pickup_start_date (pickup_start_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='배송기사 일감';
+
+CREATE TABLE IF NOT EXISTS driver_work_applications (
+    id BINARY(16) NOT NULL COMMENT '기사 일감 신청 식별자',
+    driver_work_id BINARY(16) NOT NULL COMMENT '신청 대상 기사 일감 식별자',
+    deliver_id BINARY(16) NOT NULL COMMENT '신청한 배송기사 식별자',
+    status VARCHAR(30) NOT NULL COMMENT '신청 상태(APPLIED, WITHDRAWN, SELECTED, REJECTED)',
+    memo VARCHAR(255) NULL COMMENT '배송기사가 신청 시 남기는 메모',
+    created_at DATETIME(6) NOT NULL COMMENT '생성 시각',
+    updated_at DATETIME(6) NOT NULL COMMENT '마지막 수정 시각',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_driver_work_applications_work_deliver (driver_work_id, deliver_id),
+    KEY idx_driver_work_applications_work_status (driver_work_id, status),
+    KEY idx_driver_work_applications_deliver_status (deliver_id, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='배송기사 일감 신청';

@@ -15,6 +15,7 @@ import logisticsking.com.logisticskingbackendspring.domain.agency.Agency
 import logisticsking.com.logisticskingbackendspring.domain.agency.AgencyRepository
 import logisticsking.com.logisticskingbackendspring.domain.common.IdGenerator
 import logisticsking.com.logisticskingbackendspring.domain.deliver.Deliver
+import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverEmploymentType
 import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverRepository
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import logisticsking.com.logisticskingbackendspring.domain.notification.NotificationPublisher
@@ -77,25 +78,61 @@ class DeliverContractService(
             linkUrl = "/deliver-contracts/driver/me",
         )
 
-        return DeliverContractResult.from(saved)
+        return DeliverContractResult.from(
+            deliverContract = saved,
+            agency = agency,
+            deliver = deliver,
+        )
     }
 
     @Transactional(readOnly = true)
-    override fun getMyAgencyDeliverContracts(userId: UUID, pageable: Pageable): Page<DeliverContractResult> {
+    override fun getMyAgencyDeliverContracts(
+        userId: UUID,
+        condition: DeliverContractSearchCondition,
+        pageable: Pageable,
+    ): Page<DeliverContractResult> {
         findAgencyUser(userId)
         val agency = findAgencyByUserId(userId)
+        val deliverContracts = deliverContractRepository.findAllByAgencyId(
+            agencyId = agency.id,
+            condition = condition,
+            pageable = pageable,
+        )
+        val deliversById = deliverRepository.findAllByIds(deliverContracts.content.map(DeliverContract::deliverId).distinct())
+            .associateBy(Deliver::id)
 
-        return deliverContractRepository.findAllByAgencyId(agency.id, pageable)
-            .map(DeliverContractResult::from)
+        return deliverContracts.map { deliverContract ->
+            DeliverContractResult.from(
+                deliverContract = deliverContract,
+                agency = agency,
+                deliver = deliversById[deliverContract.deliverId],
+            )
+        }
     }
 
     @Transactional(readOnly = true)
-    override fun getMyDriverDeliverContracts(userId: UUID, pageable: Pageable): Page<DeliverContractResult> {
+    override fun getMyDriverDeliverContracts(
+        userId: UUID,
+        condition: DeliverContractSearchCondition,
+        pageable: Pageable,
+    ): Page<DeliverContractResult> {
         findDriverUser(userId)
         val deliver = findDeliverByUserId(userId)
+        val deliverContracts = deliverContractRepository.findAllByDeliverId(
+            deliverId = deliver.id,
+            condition = condition,
+            pageable = pageable,
+        )
+        val agenciesById = agencyRepository.findAllByIds(deliverContracts.content.map(DeliverContract::agencyId).distinct())
+            .associateBy(Agency::id)
 
-        return deliverContractRepository.findAllByDeliverId(deliver.id, pageable)
-            .map(DeliverContractResult::from)
+        return deliverContracts.map { deliverContract ->
+            DeliverContractResult.from(
+                deliverContract = deliverContract,
+                agency = agenciesById[deliverContract.agencyId],
+                deliver = deliver,
+            )
+        }
     }
 
     @Transactional
@@ -112,7 +149,11 @@ class DeliverContractService(
             memo = command.memo,
         )
 
-        return DeliverContractResult.from(deliverContractRepository.save(updated))
+        return DeliverContractResult.from(
+            deliverContract = deliverContractRepository.save(updated),
+            agency = agency,
+            deliver = findDeliver(updated.deliverId),
+        )
     }
 
     @Transactional
@@ -131,7 +172,11 @@ class DeliverContractService(
             linkUrl = "/deliver-contracts/agency/me",
         )
 
-        return DeliverContractResult.from(saved)
+        return DeliverContractResult.from(
+            deliverContract = saved,
+            agency = findAgency(saved.agencyId),
+            deliver = deliver,
+        )
     }
 
     @Transactional
@@ -150,7 +195,11 @@ class DeliverContractService(
             linkUrl = "/deliver-contracts/agency/me",
         )
 
-        return DeliverContractResult.from(saved)
+        return DeliverContractResult.from(
+            deliverContract = saved,
+            agency = findAgency(saved.agencyId),
+            deliver = deliver,
+        )
     }
 
     @Transactional
@@ -159,7 +208,13 @@ class DeliverContractService(
         val agency = findAgencyByUserId(command.userId)
         val deliverContract = findDeliverContractByAgency(command.deliverContractId, agency.id)
 
-        return DeliverContractResult.from(deliverContractRepository.save(deliverContract.cancel()))
+        val saved = deliverContractRepository.save(deliverContract.cancel())
+
+        return DeliverContractResult.from(
+            deliverContract = saved,
+            agency = agency,
+            deliver = findDeliver(saved.deliverId),
+        )
     }
 
     private fun findAgencyUser(userId: UUID): User {
@@ -226,7 +281,7 @@ class DeliverContractService(
         deliver: Deliver,
         agency: Agency,
     ) {
-        if (deliver.agencyId != agency.id) {
+        if (deliver.employmentType == DeliverEmploymentType.AGENCY_AFFILIATED && deliver.agencyId != agency.id) {
             throw GlobalException(DeliverContractErrorCode.DELIVER_DOES_NOT_BELONG_TO_AGENCY)
         }
     }

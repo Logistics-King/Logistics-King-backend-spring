@@ -1,6 +1,7 @@
 package logisticsking.com.logisticskingbackendspring.infra.security
 
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPoint
+import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointAccessRole
 import logisticsking.com.logisticskingbackendspring.domain.permission.EndPointRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import org.junit.jupiter.api.AfterEach
@@ -38,7 +39,7 @@ class EndPointAuthorizationFilterTest {
                 EndPoint.create(
                     url = "/api/v1/admin/**",
                     method = "GET",
-                    roles = setOf(UserRole.ADMIN),
+                    roles = setOf(EndPointAccessRole.ADMIN),
                     description = "admin only",
                 )
             )
@@ -58,7 +59,7 @@ class EndPointAuthorizationFilterTest {
                 EndPoint.create(
                     url = "/api/v1/vendors/**",
                     method = "GET",
-                    roles = setOf(UserRole.VENDOR),
+                    roles = setOf(EndPointAccessRole.VENDOR),
                     description = "vendor endpoints",
                 )
             )
@@ -96,7 +97,7 @@ class EndPointAuthorizationFilterTest {
                 EndPoint.create(
                     url = "/api/v1/shared/**",
                     method = "GET",
-                    roles = setOf(UserRole.VENDOR, UserRole.AGENCY),
+                    roles = setOf(EndPointAccessRole.VENDOR, EndPointAccessRole.AGENCY),
                     description = "shared endpoints",
                 )
             )
@@ -110,13 +111,57 @@ class EndPointAuthorizationFilterTest {
     }
 
     @Test
+    fun `PUBLIC endpoint는 인증 정보 없이 통과한다`() {
+        val filter = filterWith(
+            listOf(
+                EndPoint.create(
+                    url = "/api/v1/agencies",
+                    method = "GET",
+                    roles = setOf(EndPointAccessRole.PUBLIC),
+                    description = "public agency search",
+                )
+            )
+        )
+        val response = MockHttpServletResponse()
+
+        filter.doFilter(request("/api/v1/agencies"), response, MockFilterChain())
+
+        assertEquals(200, response.status)
+    }
+
+    @Test
+    fun `정확히 일치하는 보호 endpoint는 public path variable보다 우선한다`() {
+        val filter = filterWith(
+            listOf(
+                EndPoint.create(
+                    url = "/api/v1/agencies/me",
+                    method = "GET",
+                    roles = setOf(EndPointAccessRole.AGENCY),
+                    description = "my agency",
+                ),
+                EndPoint.create(
+                    url = "/api/v1/agencies/{agencyId}",
+                    method = "GET",
+                    roles = setOf(EndPointAccessRole.PUBLIC),
+                    description = "public agency detail",
+                )
+            )
+        )
+        val response = MockHttpServletResponse()
+
+        filter.doFilter(request("/api/v1/agencies/me"), response, MockFilterChain())
+
+        assertEquals(401, response.status)
+    }
+
+    @Test
     fun `권한 검사는 요청마다 repository를 다시 조회하지 않는다`() {
         val repository = CountingEndPointRepository(
             listOf(
                 EndPoint.create(
                     url = "/api/v1/vendors/**",
                     method = "GET",
-                    roles = setOf(UserRole.VENDOR),
+                    roles = setOf(EndPointAccessRole.VENDOR),
                     description = "vendor endpoints",
                 )
             )

@@ -24,6 +24,12 @@ class ContractRepositoryImpl(
         return saved.toDomain(contractItemJpaRepository.findAllByContractIdOrderByCreatedAtAsc(saved.id))
     }
 
+    override fun findById(id: UUID): Contract? {
+        val contract = contractJpaRepository.findById(id).orElse(null) ?: return null
+
+        return contract.toDomain(contractItemJpaRepository.findAllByContractIdOrderByCreatedAtAsc(contract.id))
+    }
+
     override fun findAllByVendorId(vendorId: UUID, pageable: Pageable): Page<Contract> {
         return contractJpaRepository.findAllByVendorIdOrderByCreatedAtDesc(vendorId, pageable)
             .toDomainPageWithItems()

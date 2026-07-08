@@ -15,10 +15,13 @@ import logisticsking.com.logisticskingbackendspring.app.delivercontract.usecase.
 import logisticsking.com.logisticskingbackendspring.app.delivercontract.usecase.RejectDeliverContractUseCase
 import logisticsking.com.logisticskingbackendspring.app.delivercontract.usecase.UpdateDeliverContractUseCase
 import logisticsking.com.logisticskingbackendspring.app.permission.EndpointAccess
+import logisticsking.com.logisticskingbackendspring.domain.delivercontract.DeliverContractSearchCondition
+import logisticsking.com.logisticskingbackendspring.domain.delivercontract.DeliverContractStatus
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import logisticsking.com.logisticskingbackendspring.infra.security.AuthenticatedUser
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -26,7 +29,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 import java.util.UUID
 
 @Tag(name = "DeliverContract", description = "배송기사 계약 API")
@@ -62,9 +67,26 @@ class DeliverContractController(
     @GetMapping("/agency/me")
     fun getMyAgencyDeliverContracts(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @RequestParam(required = false) status: DeliverContractStatus?,
+        @RequestParam(required = false) serviceRegion: String?,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        startDateFrom: LocalDate?,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        startDateTo: LocalDate?,
         @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<DeliverContractResponse.List> {
-        val results = getMyAgencyDeliverContractsUseCase.getMyAgencyDeliverContracts(user.userId, pageable)
+        val results = getMyAgencyDeliverContractsUseCase.getMyAgencyDeliverContracts(
+            userId = user.userId,
+            condition = DeliverContractSearchCondition(
+                status = status,
+                serviceRegion = serviceRegion,
+                startDateFrom = startDateFrom,
+                startDateTo = startDateTo,
+            ),
+            pageable = pageable,
+        )
 
         return ApiResponse.success(
             response = DeliverContractResponse.List.from(results),
@@ -76,9 +98,26 @@ class DeliverContractController(
     @GetMapping("/driver/me")
     fun getMyDriverDeliverContracts(
         @AuthenticationPrincipal user: AuthenticatedUser,
+        @RequestParam(required = false) status: DeliverContractStatus?,
+        @RequestParam(required = false) serviceRegion: String?,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        startDateFrom: LocalDate?,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        startDateTo: LocalDate?,
         @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<DeliverContractResponse.List> {
-        val results = getMyDriverDeliverContractsUseCase.getMyDriverDeliverContracts(user.userId, pageable)
+        val results = getMyDriverDeliverContractsUseCase.getMyDriverDeliverContracts(
+            userId = user.userId,
+            condition = DeliverContractSearchCondition(
+                status = status,
+                serviceRegion = serviceRegion,
+                startDateFrom = startDateFrom,
+                startDateTo = startDateTo,
+            ),
+            pageable = pageable,
+        )
 
         return ApiResponse.success(
             response = DeliverContractResponse.List.from(results),

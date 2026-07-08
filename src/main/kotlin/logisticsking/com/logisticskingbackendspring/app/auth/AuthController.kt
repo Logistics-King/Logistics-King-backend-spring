@@ -41,7 +41,7 @@ class AuthController(
     private val tokenCookieManager: TokenCookieManager,
 ) {
 
-    @Operation(summary = "화주 회원가입", description = "화주 계정을 생성합니다.")
+    @Operation(summary = "화주 회원가입", description = "화주 계정과 화주 프로필을 함께 생성합니다.")
     @PostMapping("/sign-up/vendor")
     fun signUpVendor(
         @Valid @RequestBody request: AuthRequest.SignUpVendor,
@@ -56,7 +56,7 @@ class AuthController(
         )
     }
 
-    @Operation(summary = "대리점 회원가입", description = "택배 대리점 계정을 생성합니다.")
+    @Operation(summary = "대리점 회원가입", description = "택배 대리점 계정과 대리점 프로필을 함께 생성합니다.")
     @PostMapping("/sign-up/agency")
     fun signUpAgency(
         @Valid @RequestBody request: AuthRequest.SignUpAgency,
@@ -71,7 +71,7 @@ class AuthController(
         )
     }
 
-    @Operation(summary = "배송기사 회원가입", description = "배송기사 계정을 생성합니다.")
+    @Operation(summary = "배송기사 회원가입", description = "배송기사 계정과 배송기사 프로필을 함께 생성합니다.")
     @PostMapping("/sign-up/driver")
     fun signUpDriver(
         @Valid @RequestBody request: AuthRequest.SignUpDriver,

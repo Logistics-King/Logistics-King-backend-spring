@@ -4,6 +4,7 @@ import logisticsking.com.logisticskingbackendspring.app.delivercontract.command.
 import logisticsking.com.logisticskingbackendspring.app.delivercontract.command.DeliverContractIdCommand
 import logisticsking.com.logisticskingbackendspring.app.delivercontract.command.UpdateDeliverContractCommand
 import logisticsking.com.logisticskingbackendspring.app.delivercontract.result.DeliverContractResult
+import logisticsking.com.logisticskingbackendspring.domain.delivercontract.DeliverContractSearchCondition
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.util.UUID
@@ -13,11 +14,19 @@ interface CreateDeliverContractUseCase {
 }
 
 interface GetMyAgencyDeliverContractsUseCase {
-    fun getMyAgencyDeliverContracts(userId: UUID, pageable: Pageable): Page<DeliverContractResult>
+    fun getMyAgencyDeliverContracts(
+        userId: UUID,
+        condition: DeliverContractSearchCondition,
+        pageable: Pageable,
+    ): Page<DeliverContractResult>
 }
 
 interface GetMyDriverDeliverContractsUseCase {
-    fun getMyDriverDeliverContracts(userId: UUID, pageable: Pageable): Page<DeliverContractResult>
+    fun getMyDriverDeliverContracts(
+        userId: UUID,
+        condition: DeliverContractSearchCondition,
+        pageable: Pageable,
+    ): Page<DeliverContractResult>
 }
 
 interface UpdateDeliverContractUseCase {

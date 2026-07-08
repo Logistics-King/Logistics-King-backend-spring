@@ -3,14 +3,18 @@ package logisticsking.com.logisticskingbackendspring.app.deliver.dto
 import io.swagger.v3.oas.annotations.media.Schema
 import logisticsking.com.logisticskingbackendspring.app.deliver.command.CreateDeliverCommand
 import logisticsking.com.logisticskingbackendspring.app.deliver.command.UpdateDeliverCommand
+import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverEmploymentType
 import java.util.UUID
 
 @Schema(description = "배송기사 요청")
 sealed interface DeliverRequest {
     @Schema(name = "DeliverCreateRequest")
     data class Create(
+        @field:Schema(description = "배송기사 고용 형태 (AGENCY_AFFILIATED, FREELANCER)", example = "AGENCY_AFFILIATED")
+        val employmentType: DeliverEmploymentType,
+
         @field:Schema(description = "소속 대리점 ID", example = "019b1f44-a741-7000-8000-000000000010")
-        val agencyId: UUID,
+        val agencyId: UUID?,
 
         @field:Schema(description = "기사명", example = "김택배")
         val driverName: String,
@@ -33,6 +37,7 @@ sealed interface DeliverRequest {
         fun toCommand(userId: UUID): CreateDeliverCommand {
             return CreateDeliverCommand(
                 userId = userId,
+                employmentType = employmentType,
                 agencyId = agencyId,
                 driverName = driverName,
                 phoneNumber = phoneNumber,
@@ -46,8 +51,11 @@ sealed interface DeliverRequest {
 
     @Schema(name = "DeliverUpdateRequest")
     data class Update(
+        @field:Schema(description = "배송기사 고용 형태 (AGENCY_AFFILIATED, FREELANCER)", example = "FREELANCER")
+        val employmentType: DeliverEmploymentType,
+
         @field:Schema(description = "소속 대리점 ID", example = "019b1f44-a741-7000-8000-000000000010")
-        val agencyId: UUID,
+        val agencyId: UUID?,
 
         @field:Schema(description = "기사명", example = "박배송")
         val driverName: String,
@@ -70,6 +78,7 @@ sealed interface DeliverRequest {
         fun toCommand(userId: UUID): UpdateDeliverCommand {
             return UpdateDeliverCommand(
                 userId = userId,
+                employmentType = employmentType,
                 agencyId = agencyId,
                 driverName = driverName,
                 phoneNumber = phoneNumber,
