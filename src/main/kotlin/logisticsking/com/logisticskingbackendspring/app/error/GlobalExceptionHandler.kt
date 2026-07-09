@@ -1,6 +1,7 @@
 package logisticsking.com.logisticskingbackendspring.app.error
 
 import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
+import logisticsking.com.logisticskingbackendspring.domain.error.ErrorCode
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalErrorCode
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import org.slf4j.LoggerFactory
@@ -19,6 +20,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(GlobalException::class)
     fun handleGlobalException(exception: GlobalException): ResponseEntity<ApiResponse<Nothing>> {
         val errorCode = exception.errorCode
+        logHandledException(errorCode, exception)
 
         return ResponseEntity
             .status(errorCode.status)
@@ -34,6 +36,7 @@ class GlobalExceptionHandler {
     fun handleHttpMessageNotReadable(exception: HttpMessageNotReadableException): ResponseEntity<ApiResponse<Nothing>> {
         val errorCode = GlobalErrorCode.INVALID_REQUEST
         val message = buildRequestBodyErrorMessage(exception)
+        logInvalidRequest(errorCode.code, message, exception)
 
         return ResponseEntity
             .status(errorCode.status)
@@ -54,6 +57,7 @@ class GlobalExceptionHandler {
         } else {
             "요청 값이 올바르지 않습니다. '${fieldError.field}' 값이 잘못되었습니다. ${fieldError.defaultMessage ?: "요청 값을 확인해 주세요."}"
         }
+        logInvalidRequest(errorCode.code, message, exception)
 
         return ResponseEntity
             .status(errorCode.status)
@@ -70,13 +74,15 @@ class GlobalExceptionHandler {
         exception: MissingServletRequestParameterException,
     ): ResponseEntity<ApiResponse<Nothing>> {
         val errorCode = GlobalErrorCode.INVALID_REQUEST
+        val message = "요청 값이 올바르지 않습니다. '${exception.parameterName}' 파라미터가 필요합니다."
+        logInvalidRequest(errorCode.code, message, exception)
 
         return ResponseEntity
             .status(errorCode.status)
             .body(
                 ApiResponse.error(
                     code = errorCode.code,
-                    errorMessage = "요청 값이 올바르지 않습니다. '${exception.parameterName}' 파라미터가 필요합니다.",
+                    errorMessage = message,
                 )
             )
     }
@@ -87,13 +93,15 @@ class GlobalExceptionHandler {
     ): ResponseEntity<ApiResponse<Nothing>> {
         val errorCode = GlobalErrorCode.INVALID_REQUEST
         val expectedType = exception.requiredType?.toExpectedTypeName() ?: "올바른 형식"
+        val message = "요청 값이 올바르지 않습니다. '${exception.name}' 값은 $expectedType 형식이어야 합니다."
+        logInvalidRequest(errorCode.code, message, exception)
 
         return ResponseEntity
             .status(errorCode.status)
             .body(
                 ApiResponse.error(
                     code = errorCode.code,
-                    errorMessage = "요청 값이 올바르지 않습니다. '${exception.name}' 값은 $expectedType 형식이어야 합니다.",
+                    errorMessage = message,
                 )
             )
     }
@@ -142,6 +150,41 @@ class GlobalExceptionHandler {
         return patterns.firstNotNullOfOrNull { pattern ->
             pattern.find(message)?.groupValues?.getOrNull(1)
         }
+    }
+
+    private fun logHandledException(
+        errorCode: ErrorCode,
+        exception: Exception,
+    ) {
+        if (errorCode.status.is5xxServerError) {
+            logger.error(
+                "Request failed with domain error status={} errorCode={}",
+                errorCode.status.value(),
+                errorCode.code,
+                exception,
+            )
+            return
+        }
+
+        logger.warn(
+            "Request failed with domain error status={} errorCode={} message={}",
+            errorCode.status.value(),
+            errorCode.code,
+            exception.message,
+        )
+    }
+
+    private fun logInvalidRequest(
+        errorCode: String,
+        message: String,
+        exception: Exception,
+    ) {
+        logger.warn(
+            "Invalid request errorCode={} message={} exception={}",
+            errorCode,
+            message,
+            exception::class.simpleName,
+        )
     }
 
     private fun Class<*>.toExpectedTypeName(): String {
