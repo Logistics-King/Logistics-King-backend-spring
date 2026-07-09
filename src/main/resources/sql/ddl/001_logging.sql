@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS access_logs (
+    id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'access log 식별자',
+    request_id BIGINT NOT NULL COMMENT '요청 추적 ID',
+    user_id BINARY(16) NULL COMMENT '요청 사용자 식별자',
+    user_role VARCHAR(30) NULL COMMENT '요청 사용자 역할',
+    method VARCHAR(10) NOT NULL COMMENT 'HTTP method',
+    path VARCHAR(1000) NOT NULL COMMENT '요청 path',
+    query_string VARCHAR(2000) NULL COMMENT '요청 query string',
+    status_code INT NOT NULL COMMENT '응답 HTTP status code',
+    latency_ms BIGINT NOT NULL COMMENT '요청 처리 시간(ms)',
+    error_code VARCHAR(100) NULL COMMENT '응답 error code',
+    client_ip VARCHAR(100) NULL COMMENT '클라이언트 IP',
+    user_agent VARCHAR(1000) NULL COMMENT 'User-Agent',
+    occurred_at DATETIME(6) NOT NULL COMMENT '요청 발생 시각',
+    created_at DATETIME(6) NOT NULL COMMENT '생성 시각',
+    updated_at DATETIME(6) NOT NULL COMMENT '마지막 수정 시각',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_access_logs_request_id (request_id),
+    KEY idx_access_logs_occurred_at (occurred_at),
+    KEY idx_access_logs_path_occurred_at (path(255), occurred_at),
+    KEY idx_access_logs_user_occurred_at (user_id, occurred_at),
+    KEY idx_access_logs_status_occurred_at (status_code, occurred_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='API access log';

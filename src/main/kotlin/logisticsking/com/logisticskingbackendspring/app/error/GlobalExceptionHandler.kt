@@ -5,6 +5,7 @@ import logisticsking.com.logisticskingbackendspring.domain.error.ErrorCode
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalErrorCode
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -109,6 +110,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(Exception::class)
     fun handleException(exception: Exception): ResponseEntity<ApiResponse<Nothing>> {
         val errorCode = GlobalErrorCode.INTERNAL_SERVER_ERROR
+        MDC.put(ERROR_CODE, errorCode.code)
         logger.error("Unhandled exception occurred while processing request.", exception)
 
         return ResponseEntity
@@ -156,6 +158,8 @@ class GlobalExceptionHandler {
         errorCode: ErrorCode,
         exception: Exception,
     ) {
+        MDC.put(ERROR_CODE, errorCode.code)
+
         if (errorCode.status.is5xxServerError) {
             logger.error(
                 "Request failed with domain error status={} errorCode={}",
@@ -179,6 +183,8 @@ class GlobalExceptionHandler {
         message: String,
         exception: Exception,
     ) {
+        MDC.put(ERROR_CODE, errorCode)
+
         logger.warn(
             "Invalid request errorCode={} message={} exception={}",
             errorCode,
@@ -202,6 +208,7 @@ class GlobalExceptionHandler {
     }
 
     private companion object {
+        private const val ERROR_CODE = "errorCode"
         private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
     }
 }
