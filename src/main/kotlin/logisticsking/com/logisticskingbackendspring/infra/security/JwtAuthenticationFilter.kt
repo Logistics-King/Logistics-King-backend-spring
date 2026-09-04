@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse
 import logisticsking.com.logisticskingbackendspring.domain.auth.AuthErrorCode
 import logisticsking.com.logisticskingbackendspring.domain.auth.TokenProvider
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
+import org.slf4j.MDC
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -45,6 +46,8 @@ class JwtAuthenticationFilter(
                 null,
                 listOf(SimpleGrantedAuthority("ROLE_${claims.role.name}")),
             )
+            MDC.put(USER_ID, claims.userId.toString())
+            MDC.put(USER_ROLE, claims.role.name)
             filterChain.doFilter(request, response)
         } catch (exception: GlobalException) {
             SecurityContextHolder.clearContext()
@@ -59,5 +62,7 @@ class JwtAuthenticationFilter(
             "/swagger-ui/",
             "/v3/api-docs",
         )
+        private const val USER_ID = "userId"
+        private const val USER_ROLE = "userRole"
     }
 }

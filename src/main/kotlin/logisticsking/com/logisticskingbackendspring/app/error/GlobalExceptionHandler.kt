@@ -1,9 +1,11 @@
 package logisticsking.com.logisticskingbackendspring.app.error
 
 import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
+import logisticsking.com.logisticskingbackendspring.domain.error.ErrorCode
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalErrorCode
 import logisticsking.com.logisticskingbackendspring.domain.error.GlobalException
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -19,6 +21,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(GlobalException::class)
     fun handleGlobalException(exception: GlobalException): ResponseEntity<ApiResponse<Nothing>> {
         val errorCode = exception.errorCode
+        logHandledException(errorCode, exception)
 
         return ResponseEntity
             .status(errorCode.status)
@@ -34,6 +37,7 @@ class GlobalExceptionHandler {
     fun handleHttpMessageNotReadable(exception: HttpMessageNotReadableException): ResponseEntity<ApiResponse<Nothing>> {
         val errorCode = GlobalErrorCode.INVALID_REQUEST
         val message = buildRequestBodyErrorMessage(exception)
+        logInvalidRequest(errorCode.code, message, exception)
 
         return ResponseEntity
             .status(errorCode.status)
@@ -54,6 +58,7 @@ class GlobalExceptionHandler {
         } else {
             "요청 값이 올바르지 않습니다. '${fieldError.field}' 값이 잘못되었습니다. ${fieldError.defaultMessage ?: "요청 값을 확인해 주세요."}"
         }
+        logInvalidRequest(errorCode.code, message, exception)
 
         return ResponseEntity
             .status(errorCode.status)
@@ -70,13 +75,15 @@ class GlobalExceptionHandler {
         exception: MissingServletRequestParameterException,
     ): ResponseEntity<ApiResponse<Nothing>> {
         val errorCode = GlobalErrorCode.INVALID_REQUEST
+        val message = "요청 값이 올바르지 않습니다. '${exception.parameterName}' 파라미터가 필요합니다."
+        logInvalidRequest(errorCode.code, message, exception)
 
         return ResponseEntity
             .status(errorCode.status)
             .body(
                 ApiResponse.error(
                     code = errorCode.code,
-                    errorMessage = "요청 값이 올바르지 않습니다. '${exception.parameterName}' 파라미터가 필요합니다.",
+                    errorMessage = message,
                 )
             )
     }
@@ -87,13 +94,15 @@ class GlobalExceptionHandler {
     ): ResponseEntity<ApiResponse<Nothing>> {
         val errorCode = GlobalErrorCode.INVALID_REQUEST
         val expectedType = exception.requiredType?.toExpectedTypeName() ?: "올바른 형식"
+        val message = "요청 값이 올바르지 않습니다. '${exception.name}' 값은 $expectedType 형식이어야 합니다."
+        logInvalidRequest(errorCode.code, message, exception)
 
         return ResponseEntity
             .status(errorCode.status)
             .body(
                 ApiResponse.error(
                     code = errorCode.code,
-                    errorMessage = "요청 값이 올바르지 않습니다. '${exception.name}' 값은 $expectedType 형식이어야 합니다.",
+                    errorMessage = message,
                 )
             )
     }
@@ -101,6 +110,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(Exception::class)
     fun handleException(exception: Exception): ResponseEntity<ApiResponse<Nothing>> {
         val errorCode = GlobalErrorCode.INTERNAL_SERVER_ERROR
+        MDC.put(ERROR_CODE, errorCode.code)
         logger.error("Unhandled exception occurred while processing request.", exception)
 
         return ResponseEntity
@@ -144,6 +154,45 @@ class GlobalExceptionHandler {
         }
     }
 
+    private fun logHandledException(
+        errorCode: ErrorCode,
+        exception: Exception,
+    ) {
+        MDC.put(ERROR_CODE, errorCode.code)
+
+        if (errorCode.status.is5xxServerError) {
+            logger.error(
+                "Request failed with domain error status={} errorCode={}",
+                errorCode.status.value(),
+                errorCode.code,
+                exception,
+            )
+            return
+        }
+
+        logger.warn(
+            "Request failed with domain error status={} errorCode={} message={}",
+            errorCode.status.value(),
+            errorCode.code,
+            exception.message,
+        )
+    }
+
+    private fun logInvalidRequest(
+        errorCode: String,
+        message: String,
+        exception: Exception,
+    ) {
+        MDC.put(ERROR_CODE, errorCode)
+
+        logger.warn(
+            "Invalid request errorCode={} message={} exception={}",
+            errorCode,
+            message,
+            exception::class.simpleName,
+        )
+    }
+
     private fun Class<*>.toExpectedTypeName(): String {
         return when (this) {
             String::class.java -> "문자열"
@@ -159,6 +208,7 @@ class GlobalExceptionHandler {
     }
 
     private companion object {
+        private const val ERROR_CODE = "errorCode"
         private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
     }
 }
