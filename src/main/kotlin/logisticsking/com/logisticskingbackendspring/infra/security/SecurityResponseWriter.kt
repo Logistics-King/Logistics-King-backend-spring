@@ -3,6 +3,8 @@ package logisticsking.com.logisticskingbackendspring.infra.security
 import jakarta.servlet.http.HttpServletResponse
 import logisticsking.com.logisticskingbackendspring.app.common.ApiResponse
 import logisticsking.com.logisticskingbackendspring.domain.error.ErrorCode
+import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import tools.jackson.databind.ObjectMapper
@@ -16,6 +18,13 @@ class SecurityResponseWriter(
         response: HttpServletResponse,
         errorCode: ErrorCode,
     ) {
+        MDC.put(ERROR_CODE, errorCode.code)
+
+        logger.warn(
+            "Security request rejected status={} errorCode={}",
+            errorCode.status.value(),
+            errorCode.code,
+        )
         response.status = errorCode.status.value()
         response.contentType = MediaType.APPLICATION_JSON_VALUE
         response.characterEncoding = Charsets.UTF_8.name()
@@ -27,5 +36,10 @@ class SecurityResponseWriter(
                 )
             )
         )
+    }
+
+    private companion object {
+        private const val ERROR_CODE = "errorCode"
+        private val logger = LoggerFactory.getLogger(SecurityResponseWriter::class.java)
     }
 }

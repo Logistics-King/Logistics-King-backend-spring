@@ -68,6 +68,7 @@ src/main/resources/sql
     001_contract.sql
     001_agency_driver.sql
     001_notification.sql
+    001_logging.sql
   dml
     001_vendor_seed.sql
     001_contract_seed.sql
@@ -88,6 +89,7 @@ src/main/resources/sql
 - 계약 요청, 제안, 최종 계약은 `001_contract.sql`에 둔다.
 - 대리점, 배송기사, 기사 일감은 `001_agency_driver.sql`에 둔다.
 - 알림은 `001_notification.sql`에 둔다.
+- access log 같은 운영 추적 로그는 `001_logging.sql`에 둔다.
 - seed/reference DML도 도메인별 `sql/dml/001_{domain}_seed.sql`에 둔다.
 - 기존 데이터 보정 DML은 `sql/dml/{순번}_{domain}_{작업내용}.sql` 형식으로 둔다.
 - 로컬 개발 환경에서는 Hibernate `ddl-auto=create`를 유지한다.

@@ -1,0 +1,18 @@
+.git
+.github
+.codex
+.agents
+.idea
+.gradle
+.kotlin
+build
+out
+.env*
+*.pem
+*.key
+*.log
+.DS_Store
+# Runtime configuration is supplied on the server, never copied from a developer machine.
+src/main/resources/application*.yml
+src/main/resources/application*.yaml
+src/main/resources/application*.properties

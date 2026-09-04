@@ -486,6 +486,30 @@ SSE는 알림의 원천 저장소가 아니라 실시간 전달 채널이다. �
 
 Redis unread count cache나 서버 간 SSE pub/sub은 다중 서버 배포 시 2차 확장으로 둔다.
 
+## 운영 로그 도메인
+
+`AccessLog`는 비즈니스 행위의 원천 데이터가 아니라 운영 추적용 기록이다.
+
+목적:
+
+- 어떤 사용자가 언제 어떤 API를 호출했는지 확인한다.
+- 4xx/5xx가 많이 발생하는 API를 찾는다.
+- 느린 API와 요청 지연 시간을 추적한다.
+- 프론트/운영자가 전달한 `X-Request-Id`로 서버 로그와 DB 기록을 함께 찾는다.
+
+저장 기준:
+
+- 모든 API 요청은 요약 정보만 저장한다.
+- request/response body 전체, cookie, token, password는 저장하지 않는다.
+- 전화번호, 주소, 사업자등록번호 같은 민감 정보 원문은 access log에 저장하지 않는다.
+- `requestId`, `method`, `path`, `queryString`, `statusCode`, `latencyMs`, `userId`, `userRole`, `errorCode`, `clientIp`, `userAgent`, `occurredAt`을 저장한다.
+
+트랜잭션 정책:
+
+- access log 저장 실패가 원래 API 성공/실패에 영향을 주면 안 된다.
+- 요청 처리 완료 후 이벤트를 발행하고, 비동기 listener가 별도 트랜잭션으로 저장한다.
+- 초기 구현은 Spring `@Async`를 사용하고, 트래픽이 커지면 Kafka/RabbitMQ/Redis Stream 같은 외부 queue로 분리할 수 있게 한다.
+
 ## 도메인 전제와 확인 필요 사항
 
 - `택배왕`은 기획 자료에서 제시된 서비스명이다.
