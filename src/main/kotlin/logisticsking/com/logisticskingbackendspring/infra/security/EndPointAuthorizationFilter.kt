@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import logisticsking.com.logisticskingbackendspring.domain.auth.AuthErrorCode
+import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.cors.CorsUtils
@@ -38,6 +39,16 @@ class EndPointAuthorizationFilter(
 
         val requestUri = request.servletPath
         val requestMethod = request.method
+        if (principal.role == UserRole.GUEST) {
+            if (requestMethod != GET_METHOD) {
+                securityResponseWriter.writeError(response, AuthErrorCode.GUEST_READ_ONLY)
+                return
+            }
+
+            filterChain.doFilter(request, response)
+            return
+        }
+
         val allowed = endPointAuthorizationCache.isAllowed(
             requestUri = requestUri,
             requestMethod = requestMethod,
@@ -54,6 +65,7 @@ class EndPointAuthorizationFilter(
 
     private companion object {
         private const val API_PATH = "/api/v1/"
+        private const val GET_METHOD = "GET"
         private val PUBLIC_PATHS = listOf(
             "/api/v1/auth/",
         )

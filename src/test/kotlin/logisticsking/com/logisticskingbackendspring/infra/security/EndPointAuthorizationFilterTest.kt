@@ -53,6 +53,45 @@ class EndPointAuthorizationFilterTest {
     }
 
     @Test
+    fun `게스트는 endpoint 역할 설정과 관계없이 GET 요청을 통과한다`() {
+        // Given: ADMIN만 허용된 보호 조회 endpoint와 GUEST 인증 정보를 준비한다.
+        val filter = filterWith(
+            listOf(
+                EndPoint.create(
+                    url = "/api/v1/admin/**",
+                    method = "GET",
+                    roles = setOf(EndPointAccessRole.ADMIN),
+                    description = "admin only",
+                )
+            )
+        )
+        val response = MockHttpServletResponse()
+        authenticate(UserRole.GUEST)
+
+        // When: 게스트가 보호 조회 endpoint를 요청한다.
+        filter.doFilter(request("/api/v1/admin/users"), response, MockFilterChain())
+
+        // Then: 화면 체험을 위해 endpoint 권한 캐시 검사를 건너뛰고 요청을 통과한다.
+        assertEquals(200, response.status)
+    }
+
+    @Test
+    fun `게스트의 변경 요청은 저장 전에 GUEST_READ_ONLY 403을 응답한다`() {
+        // Given: GUEST 인증 정보와 계약 요청 생성처럼 변경을 만드는 POST 요청을 준비한다.
+        val filter = filterWith(emptyList())
+        val response = MockHttpServletResponse()
+        authenticate(UserRole.GUEST)
+
+        // When: 게스트가 변경 요청을 보낸다.
+        filter.doFilter(request("/api/v1/contract-requests", method = "POST"), response, MockFilterChain())
+
+        // Then: 실제 use case까지 도달하지 않고 게스트 전용 안내 코드와 문구를 반환한다.
+        assertEquals(403, response.status)
+        assertEquals(true, response.contentAsString.contains("GUEST_READ_ONLY"))
+        assertEquals(true, response.contentAsString.contains("게스트 모드에서는 체험만 가능합니다. 변경 내용은 저장되지 않습니다."))
+    }
+
+    @Test
     fun `role에 허용된 endpoint면 통과한다`() {
         val filter = filterWith(
             listOf(
@@ -191,8 +230,11 @@ class EndPointAuthorizationFilterTest {
         )
     }
 
-    private fun request(path: String): MockHttpServletRequest {
-        return MockHttpServletRequest("GET", path).apply {
+    private fun request(
+        path: String,
+        method: String = "GET",
+    ): MockHttpServletRequest {
+        return MockHttpServletRequest(method, path).apply {
             servletPath = path
         }
     }

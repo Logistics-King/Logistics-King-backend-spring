@@ -116,6 +116,53 @@ class AuthServiceTest {
     }
 
     @Test
+    fun `일반 회원가입 흐름으로 GUEST 계정을 생성할 수 없다`() {
+        // Given: 일반 회원가입 요청이 임시 접근 전용 역할인 GUEST를 지정한다.
+        val service = authService()
+        val command = SignUpCommand(
+            loginId = "guest",
+            email = "guest@example.com",
+            password = "password",
+            passwordConfirm = "password",
+            name = "guest",
+            role = UserRole.GUEST,
+        )
+
+        // When: 비밀번호와 프로필을 사용하는 일반 회원가입 흐름으로 게스트 생성을 시도한다.
+        val exception = assertThrows(GlobalException::class.java) {
+            service.signUp(command)
+        }
+
+        // Then: 게스트는 별도 임시 접근 API로만 발급해야 하므로 일반 회원가입을 거부한다.
+        assertEquals(AuthErrorCode.INVALID_SIGN_UP_PROFILE, exception.errorCode)
+    }
+
+    @Test
+    fun `게스트 접근 발급 시 계정을 저장하지 않고 GUEST access token만 반환한다`() {
+        // Given: DB에 저장되지 않을 고정 guestId와 비어 있는 사용자·refresh token 저장소를 준비한다.
+        val guestId = UUID.randomUUID()
+        val userRepository = FakeUserRepository()
+        val refreshTokenRepository = FakeRefreshTokenRepository()
+        val tokenProvider = FakeTokenProvider(user())
+        val service = authService(
+            userRepository = userRepository,
+            idGenerator = FakeIdGenerator(guestId),
+            tokenProvider = tokenProvider,
+            refreshTokenRepository = refreshTokenRepository,
+        )
+
+        // When: 비밀번호나 회원 프로필 없이 게스트 접근 권한을 발급한다.
+        val result = service.accessAsGuest()
+
+        // Then: 임시 ID와 GUEST access token을 반환하고 영속 계정과 refresh token은 만들지 않는다.
+        assertEquals(guestId, result.guestId)
+        assertEquals(UserRole.GUEST, result.role)
+        assertEquals("guest-access-$guestId", result.accessToken)
+        assertEquals(0, userRepository.saveCount)
+        assertEquals(0, refreshTokenRepository.saveCount)
+    }
+
+    @Test
     fun `login 성공 시 refresh token을 저장한다`() {
         val user = user()
         val refreshTokenRepository = FakeRefreshTokenRepository()
@@ -296,6 +343,7 @@ class AuthServiceTest {
         userRepository: FakeUserRepository = FakeUserRepository(),
         idGenerator: IdGenerator = FakeIdGenerator(UUID.randomUUID()),
         tokenUser: User = user(),
+        tokenProvider: TokenProvider = FakeTokenProvider(tokenUser),
         refreshTokenRepository: FakeRefreshTokenRepository = FakeRefreshTokenRepository(),
         accountRecoveryTokenRepository: FakeAccountRecoveryTokenRepository = FakeAccountRecoveryTokenRepository(),
         accountRecoveryEmailSender: FakeAccountRecoveryEmailSender = FakeAccountRecoveryEmailSender(),
@@ -307,7 +355,7 @@ class AuthServiceTest {
             userRepository = userRepository,
             idGenerator = idGenerator,
             passwordManager = FakePasswordManager(),
-            tokenProvider = FakeTokenProvider(tokenUser),
+            tokenProvider = tokenProvider,
             refreshTokenRepository = refreshTokenRepository,
             accountRecoveryTokenRepository = accountRecoveryTokenRepository,
             accountRecoveryTokenGenerator = FakeAccountRecoveryTokenGenerator(),
@@ -360,6 +408,9 @@ class AuthServiceTest {
     private class FakeUserRepository(
         user: User? = null,
     ) : UserRepository {
+        var saveCount: Int = 0
+            private set
+
         private val users = user
             ?.let { mutableMapOf(it.id to it) }
             ?: mutableMapOf()
@@ -395,6 +446,7 @@ class AuthServiceTest {
         }
 
         override fun save(user: User): User {
+            saveCount += 1
             users[user.id] = user
             return user
         }
@@ -501,6 +553,10 @@ class AuthServiceTest {
             return "access-${user.id}"
         }
 
+        override fun generateGuestAccessToken(guestId: UUID): String {
+            return "guest-access-$guestId"
+        }
+
         override fun generateRefreshToken(user: User): String {
             refreshSequence += 1
             return "refresh-${user.id}-$refreshSequence"
@@ -525,12 +581,15 @@ class AuthServiceTest {
 
     private class FakeRefreshTokenRepository : RefreshTokenRepository {
         private val tokens = mutableMapOf<UUID, String>()
+        var saveCount: Int = 0
+            private set
 
         override fun save(
             userId: UUID,
             token: String,
             ttl: Duration,
         ) {
+            saveCount += 1
             tokens[userId] = token
         }
 

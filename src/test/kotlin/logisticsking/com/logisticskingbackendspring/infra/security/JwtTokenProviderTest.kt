@@ -38,6 +38,31 @@ class JwtTokenProviderTest {
         }
     }
 
+    @Test
+    fun `게스트 access token은 GUEST 역할과 임시 ID를 포함한다`() {
+        // Given: DB 사용자와 연결되지 않은 임시 게스트 ID를 준비한다.
+        val guestId = UUID.randomUUID()
+
+        // When: 게스트 access token을 발급하고 access token으로 해석한다.
+        val token = tokenProvider.generateGuestAccessToken(guestId)
+        val claims = tokenProvider.parseAccessToken(token)
+
+        // Then: 토큰 subject는 임시 ID이고 권한은 GUEST여야 한다.
+        assertEquals(guestId, claims.userId)
+        assertEquals(UserRole.GUEST, claims.role)
+    }
+
+    @Test
+    fun `게스트 access token은 refresh token으로 사용할 수 없다`() {
+        // Given: refresh token을 발급하지 않는 게스트의 access token을 준비한다.
+        val token = tokenProvider.generateGuestAccessToken(UUID.randomUUID())
+
+        // When & Then: 토큰 종류가 ACCESS이므로 refresh token 검증은 실패해야 한다.
+        assertThrows(GlobalException::class.java) {
+            tokenProvider.parseRefreshToken(token)
+        }
+    }
+
     private fun user(): User {
         return User.create(
             id = UUID.randomUUID(),
