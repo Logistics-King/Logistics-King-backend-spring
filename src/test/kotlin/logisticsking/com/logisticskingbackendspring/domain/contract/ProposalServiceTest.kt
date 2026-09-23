@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
 
 class ProposalServiceTest {
@@ -205,6 +206,7 @@ class ProposalServiceTest {
             condition: ContractRequestSearchCondition,
             pageable: Pageable,
         ): Page<ContractRequest> = PageImpl(requests.values.filter { it.status == ContractRequestStatus.OPEN }, pageable, requests.size.toLong())
+        override fun countOpenVendorOffersCreatedSince(region: String?, createdSince: LocalDateTime): Long = 0
         override fun existsActiveByVendorIdAndProductIds(
             vendorId: UUID,
             productIds: Collection<UUID>,

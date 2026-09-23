@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
 
 class ContractRequestServiceTest {
@@ -445,6 +446,7 @@ class ContractRequestServiceTest {
             condition: ContractRequestSearchCondition,
             pageable: Pageable,
         ): Page<ContractRequest> = findAllByStatus(ContractRequestStatus.OPEN, pageable)
+        override fun countOpenVendorOffersCreatedSince(region: String?, createdSince: LocalDateTime): Long = 0
         override fun existsActiveByVendorIdAndProductIds(vendorId: UUID, productIds: Collection<UUID>, excludedContractRequestId: UUID?): Boolean {
             return requests.values.any { request ->
                 request.id != excludedContractRequestId &&
@@ -477,6 +479,7 @@ class ContractRequestServiceTest {
         override fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Contract> = PageImpl(emptyList(), pageable, 0)
         override fun findRecentAgencyIdsByVendorId(vendorId: UUID, limit: Int): List<UUID> = emptyList()
         override fun findRecentVendorIdsByAgencyId(agencyId: UUID, limit: Int): List<UUID> = emptyList()
+        override fun findRecentPublicContracts(region: String?, createdSince: LocalDateTime, limit: Int): List<RecentPublicContract> = emptyList()
         override fun existsByContractRequestId(contractRequestId: UUID): Boolean = false
     }
 

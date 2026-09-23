@@ -2,6 +2,7 @@ package logisticsking.com.logisticskingbackendspring.domain.contract
 
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.time.LocalDateTime
 import java.util.UUID
 
 interface ContractRepository {
@@ -11,5 +12,10 @@ interface ContractRepository {
     fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Contract>
     fun findRecentAgencyIdsByVendorId(vendorId: UUID, limit: Int): List<UUID>
     fun findRecentVendorIdsByAgencyId(agencyId: UUID, limit: Int): List<UUID>
+    fun findRecentPublicContracts(
+        region: String?,
+        createdSince: LocalDateTime,
+        limit: Int,
+    ): List<RecentPublicContract>
     fun existsByContractRequestId(contractRequestId: UUID): Boolean
 }

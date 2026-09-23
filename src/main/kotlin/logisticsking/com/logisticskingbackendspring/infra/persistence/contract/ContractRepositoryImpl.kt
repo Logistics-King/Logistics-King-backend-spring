@@ -2,16 +2,19 @@ package logisticsking.com.logisticskingbackendspring.infra.persistence.contract
 
 import logisticsking.com.logisticskingbackendspring.domain.contract.Contract
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRepository
+import logisticsking.com.logisticskingbackendspring.domain.contract.RecentPublicContract
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Repository
 class ContractRepositoryImpl(
     private val contractJpaRepository: ContractJpaRepository,
     private val contractItemJpaRepository: ContractItemJpaRepository,
+    private val publicContractQueryRepository: PublicContractQueryRepository,
 ) : ContractRepository {
 
     override fun save(contract: Contract): Contract {
@@ -58,6 +61,18 @@ class ContractRepositoryImpl(
             .content
             .map(ContractJpaEntity::vendorId)
             .distinct()
+    }
+
+    override fun findRecentPublicContracts(
+        region: String?,
+        createdSince: LocalDateTime,
+        limit: Int,
+    ): List<RecentPublicContract> {
+        return publicContractQueryRepository.findRecent(
+            region = region,
+            createdSince = createdSince,
+            limit = limit,
+        )
     }
 
     override fun existsByContractRequestId(contractRequestId: UUID): Boolean {

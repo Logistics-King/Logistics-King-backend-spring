@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Repository
@@ -137,6 +138,16 @@ class ContractRequestRepositoryImpl(
             condition = condition,
             pageable = pageable,
         ).toDomainPageWithItems()
+    }
+
+    override fun countOpenVendorOffersCreatedSince(
+        region: String?,
+        createdSince: LocalDateTime,
+    ): Long {
+        return contractRequestQueryRepository.countOpenVendorOffersCreatedSince(
+            region = region,
+            createdSince = createdSince,
+        )
     }
 
     override fun existsActiveByVendorIdAndProductIds(
