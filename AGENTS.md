@@ -8,15 +8,15 @@ This repository is the backend for `택배왕`, a logistics contract platform.
 - Framework: Spring Boot 4.0.6
 - Java: 21
 - Build tool: Gradle
-- Main domain reference: `.codex/domain.md`
-- Main architecture reference: `.codex/architecture.md`
-- API reference: `.codex/api.md`
-- Code convention reference: `.codex/code-convention.md`
-- Commit reference: `.codex/commit.md`
-- Orchestration reference: `.codex/orchestration.md`
-- Error handling reference: `.codex/error-handling.md`
-- Persistence/JPA reference: `.codex/persistence.md`
-- Querydsl reference: `.codex/querydsl.md`
+- Main domain reference: `.codex/domain/domain.md`
+- Main architecture reference: `.codex/architecture/architecture.md`
+- API reference: `.codex/api/api.md`
+- Code convention reference: `.codex/architecture/code-convention.md`
+- Commit reference: `.codex/git/commit.md`
+- Orchestration reference: `.codex/architecture/orchestration.md`
+- Error handling reference: `.codex/operation/error-handling.md`
+- Persistence/JPA reference: `.codex/persistence/persistence.md`
+- Querydsl reference: `.codex/persistence/querydsl.md`
 
 ## Output style
 
@@ -30,8 +30,8 @@ This repository is the backend for `택배왕`, a logistics contract platform.
 
 - Official service name: `택배왕`
 - Do not use `딜링크` or `DealLink` as the service name.
-- Before designing or implementing domain behavior, read `.codex/domain.md`.
-- Treat `.codex/domain.md` as the source of truth for detailed domain notes.
+- Before designing or implementing domain behavior, read `.codex/domain/domain.md` and the relevant domain-specific file.
+- Treat `.codex/domain/` as the source of truth for detailed domain notes.
 - Market size, parcel volume, and growth-rate numbers are planning-document figures and need validation against official statistics before being presented as verified facts.
 
 ## Core concepts
@@ -74,22 +74,67 @@ Nearby 대리점 submit private proposals, and the 화주 compares them in one v
 
 ## Implementation guidance
 
-- Before implementing code, read `.codex/architecture.md`.
-- For non-trivial feature implementation, follow `.codex/orchestration.md`.
-- Before adding or changing APIs, read `.codex/api.md`.
-- Before broad formatting or naming cleanup, read `.codex/code-convention.md`.
-- Before staging or committing changes, read `.codex/commit.md`.
-- Before adding or changing exceptions, read `.codex/error-handling.md`.
-- Before adding or changing JPA persistence code, read `.codex/persistence.md`.
-- Before writing Querydsl queries, read `.codex/querydsl.md`.
+- Before implementing code, read `.codex/architecture/architecture.md`.
+- For non-trivial feature implementation, follow `.codex/architecture/orchestration.md`.
+- Before adding or changing APIs, read `.codex/api/api.md` and only the relevant API rule document.
+- Before broad formatting or naming cleanup, read `.codex/architecture/code-convention.md`.
+- Before staging or committing changes, read `.codex/git/commit.md`.
+- Before adding or changing exceptions, read `.codex/operation/error-handling.md`.
+- Before adding or changing JPA persistence code, read `.codex/persistence/persistence.md`.
+- Before writing Querydsl queries, read `.codex/persistence/querydsl.md`.
 - Use the domain terms consistently in code, APIs, tests, and documentation.
 - Prefer names that map directly to the domain: `shipper`, `agency`, `carrier`, `contractRequest`, `proposal`, `contract`, and `comparisonItem`.
-- When adding a new feature, first check `.codex/domain.md` sections:
-  - `주요 도메인 객체 후보`
-  - `기본 매칭 기준`
-  - `입찰과 비교 규칙`
+- When adding a new feature, read only the relevant `.codex/domain/*.md` file:
+  - Contract request: `contract-request.md`
+  - Proposal and negotiation: `proposal.md`
+  - Final contract: `contract.md`
+  - Product and item: `product.md`
+  - Recommendation: `recommendation.md`
+  - Delivery driver: `delivery-driver.md`, `driver-work.md`
+  - Notification and SSE: `notification.md`
+  - Operation log: `operation-log.md`
 - Keep domain logic explicit. Do not hide bidding, matching, or contract-selection rules in generic helper code.
-- Avoid adding unrelated market, revenue, or business-plan detail to code comments. Keep those notes in `.codex/domain.md`.
+- Avoid adding unrelated market, revenue, or business-plan detail to code comments. Keep those notes in `.codex/domain/open-decisions.md` or the relevant domain file.
+
+## Context Loading Rules
+
+Do not read every Markdown file for every task. Load only the documents required by the requested work.
+
+### Common
+
+- Every non-trivial implementation: `.codex/architecture/orchestration.md`
+- Domain policy or business behavior: `.codex/domain/domain.md`
+- Layer or dependency changes: `.codex/architecture/architecture.md`
+
+### API
+
+- API addition or change: `.codex/api/api.md`
+- Request DTO: `.codex/api/request.md`
+- Response DTO: `.codex/api/response.md`
+- Controller and Swagger: `.codex/api/controller.md`
+- Authentication and permissions: `.codex/api/authentication.md`
+- Pagination or date fields: `.codex/api/pagination.md`
+- Public API or privacy scope: `.codex/api/public-api.md`
+- Authentication or signup API: `.codex/api/authentication.md`
+- Exception or error response change: `.codex/operation/error-handling.md`
+
+### Persistence
+
+- Entity, Repository, SQL, or transaction change: `.codex/persistence/persistence.md`
+- Querydsl search or join: `.codex/persistence/querydsl.md`
+
+### Code And Verification
+
+- Kotlin formatting or naming cleanup: `.codex/architecture/code-convention.md`
+- Performance measurement or optimization: `.codex/operation/performance.md`
+- Staging or committing: `.codex/git/commit.md`
+
+### Explicit-Request Documents
+
+Read these only when the user asks for portfolio, work-memory, or related documentation work:
+
+- `.codex/portfolio/portfolio.md`
+- `.codex/memory/**`
 
 ## Verification
 
@@ -105,4 +150,4 @@ Nearby 대리점 submit private proposals, and the 화주 compares them in one v
 ./gradlew compileKotlin
 ```
 
-- For documentation-only changes to `AGENTS.md` or `.codex/domain.md`, inspecting the rendered Markdown and checking old service-name references is enough.
+- For documentation-only changes to `AGENTS.md` or `.codex/domain/domain.md`, inspecting the rendered Markdown and checking old service-name references is enough.

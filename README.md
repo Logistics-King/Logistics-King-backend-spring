@@ -135,14 +135,13 @@ http://localhost:8080/swagger-ui.html
 
 프로젝트 규칙은 `.codex` 문서에 관리합니다.
 
-- `.codex/domain.md`: 도메인 정의와 비즈니스 규칙
-- `.codex/architecture.md`: 계층 구조와 의존 방향
-- `.codex/api.md`: URL, Request/Response, 공통 응답 규칙
-- `.codex/error-handling.md`: ErrorCode와 GlobalException 규칙
-- `.codex/persistence.md`: JPA, SQL, DB 규칙
-- `.codex/querydsl.md`: Querydsl 작성 패턴
-- `.codex/performance.md`: 성능 테스트 기록과 개선 근거
-- `.codex/commit.md`: 커밋 메시지와 diff 분리 규칙
+- `.codex/domain/`: 도메인 정의와 비즈니스 규칙
+- `.codex/architecture/`: 계층 구조, 오케스트레이션, 코드 컨벤션
+- `.codex/api/`: URL, Request/Response, 공통 응답 규칙
+- `.codex/operation/`: 예외 처리와 성능 테스트 기록
+- `.codex/persistence/`: JPA, SQL, DB, Querydsl 규칙
+- `.codex/git/`: 커밋 메시지와 diff 분리 규칙
+- `.codex/portfolio/`: 포트폴리오 정리와 작업 기록
 
 ## AI 개발 하네스
 
