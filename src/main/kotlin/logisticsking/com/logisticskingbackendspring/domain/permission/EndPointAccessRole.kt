@@ -8,6 +8,7 @@ enum class EndPointAccessRole {
     VENDOR,
     AGENCY,
     DRIVER,
+    GUEST,
     ;
 
     companion object {

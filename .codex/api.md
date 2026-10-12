@@ -484,3 +484,19 @@ data class PageResponse<T>(
 2026-05-03T23:30:00
 2026-05-03T23:30:00+09:00
 ```
+
+## 공개 조회 API
+
+비로그인, 게스트, 로그인 사용자가 함께 조회한다. `region`이 없으면 전국 기준이며, 지역이 있으면 모든 홈 섹션에 같은 지역 기준을 적용한다.
+
+```text
+GET /api/v1/agencies?region=&page=0&size=6&scope=ALL
+GET /api/v1/market/contract-requests?region=&page=0&size=6
+GET /api/v1/market/contract-requests/summary?region=
+GET /api/v1/market/contracts/recent?region=
+```
+
+- `agencies`: 지역별 대리점 수는 기존 목록 응답의 `totalElements`를 사용한다.
+- `market/contract-requests`: Vendor가 공개한 `VENDOR_OFFER + OPEN` 요청만 생성일 내림차순 페이지로 반환한다. 화주명, 연락처, 상세 주소, 메모, 제안 정보는 반환하지 않는다.
+- `market/contract-requests/summary`: 지역별 공개 요청 수와 최근 7일 신규 공개 요청 수를 반환한다.
+- `market/contracts/recent`: Contract가 최근 72시간 안에 성사된 계약을 성사 시각 내림차순 최대 6건 반환한다. 상호명과 대리점명은 반환하지만 계약/제안 식별자, 연락처, 상세 주소, 메모는 반환하지 않는다.

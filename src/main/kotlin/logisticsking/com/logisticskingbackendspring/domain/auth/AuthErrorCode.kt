@@ -28,6 +28,11 @@ enum class AuthErrorCode(
         message = "접근 권한이 없습니다.",
         status = HttpStatus.FORBIDDEN,
     ),
+    GUEST_READ_ONLY(
+        code = "GUEST_READ_ONLY",
+        message = "게스트 모드에서는 체험만 가능합니다. 변경 내용은 저장되지 않습니다.",
+        status = HttpStatus.FORBIDDEN,
+    ),
     INVALID_TOKEN(
         code = "INVALID_TOKEN",
         message = "토큰이 올바르지 않습니다.",

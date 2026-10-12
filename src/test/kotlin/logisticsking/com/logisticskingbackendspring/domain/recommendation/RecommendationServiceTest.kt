@@ -7,6 +7,7 @@ import logisticsking.com.logisticskingbackendspring.domain.agency.Carrier
 import logisticsking.com.logisticskingbackendspring.domain.common.ColdChainType
 import logisticsking.com.logisticskingbackendspring.domain.contract.Contract
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRepository
+import logisticsking.com.logisticskingbackendspring.domain.contract.RecentPublicContract
 import logisticsking.com.logisticskingbackendspring.domain.user.User
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRepository
 import logisticsking.com.logisticskingbackendspring.domain.user.UserRole
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import java.util.UUID
+import java.time.LocalDateTime
 
 class RecommendationServiceTest {
 
@@ -251,6 +253,7 @@ class RecommendationServiceTest {
         override fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Contract> = PageImpl(emptyList(), pageable, 0)
         override fun findRecentAgencyIdsByVendorId(vendorId: UUID, limit: Int): List<UUID> = previousAgencyIds.take(limit)
         override fun findRecentVendorIdsByAgencyId(agencyId: UUID, limit: Int): List<UUID> = previousVendorIds.take(limit)
+        override fun findRecentPublicContracts(region: String?, createdSince: LocalDateTime, limit: Int): List<RecentPublicContract> = emptyList()
         override fun existsByContractRequestId(contractRequestId: UUID): Boolean = false
     }
 }

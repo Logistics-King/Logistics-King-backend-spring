@@ -10,12 +10,14 @@ import logisticsking.com.logisticskingbackendspring.app.auth.command.RequestPass
 import logisticsking.com.logisticskingbackendspring.app.auth.command.ResetPasswordCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.command.SignUpCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.result.AccountRecoveryRequestResult
+import logisticsking.com.logisticskingbackendspring.app.auth.result.GuestAccessResult
 import logisticsking.com.logisticskingbackendspring.app.auth.result.LoginResult
 import logisticsking.com.logisticskingbackendspring.app.auth.result.LogoutResult
 import logisticsking.com.logisticskingbackendspring.app.auth.result.RefreshTokenResult
 import logisticsking.com.logisticskingbackendspring.app.auth.result.ResetPasswordResult
 import logisticsking.com.logisticskingbackendspring.app.auth.result.SignUpResult
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.LoginUseCase
+import logisticsking.com.logisticskingbackendspring.app.auth.usecase.GuestAccessUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.LogoutUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.RefreshTokenUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.RequestLoginIdRecoveryUseCase
@@ -56,6 +58,7 @@ class AuthService(
     @Value("\${auth.jwt.refresh-token-expiration-seconds}") private val refreshTokenExpirationSeconds: Long,
 ) : SignUpUseCase,
     LoginUseCase,
+    GuestAccessUseCase,
     RefreshTokenUseCase,
     LogoutUseCase,
     RequestLoginIdRecoveryUseCase,
@@ -162,6 +165,7 @@ class AuthService(
                 )
             }
             UserRole.ADMIN -> Unit
+            UserRole.GUEST -> throw GlobalException(AuthErrorCode.INVALID_SIGN_UP_PROFILE)
         }
     }
 
@@ -186,6 +190,16 @@ class AuthService(
             role = user.role,
             accessToken = accessToken,
             refreshToken = refreshToken,
+        )
+    }
+
+    override fun accessAsGuest(): GuestAccessResult {
+        val guestId = idGenerator.generate()
+
+        return GuestAccessResult(
+            guestId = guestId,
+            role = UserRole.GUEST,
+            accessToken = tokenProvider.generateGuestAccessToken(guestId),
         )
     }
 

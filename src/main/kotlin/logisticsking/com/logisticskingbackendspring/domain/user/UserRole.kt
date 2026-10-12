@@ -5,4 +5,5 @@ enum class UserRole {
     VENDOR,
     AGENCY,
     DRIVER,
+    GUEST,
 }

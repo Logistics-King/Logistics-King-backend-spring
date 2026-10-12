@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Repository
@@ -200,6 +201,25 @@ class ContractRequestQueryRepository(
             .fetchOne() ?: 0L
 
         return PageImpl(content, pageable, total)
+    }
+
+    fun countOpenVendorOffersCreatedSince(
+        region: String?,
+        createdSince: LocalDateTime,
+    ): Long {
+        return queryFactory
+            .select(contractRequest.count())
+            .from(contractRequest)
+            .leftJoin(vendor).on(contractRequest.requesterId.eq(vendor.id))
+            .where(
+                contractRequest.type.eq(ContractRequestType.VENDOR_OFFER),
+                contractRequest.status.eq(ContractRequestStatus.OPEN),
+                contractRequest.approverType.eq(ContractPartyType.AGENCY),
+                vendor.deletedAt.isNull,
+                region?.trim()?.takeIf(String::isNotBlank)?.let { contractRequest.pickupRegion.containsIgnoreCase(it) },
+                contractRequest.createdAt.goe(createdSince),
+            )
+            .fetchOne() ?: 0L
     }
 
     fun existsActiveByVendorIdAndProductIds(

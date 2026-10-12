@@ -15,6 +15,12 @@ data class LoginResult(
     val refreshToken: String,
 )
 
+data class GuestAccessResult(
+    val guestId: UUID,
+    val role: UserRole,
+    val accessToken: String,
+)
+
 data class RefreshTokenResult(
     val userId: UUID,
     val role: UserRole,

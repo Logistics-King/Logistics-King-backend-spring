@@ -15,6 +15,7 @@ import logisticsking.com.logisticskingbackendspring.domain.contract.ContractItem
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRepository
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractRequestContractType
 import logisticsking.com.logisticskingbackendspring.domain.contract.ContractStatus
+import logisticsking.com.logisticskingbackendspring.domain.contract.RecentPublicContract
 import logisticsking.com.logisticskingbackendspring.domain.deliver.Deliver
 import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverEmploymentType
 import logisticsking.com.logisticskingbackendspring.domain.deliver.DeliverRepository
@@ -36,6 +37,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.time.LocalDate
 import java.util.UUID
 
@@ -352,6 +354,7 @@ class DriverWorkServiceTest {
         override fun findAllByAgencyId(agencyId: UUID, pageable: Pageable): Page<Contract> = PageImpl(emptyList(), pageable, 0)
         override fun findRecentAgencyIdsByVendorId(vendorId: UUID, limit: Int): List<UUID> = emptyList()
         override fun findRecentVendorIdsByAgencyId(agencyId: UUID, limit: Int): List<UUID> = emptyList()
+        override fun findRecentPublicContracts(region: String?, createdSince: LocalDateTime, limit: Int): List<RecentPublicContract> = emptyList()
         override fun existsByContractRequestId(contractRequestId: UUID): Boolean = false
     }
 

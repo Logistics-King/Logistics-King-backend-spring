@@ -8,6 +8,7 @@ import logisticsking.com.logisticskingbackendspring.app.auth.command.RefreshToke
 import logisticsking.com.logisticskingbackendspring.app.auth.dto.AuthRequest
 import logisticsking.com.logisticskingbackendspring.app.auth.dto.AuthResponse
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.LoginUseCase
+import logisticsking.com.logisticskingbackendspring.app.auth.usecase.GuestAccessUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.LogoutUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.RefreshTokenUseCase
 import logisticsking.com.logisticskingbackendspring.app.auth.usecase.RequestLoginIdRecoveryUseCase
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController
 class AuthController(
     private val signUpUseCase: SignUpUseCase,
     private val loginUseCase: LoginUseCase,
+    private val guestAccessUseCase: GuestAccessUseCase,
     private val refreshTokenUseCase: RefreshTokenUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val requestLoginIdRecoveryUseCase: RequestLoginIdRecoveryUseCase,
@@ -99,6 +101,24 @@ class AuthController(
         return ApiResponse.success(
             response = AuthResponse.Login(
                 userId = result.userId.toString(),
+                role = result.role.name,
+            )
+        )
+    }
+
+    @Operation(
+        summary = "게스트 접근 발급",
+        description = "DB 계정이나 refresh token 없이 임시 GUEST access token을 HttpOnly cookie로 발급합니다.",
+    )
+    @PostMapping("/guest")
+    fun accessAsGuest(response: HttpServletResponse): ApiResponse<AuthResponse.GuestAccess> {
+        val result = guestAccessUseCase.accessAsGuest()
+        response.addHeader(HttpHeaders.SET_COOKIE, tokenCookieManager.createAccessTokenCookie(result.accessToken).toString())
+        response.addHeader(HttpHeaders.SET_COOKIE, tokenCookieManager.expireRefreshTokenCookie().toString())
+
+        return ApiResponse.success(
+            response = AuthResponse.GuestAccess(
+                guestId = result.guestId.toString(),
                 role = result.role.name,
             )
         )
