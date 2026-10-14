@@ -22,6 +22,15 @@ sealed interface AuthResponse {
         val role: String,
     ) : AuthResponse
 
+    @Schema(description = "게스트 접근 응답")
+    data class GuestAccess(
+        @field:Schema(description = "임시 게스트 ID", example = "019b1f44-a741-7000-8000-000000000001")
+        val guestId: String,
+
+        @field:Schema(description = "권한", example = "GUEST")
+        val role: String,
+    ) : AuthResponse
+
     @Schema(description = "토큰 재발급 응답")
     data class Refresh(
         @field:Schema(description = "사용자 ID", example = "019b1f44-a741-7000-8000-000000000001")

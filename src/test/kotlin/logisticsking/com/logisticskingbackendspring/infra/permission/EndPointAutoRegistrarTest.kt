@@ -78,6 +78,35 @@ class EndPointAutoRegistrarTest {
         assertEquals(setOf(EndPointAccessRole.PUBLIC), saved?.roles)
     }
 
+    @Test
+    fun `GUEST endpoint는 GUEST 정책으로 신규 등록한다`() {
+        // Given: GUEST만 접근하도록 선언한 신규 API와 비어 있는 endpoint 저장소를 준비한다.
+        val repository = MutableEndPointRepository(emptyList())
+        val handlerMapping = RequestMappingHandlerMapping()
+        val controller = TestController()
+        handlerMapping.registerMapping(
+            RequestMappingInfo
+                .paths("/api/v1/guest-test")
+                .methods(RequestMethod.GET)
+                .build(),
+            controller,
+            TestController::class.java.getDeclaredMethod("guestGet"),
+        )
+        val registrar = EndPointAutoRegistrar(
+            requestMappingHandlerMapping = handlerMapping,
+            endPointRepository = repository,
+            endPointAuthorizationCache = EndPointAuthorizationCache(repository),
+        )
+
+        // When: 애플리케이션 시작 시 수행되는 endpoint 자동 등록을 실행한다.
+        registrar.run(DefaultApplicationArguments())
+
+        val saved = repository.findByUrlAndMethod("/api/v1/guest-test", RequestMethod.GET.name)
+
+        // Then: 운영 안전 기본값인 ADMIN과 명시한 GUEST가 함께 접근 역할로 등록되어야 한다.
+        assertEquals(setOf(EndPointAccessRole.ADMIN, EndPointAccessRole.GUEST), saved?.roles)
+    }
+
     private class TestController {
 
         @EndpointAccess(roles = [UserRole.VENDOR])
@@ -88,6 +117,11 @@ class EndPointAutoRegistrarTest {
         @EndpointAccess(publicAccess = true)
         @GetMapping("/api/v1/public-test")
         fun publicGet() {
+        }
+
+        @EndpointAccess(roles = [UserRole.GUEST])
+        @GetMapping("/api/v1/guest-test")
+        fun guestGet() {
         }
     }
 

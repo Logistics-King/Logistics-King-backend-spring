@@ -8,6 +8,7 @@ import logisticsking.com.logisticskingbackendspring.app.auth.command.RequestPass
 import logisticsking.com.logisticskingbackendspring.app.auth.command.ResetPasswordCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.command.SignUpCommand
 import logisticsking.com.logisticskingbackendspring.app.auth.result.AccountRecoveryRequestResult
+import logisticsking.com.logisticskingbackendspring.app.auth.result.GuestAccessResult
 import logisticsking.com.logisticskingbackendspring.app.auth.result.LoginResult
 import logisticsking.com.logisticskingbackendspring.app.auth.result.LogoutResult
 import logisticsking.com.logisticskingbackendspring.app.auth.result.RefreshTokenResult
@@ -20,6 +21,10 @@ interface SignUpUseCase {
 
 interface LoginUseCase {
     fun login(command: LoginCommand): LoginResult
+}
+
+interface GuestAccessUseCase {
+    fun accessAsGuest(): GuestAccessResult
 }
 
 interface RefreshTokenUseCase {

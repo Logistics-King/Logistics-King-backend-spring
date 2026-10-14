@@ -2,6 +2,7 @@ package logisticsking.com.logisticskingbackendspring.domain.contract
 
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.time.LocalDateTime
 import java.util.UUID
 
 interface ContractRequestRepository {
@@ -48,6 +49,10 @@ interface ContractRequestRepository {
         condition: ContractRequestSearchCondition,
         pageable: Pageable,
     ): Page<ContractRequest>
+    fun countOpenVendorOffersCreatedSince(
+        region: String?,
+        createdSince: LocalDateTime,
+    ): Long
     fun existsActiveByVendorIdAndProductIds(
         vendorId: UUID,
         productIds: Collection<UUID>,

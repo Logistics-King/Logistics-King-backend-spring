@@ -26,7 +26,17 @@ class JwtTokenProvider(
 
     override fun generateAccessToken(user: User): String {
         return generateToken(
-            user = user,
+            userId = user.id,
+            role = user.role,
+            tokenType = ACCESS_TOKEN_TYPE,
+            expirationSeconds = accessTokenExpirationSeconds,
+        )
+    }
+
+    override fun generateGuestAccessToken(guestId: UUID): String {
+        return generateToken(
+            userId = guestId,
+            role = UserRole.GUEST,
             tokenType = ACCESS_TOKEN_TYPE,
             expirationSeconds = accessTokenExpirationSeconds,
         )
@@ -34,7 +44,8 @@ class JwtTokenProvider(
 
     override fun generateRefreshToken(user: User): String {
         return generateToken(
-            user = user,
+            userId = user.id,
+            role = user.role,
             tokenType = REFRESH_TOKEN_TYPE,
             expirationSeconds = refreshTokenExpirationSeconds,
         )
@@ -49,7 +60,8 @@ class JwtTokenProvider(
     }
 
     private fun generateToken(
-        user: User,
+        userId: UUID,
+        role: UserRole,
         tokenType: String,
         expirationSeconds: Long,
     ): String {
@@ -57,8 +69,8 @@ class JwtTokenProvider(
         val expiresAt = issuedAt.plusSeconds(expirationSeconds)
 
         return JWT.create()
-            .withSubject(user.id.toString())
-            .withClaim(ROLE_CLAIM, user.role.name)
+            .withSubject(userId.toString())
+            .withClaim(ROLE_CLAIM, role.name)
             .withClaim(TYPE_CLAIM, tokenType)
             .withIssuedAt(Date.from(issuedAt))
             .withExpiresAt(Date.from(expiresAt))
